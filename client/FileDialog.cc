@@ -627,9 +627,6 @@ bool FileDialogWidget::updateFiles()
 
 void filesDialogCreate(bool show /*=true*/)
 {
-
-    //std::cout<<"first window function called"<<std::endl;
-
     if (!filedialog) {
         filedialog = new FileDialog;
         //filedialog->destroyed = true;
@@ -646,7 +643,6 @@ void filesDialogCreate(bool show /*=true*/)
             }
         }
     }
-
 
     if (show){
         filedialog->show();

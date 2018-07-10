@@ -52,7 +52,7 @@ extern GetMatrixSlice* getmatrixslice;
 
 vector < Map3dGLWidget * >AllWindows;
 vector < GeomWindow * >GeomWindows;
-
+vector < ActivationMapWindow*> ActivationMapWindows;
 
 GeomWindow *GetGeomWindow(int index)
 {
@@ -65,6 +65,20 @@ unsigned numGeomWindows()
 {
     return GeomWindows.size();
 }
+
+
+ActivationMapWindow *GetActivationMapWindow(int index)
+{
+    if (index < 0 || index >= ActivationMapWindows.size())
+        return NULL;
+    return ActivationMapWindows[index];
+}
+
+unsigned numActivationMapWindows()
+{
+    return ActivationMapWindows.size();
+}
+
 
 Map3dGLWidget *GetWindow(int index)
 {

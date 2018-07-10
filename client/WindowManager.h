@@ -10,6 +10,7 @@ class PickWindow;
 class LegendWindow;
 
 class GetMatrixSlice;
+class ActivationMapWindow;
 
 
 
@@ -20,6 +21,9 @@ class Mesh_Info;
 struct Global_Input;
 
 GeomWindow *GetGeomWindow(int index);
+
+ActivationMapWindow *GetActivationMapWindow(int index);
+
 unsigned numGeomWindows();
 Map3dGLWidget *GetWindow(int index);
 unsigned numWindows();

@@ -5,8 +5,19 @@
 #include "WindowManager.h"
 #include "eventdata.h"
 #include <math.h>
-
 #include <QCheckBox>
+#include "FileDialog.h"
+#include "MainWindow.h"
+#include "ProcessCommandLineOptions.h"
+#include "Transforms.h"
+#include "eventdata.h"
+#include "map3d-struct.h"
+#include "matlabarray.h"
+#include "GetMatrixSlice.h"
+
+#include "ActivationMapWindow.h"
+
+
 
 extern Map3d_Info map3d_info;
 
@@ -21,7 +32,7 @@ const char* MeshProperty_trans_Points = "MeshProperty_trans_Points";
 
 
 enum contTableCols{
-    SurfNum, Transparencycol, PointsOnlyCols
+    SurfNum, Transparencycol, PointsOnlyCols, ActivationCols
 };
 
 
@@ -39,22 +50,24 @@ DrawTransparentPoints::DrawTransparentPoints()
 
         bool origPointsOnly = false;
         bool origtransparent = false;
+        bool origActivationStatus = false;
 
         if (mesh->data)
         {
             origPointsOnly = mesh->data->user_pointsonly;
             origtransparent = mesh->data->user_transparent;
+            origActivationStatus = mesh->data->user_activationmap;
+
         }
 
         origPointsOnlyFix << origPointsOnly;
         origFixedTranparent << origtransparent;
+        origActivationFix << origActivationStatus;
 
         meshes << mesh;
 
         QLabel* label = new QLabel(QString::number(mesh->geom->surfnum), this);
         gridLayout->addWidget(label, row, SurfNum);
-
-
 
         QCheckBox* fixedPoints = new QCheckBox(this);
         fixedPoints->setChecked(origPointsOnly);
@@ -69,10 +82,16 @@ DrawTransparentPoints::DrawTransparentPoints()
         fixedTransparentBoxes << fixedTrans;
         gridLayout->addWidget(fixedTrans, row, Transparencycol);
 
-        connect(fixedPoints , SIGNAL(toggled(bool)), this, SLOT(Transp_Points_Callback()));
-        connect( fixedTrans, SIGNAL(toggled(bool)), this, SLOT(Transp_Points_Callback()));
-    }
+        QCheckBox* fixedActi = new QCheckBox(this);
+        fixedActi->setChecked(origtransparent);
+        fixedActi->setProperty(MeshProperty_trans_Points, index);
+        ActivationBoxes << fixedActi;
+        gridLayout->addWidget(fixedActi, row, ActivationCols);
 
+        connect(fixedPoints , SIGNAL(toggled(bool)), this, SLOT(Transp_Points_Callback()));
+        connect(fixedTrans, SIGNAL(toggled(bool)), this, SLOT(Transp_Points_Callback()));
+        connect(fixedActi, SIGNAL(toggled(bool)), this, SLOT(Transp_Points_Callback()));
+    }
 }
 
 void DrawTransparentPoints::Transp_Points_Callback()
@@ -83,35 +102,52 @@ void DrawTransparentPoints::Transp_Points_Callback()
       int row = rowProp.toInt();
        Mesh_Info* mesh = meshes[row];
 
+        //test: have a new window for activation map
+        ActivationMapWindow* actimwin;
+
         if (mesh->data) {
 
+             if (fixedPointsOnlyBoxes[row]->isChecked())
+             {
+                 mesh->data->user_pointsonly = true;
+                 unlock_electrode_surfnum[row]=row+1;
+             }
+             else {
+                 mesh->data->user_pointsonly = false;
+                 unlock_electrode_surfnum[row]=0;
+             }
 
 
-            if (fixedPointsOnlyBoxes[row]->isChecked())
-            {
-                mesh->data->user_pointsonly = true;
-                unlock_electrode_surfnum[row]=row+1;
-            }
-            else {
-                mesh->data->user_pointsonly = false;
-                unlock_electrode_surfnum[row]=0;
-            }
+             if (fixedTransparentBoxes[row]->isChecked())
+             {
+                 mesh->data->user_transparent = true;
+                 unlock_transparency_surfnum[row]=row+1;
 
+             }
 
-            if (fixedTransparentBoxes[row]->isChecked())
-            {
-                mesh->data->user_transparent = true;
-                unlock_transparency_surfnum[row]=row+1;
-            }
-            else {
-                mesh->data->user_transparent = false;
-                unlock_transparency_surfnum[row]=0;
-            }
-        }
+             else {
+                 mesh->data->user_transparent = false;
+                 unlock_transparency_surfnum[row]=0;
+             }
+         }
 
         Broadcast(MAP3D_UPDATE);
 
+          if (ActivationBoxes[row]->isChecked())
+          {
+
+              meshes[row]->shadingmodel == SHADE_GOURAUD;
+              mesh->data->user_activationmap = true;
+             actimwin =ActivationMapWindow::ActivationMapWindowCreate(0,0,0,0);
+             actimwin->addMesh(meshes[row]);
+          }
+
+          else {
+              mesh->data->user_activationmap = false;
+          }
+
 }
+
 
 void DrawTransparentPoints::on_applyButton_clicked()
 {

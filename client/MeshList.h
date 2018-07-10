@@ -51,6 +51,7 @@ class ColorMap;
 class GeomWindow;
 class LegendWindow;
 class GetMatrixSlice;
+class ActivationMapWindow;
 struct PickInfo;
 using std::vector;
 
@@ -62,6 +63,10 @@ public:
 
   GeomWindow *gpriv;            /* geom window where mesh is present */
   Map3d_Geom *geom;             /* the mesh */
+
+
+ActivationMapWindow *actipriv;   /* activation window where mesh is present */
+
   Surf_Data *data;              /* potential/scalar data */
   Contour_Info *cont;           /* contours lines and bands */
   vector < Contour_Info * > fidConts; /* fiducial contours lines and bands */

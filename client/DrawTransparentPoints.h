@@ -9,7 +9,6 @@ class QDoubleSpinBox;
 class QSpinBox;
 class QCheckBox;
 
-
 class DrawTransparentPoints : public QDialog, public Ui::DrawTransparentPoints
 {
     Q_OBJECT;
@@ -29,11 +28,14 @@ private:
   QList<bool> origFixedTranparent;
   QList<bool> origPointsOnlyFix;
 
+  QList<bool> origActivationFix;
+
   QList<Mesh_Info*> meshes;
   // widgets
 
   QList<QCheckBox*> fixedPointsOnlyBoxes;
   QList<QCheckBox*> fixedTransparentBoxes;
+  QList<QCheckBox*> ActivationBoxes;
 
 
 };

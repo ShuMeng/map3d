@@ -47,6 +47,7 @@ Mesh_Info::Mesh_Info()
   fogging = 0;
   
   gpriv = 0;
+  actipriv=0;
   drawmesh = RENDER_MESH_NONE;
   drawcont = 1;
   drawfids = 1;

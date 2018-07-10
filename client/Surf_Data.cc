@@ -88,6 +88,8 @@ Surf_Data::Surf_Data()
 
     user_pointsonly = 0;
 
+    user_activationmap=0;
+
 
 }
 

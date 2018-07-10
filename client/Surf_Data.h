@@ -91,6 +91,8 @@ public:
 bool user_transparent;
 
 bool user_pointsonly;
+
+bool user_activationmap;
   
   Surf_Data *mastersurf;
   MinMax_Frame *minmaxframes; /*** Potential extrema for each frame ***/

@@ -28,6 +28,7 @@ public:
 
   void initializeGL();
   void paintGL();
+
   virtual void keyPressEvent ( QKeyEvent * event );
   virtual void mouseMoveEvent ( QMouseEvent * event );
   virtual void mousePressEvent ( QMouseEvent * event );
