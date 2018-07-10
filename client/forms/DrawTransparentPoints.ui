@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>450</width>
+    <width>712</width>
     <height>225</height>
    </rect>
   </property>
@@ -23,7 +23,7 @@
    <item>
     <widget class="QFrame" name="headerFrame">
      <property name="styleSheet">
-      <string notr="true">#surfHeaderLabel, #TransparencyLabel, #DrawPointsLabel {
+      <string notr="true">#surfHeaderLabel, #TransparencyLabel,#ActivationmapLabel, #DrawPointsLabel {
 }
 
 #surfHeaderLabel {
@@ -39,6 +39,12 @@ border-left-width: 0px;
 }
 
 #TransparencyLabel{
+padding: 4px;
+border: 1px solid black;
+border-left-width: 0px;
+}
+
+#ActivationmapLabel{
 padding: 4px;
 border: 1px solid black;
 border-left-width: 0px;
@@ -88,6 +94,32 @@ border-left-width: 0px;
         </property>
        </widget>
       </item>
+      <item row="0" column="1">
+       <widget class="QLabel" name="TransparencyLabel">
+        <property name="styleSheet">
+         <string notr="true">border-right-color: rgb(0, 0, 0);</string>
+        </property>
+        <property name="frameShape">
+         <enum>QFrame::NoFrame</enum>
+        </property>
+        <property name="frameShadow">
+         <enum>QFrame::Plain</enum>
+        </property>
+        <property name="text">
+         <string>Transparency?</string>
+        </property>
+        <property name="alignment">
+         <set>Qt::AlignCenter</set>
+        </property>
+       </widget>
+      </item>
+      <item row="0" column="3">
+       <widget class="QLabel" name="ActivationmapLabel">
+        <property name="text">
+         <string>         Activation map</string>
+        </property>
+       </widget>
+      </item>
       <item row="0" column="2">
        <widget class="QLabel" name="DrawPointsLabel">
         <property name="styleSheet">
@@ -102,25 +134,6 @@ border-right-color: rgb(0, 0, 0);</string>
         </property>
         <property name="text">
          <string>Only Draw Points?</string>
-        </property>
-        <property name="alignment">
-         <set>Qt::AlignCenter</set>
-        </property>
-       </widget>
-      </item>
-      <item row="0" column="1">
-       <widget class="QLabel" name="TransparencyLabel">
-        <property name="styleSheet">
-         <string notr="true">border-right-color: rgb(0, 0, 0);</string>
-        </property>
-        <property name="frameShape">
-         <enum>QFrame::NoFrame</enum>
-        </property>
-        <property name="frameShadow">
-         <enum>QFrame::Plain</enum>
-        </property>
-        <property name="text">
-         <string>Transparency?</string>
         </property>
         <property name="alignment">
          <set>Qt::AlignCenter</set>
