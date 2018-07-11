@@ -733,8 +733,7 @@ void FindAndReadData(Surf_Input * surf, Mesh_Info * mesh, int reload)
         try {
         s = ReadMatlabDataFile(surf, s, 1, surf->timeseries);
 
-        //      std::cout<<s->potvals[0][0]<<std::endl;
-        //      std::cout<<s->inversevals[0][0]<<std::endl;
+      
     } catch (matlabfile::could_not_open_file)	{
             printf("Could not open matlab file");
             s = 0;
@@ -1432,6 +1431,8 @@ void GetDataFileInfo(std::string filename, int& numTimeSeries, std::vector<int>&
                     if (outArray->isfieldCI("scalarfield")) temp = outArray->getfieldCI(i, "scalarfield");
                     if (outArray->isfieldCI("inversevals")) temp = outArray->getfieldCI(i, "inversevals");
 
+                    if (outArray->isfieldCI("activationvals")) temp = outArray->getfieldCI(i, "activationvals");
+
 
                     if (!temp.isempty())
                     {
@@ -1446,7 +1447,7 @@ void GetDataFileInfo(std::string filename, int& numTimeSeries, std::vector<int>&
                         if (cell.isfieldCI("data")) temp = cell.getfieldCI(0, "data");
                         if (cell.isfieldCI("field")) temp = cell.getfieldCI(0, "field");
                         if (cell.isfieldCI("scalarfield")) temp = cell.getfieldCI(0, "scalarfield");
-                        if (cell.isfieldCI("inversevals")) temp = cell.getfieldCI(0, "inversevals");
+                        if (cell.isfieldCI("activationvals")) temp = cell.getfieldCI(0, "activationvals");
                         if (!temp.isempty())
                         {
                             numframes = temp.getn();

@@ -50,8 +50,6 @@ public:
     Mesh_List meshes;             /* info for all the meshes in this
                                      window: geom, data, contours, colormaps,... */
 
-
-
     int geomWinId;
 
     float l2norm;                 /* the "fit" info for this window */
@@ -75,8 +73,7 @@ public:
     char all_axes;                /* to display all meshes' axes or only one */
     bool rgb_axes;
 
-    char useonepickwindow;        /* when picking, show only one pick at a time */
-    char showlocks;
+
 
     float large_font;                // size of font for the large, medium, small fonts
     float med_font;                  //   use MAP3D_FONT_SIZE_* from glprintf.h

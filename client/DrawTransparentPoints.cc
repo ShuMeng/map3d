@@ -128,9 +128,6 @@ void DrawTransparentPoints::Transp_Points_Callback()
         }
 
         Broadcast(MAP3D_UPDATE);
-
-         Changingindex=row;
-
 }
 
 

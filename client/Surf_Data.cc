@@ -69,6 +69,7 @@ Surf_Data::Surf_Data()
 
     potvals = 0;
     inversevals = 0;// Shu Meng
+    activationvals = 0 ;
 
     mastersurf = 0;
     meanpotvals = 0;
@@ -101,6 +102,9 @@ Surf_Data::~Surf_Data()
 
     if (inversevals)
         Free_fmatrix(inversevals, numframes); // Shu Meng
+
+    if (activationvals)
+        free(activationvals);
 
 
     if (minmaxframes)
@@ -184,6 +188,17 @@ Surf_Data *Surf_Data::AddASurfData(Surf_Data * surfdata, long newsurfnum, long n
         surfdata[newsurfnum].inversevals = NULL;
     }
 
+
+    if (numleads > 0) {
+
+        if ((surfdata[newsurfnum].activationvals = (float *)calloc(sizeof(float),(size_t) numleads)) == NULL) {
+            fprintf(stderr, "*** AddaDataSurf: error getting first memory\n");
+            return (NULL);
+        }
+    }
+    else {
+        surfdata[newsurfnum].activationvals = NULL;
+    }
 
 
     /*** Add some memory for the mean values and reference signal

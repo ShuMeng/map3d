@@ -93,7 +93,6 @@ ActivationMapWindow::ActivationMapWindow(QWidget *parent) : Map3dGLWidget(parent
     all_axes = 1;
     rgb_axes = true;
     modifiers = 0;
-    showlocks = 1;
     l2norm = 0;
 }
 
@@ -195,15 +194,17 @@ void ActivationMapWindow::paintGL()
         /* compute the mesh position (rotations, translations, etc.) */
         Transform(curmesh, 0, true);
 
-        /* draw the color mapped surface */
-        if (curmesh->shadingmodel != SHADE_NONE && curmesh->geom->points[curmesh->geom->geom_index] && !curmesh->shadefids &&
-                curmesh->data && curmesh->drawmesh != RENDER_MESH_ELTS && curmesh->drawmesh != RENDER_MESH_ELTS_CONN) {
-            glEnable(GL_POLYGON_OFFSET_FILL);
+         DrawSurf(curmesh);
 
-            DrawSurf(curmesh);
-            glDisable(GL_POLYGON_OFFSET_FILL);
+//        /* draw the color mapped surface */
+//        if (curmesh->shadingmodel != SHADE_NONE && curmesh->geom->points[curmesh->geom->geom_index] && !curmesh->shadefids &&
+//                curmesh->data && curmesh->drawmesh != RENDER_MESH_ELTS && curmesh->drawmesh != RENDER_MESH_ELTS_CONN) {
+//            glEnable(GL_POLYGON_OFFSET_FILL);
 
-        }
+//            DrawSurf(curmesh);
+//            glDisable(GL_POLYGON_OFFSET_FILL);
+//        }
+
     }
 
 
@@ -216,7 +217,6 @@ void ActivationMapWindow::paintGL()
 
 void ActivationMapWindow::DrawSurf(Mesh_Info * curmesh)
 {
-
     int curframe = 0;
     int length = 0;
     int index;
@@ -228,8 +228,6 @@ void ActivationMapWindow::DrawSurf(Mesh_Info * curmesh)
     float **fcnormals = 0;
     Map3d_Geom *curgeom = 0;
     Surf_Data *cursurf = 0;
-    Contour_Info *curcont = 0;
-
 
     curgeom = curmesh->geom;
     cursurf = curmesh->data;
@@ -239,12 +237,10 @@ void ActivationMapWindow::DrawSurf(Mesh_Info * curmesh)
     fcnormals = curgeom->fcnormals;
 
 
+ //  std::cout<<"test if activation times are read in "<< cursurf->activationvals[0]<<std::endl;
 
     if (cursurf) {
-        curframe = cursurf->framenum;
-        curcont = curmesh->cont;
-        //if (cursurf->minmaxframes)
-        //compute_mapping(curmesh, cursurf, a, b);
+        curframe =0;
     }
 
     if ((int)a == INT_MAX || (int)b == INT_MAX) //change by BJW to avoid crash
@@ -268,9 +264,6 @@ void ActivationMapWindow::DrawSurf(Mesh_Info * curmesh)
 
     unsigned char color[3];
 
-
-
-    curmesh->shadingmodel == SHADE_GOURAUD;
 
     bool use_textures = false;
     // gouraud shading
@@ -435,13 +428,7 @@ void ActivationMapWindow::addMesh(Mesh_Info *curmesh)
     Qt_ToMatrix(Qt_Conj(clip->bd.qNow), clip->bd.mNow);
     Ball_EndDrag(&clip->bd);
 
-    // also set up lock status on the first surf
-    if (!map3d_info.lockgeneral) {
-      dominantsurf = 0;
-    }
-    if (!map3d_info.lockframes || !map3d_info.lockrotate) {
-      secondarysurf = 0;
-    }
+
 
     // copy surf's bg/fg color
     bgcolor[0] = curmesh->mysurf->colour_bg[0] / 255.f;
@@ -455,11 +442,12 @@ void ActivationMapWindow::addMesh(Mesh_Info *curmesh)
     small_font = (float)curmesh->mysurf->small_font;
 
     if (curmesh->mysurf->showinfotext != -1) showinfotext = curmesh->mysurf->showinfotext;
-    if (curmesh->mysurf->showlocks != -1) showlocks = curmesh->mysurf->showlocks;
+
   }
 
   // make legend window's fg/bg equal to this one
   LegendWindow* lw = curmesh->legendwin;
+
   if (lw) {
     lw->bgcolor[0] = bgcolor[0];
     lw->bgcolor[1] = bgcolor[1];

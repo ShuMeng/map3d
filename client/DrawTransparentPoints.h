@@ -28,8 +28,6 @@ public slots:
 
 
 private:
-  // original values
-
 
   QList<bool> origFixedTranparent;
   QList<bool> origPointsOnlyFix;
@@ -40,9 +38,6 @@ private:
   QList<QCheckBox*> fixedPointsOnlyBoxes;
   QList<QCheckBox*> fixedTransparentBoxes;
   QList<QPushButton*> ActivationButton;
-
-  int Changingindex;
-
 };
 
 #if 0

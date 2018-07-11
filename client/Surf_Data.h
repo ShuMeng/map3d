@@ -81,6 +81,8 @@ public:
   float **potvals; /*** Array of data values ***/
   float **inversevals; /*** Array of inverse values ***/
 
+  float *activationvals; 
+
   float *meanpotvals;           /* The mean potential over the surface at each time */
   float *rmspotvals;           /* The root mean square potential at each time */
   float *reference;             /* The reference signal for this surface */

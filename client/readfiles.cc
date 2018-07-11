@@ -417,6 +417,7 @@ Return:	    pointer to updated surf_data array or NULL for error
     float potscale;
     float *databuff;
     float *inversebuff;
+    float *activationbuff;
     char  clabel[100], csurface[20], cseries[20];
 
 
@@ -428,6 +429,7 @@ Return:	    pointer to updated surf_data array or NULL for error
     matlabarray cell;
     matlabarray fids;
     matlabarray inversevals;
+    matlabarray activationvals;
 
 
     /*********************************************************************/
@@ -489,7 +491,9 @@ Return:	    pointer to updated surf_data array or NULL for error
         if (ma.isfieldCI("scalarfield")) potvals = ma.getfieldCI(insurfnum,"scalarfield");
         if (ma.isfieldCI("fids")) fids = ma.getfieldCI(insurfnum,"fids");
         if (ma.isfieldCI("inversevals")) inversevals = ma.getfieldCI(insurfnum,"inversevals");
-           }
+
+        if (ma.isfieldCI("activationvals")) activationvals = ma.getfieldCI(insurfnum,"activationvals");
+    }
 
     else if (ma.iscell()) {
         numseries = ma.getnumelements();
@@ -503,10 +507,12 @@ Return:	    pointer to updated surf_data array or NULL for error
         if (cell.isfieldCI("fids")) fids = cell.getfieldCI(0,"fids");
         if (cell.isfieldCI("inversevals")) inversevals = cell.getfieldCI(0,"inversevals");
 
+        if (cell.isfieldCI("activationvals")) activationvals = cell.getfieldCI(0,"activationvals");
+
     }
     else if (ma.isdense()) {
         potvals = ma;
-        //std::cout<< ma<<std::endl;//Shu Meng
+
     }
 
     if (reportlevel) {
@@ -881,8 +887,6 @@ Return:	    pointer to updated surf_data array or NULL for error
         /******************** inverse ***********************/
         if (!inversevals.isempty())
         {
-            std::cout<<"read in inverse here here here here"<<std::endl;
-
             /*** Allocate the memeory we need.  ***/
             /*** First, the data storage buffer. ***/
             inversebuff = (float *)calloc((size_t) (numfileleads * numfileframes), sizeof(float));
@@ -908,8 +912,6 @@ Return:	    pointer to updated surf_data array or NULL for error
             for (displaysurfnum = 0; displaysurfnum <= surfend - surfstart; displaysurfnum++) {
 
                 Surf_Data* surf = &surfdata[displaysurfnum];
-
-
                 numsurfnodes = map3d_geom[displaysurfnum].numpts;
 
                 if (numfileleads < numsurfnodes)
@@ -932,6 +934,60 @@ Return:	    pointer to updated surf_data array or NULL for error
 
             /*** Clean up and get back to calling routine.  ***/
             free(inversebuff);
+        }
+
+        /******************** activation ***********************/
+        if (!activationvals.isempty())
+        {
+
+            /*** Allocate the memeory we need.  ***/
+            /*** First, the data storage buffer. ***/
+            activationbuff = (float *)calloc((size_t) (numfileleads * 1), sizeof(float));
+
+            //activationbuff = new float[numfileleads*numfileframes];
+            if (activationbuff == NULL) {
+                fprintf(stderr, "*** In ReadMatlabactivationFile I cannot get enough" " dynamic memory to buffer the data\n");
+                return 0;
+            }
+
+            /*** Get the activation buffer. ***/
+            if (!activationvals.isempty()) activationvals.getnumericarray(activationbuff, activationvals.getnumelements());
+
+
+            /*** Now move the data from the buffer to the proper locations in the
+            data array, using indirection via the channels array.
+            ***/
+
+            maxindex = numfileleads -1;
+
+            surfcount = 0;
+
+            for (displaysurfnum = 0; displaysurfnum <= surfend - surfstart; displaysurfnum++) {
+
+                Surf_Data* surf = &surfdata[displaysurfnum];
+
+
+                numsurfnodes = map3d_geom[displaysurfnum].numpts;
+
+                if (numfileleads < numsurfnodes)
+                {
+                    fprintf(stderr, "*** MAP3D ERROR: In ReadMatlabDataFile\n"
+                                    "    For surface #%ld \n"
+                                    "    Num Leads (%ld) < Geom Points (%ld)\n", surf->surfnum + 1, numfileleads, numsurfnodes);
+                }
+
+
+                    for (nodenum = 0; nodenum < numsurfnodes; nodenum++) { // don't read higher nodes than your geom
+
+                        index = nodenum;
+                        surf->activationvals[nodenum] = activationbuff[index] * potscale;
+                    }
+
+                surfcount++;
+            }
+
+            /*** Clean up and get back to calling routine.  ***/
+            free(activationbuff);
         }
     }
     
