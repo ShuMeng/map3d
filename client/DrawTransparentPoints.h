@@ -5,9 +5,13 @@
 #include "dialogs.h"
 #include <QList>
 
+class QPushButton;
+
 class QDoubleSpinBox;
-class QSpinBox;
+
 class QCheckBox;
+
+
 
 class DrawTransparentPoints : public QDialog, public Ui::DrawTransparentPoints
 {
@@ -20,6 +24,8 @@ public slots:
   void on_applyButton_clicked ();
   void on_cancelButton_clicked ();
   void Transp_Points_Callback();
+  void Activation_Callback();
+
 
 private:
   // original values
@@ -28,15 +34,14 @@ private:
   QList<bool> origFixedTranparent;
   QList<bool> origPointsOnlyFix;
 
-  QList<bool> origActivationFix;
-
   QList<Mesh_Info*> meshes;
   // widgets
 
   QList<QCheckBox*> fixedPointsOnlyBoxes;
   QList<QCheckBox*> fixedTransparentBoxes;
-  QList<QCheckBox*> ActivationBoxes;
+  QList<QPushButton*> ActivationButton;
 
+  int Changingindex;
 
 };
 

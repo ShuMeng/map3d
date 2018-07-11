@@ -533,8 +533,8 @@ void ActivationMapWindow::mouseReleaseEvent(QMouseEvent * event)
 
 void ActivationMapWindow::closeEvent(QCloseEvent * event)
 {
-    close();
-}
+        close();
+ }
 
 
 void ActivationMapWindow::HandleButtonPress(QMouseEvent * event, float xn, float yn)

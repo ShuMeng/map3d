@@ -83,14 +83,8 @@ Surf_Data::Surf_Data()
     fids.numfidleads = 0;
     minmaxfids = 0;
     user_scaling = 0;
-
     user_transparent =0;
-
     user_pointsonly = 0;
-
-    user_activationmap=0;
-
-
 }
 
 Surf_Data::~Surf_Data()

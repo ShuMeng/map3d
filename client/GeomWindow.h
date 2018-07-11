@@ -62,6 +62,7 @@ public:
 
   void addMesh(Mesh_Info* mesh);
   void removeMesh(Mesh_Info* mesh);
+
   Mesh_List findMeshesFromSameInput(Mesh_Info* mesh);
   void recalcMinMax();
   float vfov;                   /* vertical field of view */
