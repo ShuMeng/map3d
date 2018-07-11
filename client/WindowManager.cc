@@ -432,6 +432,8 @@ void Broadcast(int message, Map3dGLWidget* widget, QEvent * event, int data)
                 mesh->data->FrameAdvance(multiplier*fstep, map3d_info.frame_loop);
             //std::cout<<"FrameAdvance is called in case MAP3D_FRAMES "<<cur<<std::endl;
             // FIX updateContourDialogValues(mesh);
+
+            getmatrixslice->indexSpinBox->setValue(cur+1);
         }
     }
         Broadcast(MAP3D_UPDATE);

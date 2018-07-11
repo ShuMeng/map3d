@@ -191,7 +191,7 @@ Surf_Data *Surf_Data::AddASurfData(Surf_Data * surfdata, long newsurfnum, long n
 
     if (numleads > 0) {
 
-        if ((surfdata[newsurfnum].activationvals = (float *)calloc(sizeof(float),(size_t) numleads)) == NULL) {
+        if ((surfdata[newsurfnum].activationvals = (float *)calloc((size_t) numleads, sizeof(float))) == NULL) {
             fprintf(stderr, "*** AddaDataSurf: error getting first memory\n");
             return (NULL);
         }
