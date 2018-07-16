@@ -14,10 +14,11 @@
 #include "map3d-struct.h"
 #include "matlabarray.h"
 #include "GetMatrixSlice.h"
+#include "LegendWindow.h"
 
 #include "ActivationMapWindow.h"
 #include <QPushButton>
-
+#include <QMessageBox>
 
 
 extern Map3d_Info map3d_info;
@@ -134,18 +135,63 @@ void DrawTransparentPoints::Transp_Points_Callback()
 void DrawTransparentPoints::Activation_Callback()
 
 {
-
     Q_ASSERT(sender());
     QVariant rowProp = sender()->property(MeshProperty_trans_Points);
     int row = rowProp.toInt();
+
     Mesh_Info* mesh = meshes[row];
-    if (mesh->data) {
+
+
+
+    if (mesh->data->activationvals[0]!=0) {
 
         ActivationMapWindow* actimwin;
         actimwin = ActivationMapWindow::ActivationMapWindowCreate(0,0,0,0);
         actimwin->addMesh(mesh);
+
+        Surf_Data *s=0;
+        s=mesh->data;
+
+
+
+
+//        /* create colormap legend window */
+//        LegendWindow *lpriv = NULL;
+
+//        int width, height;
+//        width = mesh->lw_xmax - mesh->lw_xmin;
+//        height = mesh->lw_ymax - mesh->lw_ymin;
+//        lpriv = LegendWindow::LegendWindowCreate(mesh, width, height, mesh->lw_xmin, mesh->lw_ymin, !mesh->showlegend);
+
+//        if (lpriv != NULL) {
+//            // can fail if more than MAX_SURFS l-wins.
+//            lpriv->orientation = 1;
+//            if (mesh->mysurf->legendticks != -1) {
+//                lpriv->nticks = mesh->mysurf->legendticks;
+//                lpriv->matchContours = false;
+//            }
+
+//            lpriv->surf = s;
+//            lpriv->mesh = mesh;
+//            lpriv->map = &mesh->cmap;
+//            mesh->legendwin = lpriv;
+
+//            // background color
+//            lpriv->bgcolor[0] = mesh->mysurf->colour_bg[0] / 255.f;
+//            lpriv->bgcolor[1] = mesh->mysurf->colour_bg[1] / 255.f;
+//            lpriv->bgcolor[2] = mesh->mysurf->colour_bg[2] / 255.f;
+//            lpriv->fgcolor[0] = mesh->mysurf->colour_fg[0] / 255.f;
+//            lpriv->fgcolor[1] = mesh->mysurf->colour_fg[1] / 255.f;
+//            lpriv->fgcolor[2] = mesh->mysurf->colour_fg[2] / 255.f;
+
+//        }
+    }
+
+    else {
+      QMessageBox::warning(this,QString("Warning"),QString("No Activation times for this surface!"));
     }
 }
+
 
 void DrawTransparentPoints::on_applyButton_clicked()
 {

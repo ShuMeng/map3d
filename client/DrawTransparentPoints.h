@@ -33,6 +33,7 @@ private:
   QList<bool> origPointsOnlyFix;
 
   QList<Mesh_Info*> meshes;
+
   // widgets
 
   QList<QCheckBox*> fixedPointsOnlyBoxes;

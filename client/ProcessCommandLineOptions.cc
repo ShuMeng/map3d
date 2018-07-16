@@ -669,9 +669,6 @@ void FindAndReadLeadlinks(Surf_Input * surf, Map3d_Geom * geom)
 
 void FindAndReadData(Surf_Input * surf, Mesh_Info * mesh, int reload)
 {
-
-    std::cout<<"FindAndReadData716 in processcommandlineoptions"<<std::endl;
-
     Surf_Data *s = 0;
     Surf_Data *save_mastersurf = 0;
     int fileType;
