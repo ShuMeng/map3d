@@ -62,13 +62,13 @@ public:
   char shortlabel[100]; /*** same as label, without series and surface number ***/
   char filepath[512]; /*** Datafilepath for .data files ***/
   char potfilename[512]; /*** Filename for this surface of data ***/
-  char inversefilename[512]; /*** Filename for this surface of inverse solution Shu Meng***/
+ 
 #else
   char *label;
   char *shortlabel;
   char *filepath;
   char *potfilename;
-  char *inversefilename;
+
 #endif
   float userpotmin, userpotmax; /*** User's selected values for max/min */
   float usercontourstep; /*** User's step between contours ***/

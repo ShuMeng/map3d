@@ -39,7 +39,7 @@ void Init_Global_Input(Global_Input * s)
   s->titleHeight = 0;
   s->geompathname = NULL;
   s->datapathname = NULL;
-  s->inversepathname = NULL;
+
 
   s->scale_scope = LOCAL_SCALE;
   s->scale_model = LINEAR;
@@ -79,11 +79,11 @@ void Init_Surf_Input(Surf_Input * s)
   s->lmfilename = NULL;
   s->tmpfilename = NULL;
   s->potfilename = NULL;
-  s->inversefilename = NULL;
+
 
   s->geomfiletype = -1;
   s->datafiletype = -1;
-  s->inversefiletype = -1; //Shu Meng
+
   s->geomsurfnum = -1;
   s->colour_grad = -1;
   s->numscalars = -1;
@@ -105,7 +105,7 @@ void Init_Surf_Input(Surf_Input * s)
   s->potscale = 1.0;
   s->potusermax = 0.0f;
   s->potusermin = 0.0f;
-  s->inversescale = 1.0;
+
   s->fidseriesnum = 0;
   s->ts_start = 0;
   s->ts_end = -1;

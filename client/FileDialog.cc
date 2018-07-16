@@ -153,6 +153,7 @@ void FileDialogWidget::on_dataBrowseButton_clicked ()
     on_dataLineEdit_editingFinished();
 }
 
+
 void FileDialogWidget::on_channelsBrowseButton_clicked ()
 {
     QString newFile = QFileDialog::getOpenFileName(parentWidget(), "Select channels file");
@@ -299,7 +300,7 @@ void FileDialogWidget::updateRMS()
     char geom[256];
     char data[256];
     char ch[256];
-    //char inverse[256];
+
 
     strncpy(geom, geomLineEdit->text().toLatin1().data(), 256);
 
@@ -335,7 +336,7 @@ void FileDialogWidget::updateRMS()
         input->geomfilename = new char[256];
         input->potfilename = new char[256];
         input->chfilename = new char[256];
-        // input->inversefilename = new char[256];
+
 
         input->geomsurfnum = gs;
         input->timeseries = ds;
@@ -343,7 +344,7 @@ void FileDialogWidget::updateRMS()
         strcpy(input->geomfilename,geom);
         strcpy(input->potfilename,data);
         strcpy(input->chfilename,ch);
-        // strcpy(input->inversefilename,inverse);
+
         input->ts_end = numframes-1;
         input->ts_start = 0;
 
@@ -399,7 +400,7 @@ bool FileDialogWidget::updateFiles()
     char ll[256];
     char lm[256];
     char fi[256];
-    // char inverse[256];
+
 
     strncpy(geom, geomLineEdit->text().toLatin1().data(), 256);
 
@@ -450,7 +451,7 @@ bool FileDialogWidget::updateFiles()
         input->lmfilename = new char[256];
         input->llfilename = new char[256];
         input->fidfilename = new char[256];
-        // input->inversefilename = new char[256];
+
 
         input->geomsurfnum = gs;
         input->timeseries = ds;
@@ -461,7 +462,7 @@ bool FileDialogWidget::updateFiles()
         strcpy(input->llfilename,ll);
         strcpy(input->lmfilename,lm);
         strcpy(input->fidfilename, fi);
-        // strcpy(input->inversefilename, inverse);
+
 
         input->ts_end = dend;
         input->ts_start = dstart;
@@ -550,14 +551,14 @@ bool FileDialogWidget::updateFiles()
         if (!mesh->mysurf->lmfilename) mesh->mysurf->lmfilename = new char[256];
         if (!mesh->mysurf->llfilename) mesh->mysurf->llfilename = new char[256];
         if (!mesh->mysurf->fidfilename) mesh->mysurf->fidfilename = new char[256];
-        //if (!mesh->mysurf->inversefilename) mesh->mysurf->inversefilename = new char[256];
+
 
         strcpy(mesh->mysurf->geomfilename, geom);
         strcpy(mesh->mysurf->chfilename, ch);
         strcpy(mesh->mysurf->llfilename, ll);
         strcpy(mesh->mysurf->lmfilename, lm);
         strcpy(mesh->mysurf->fidfilename, fi);
-        // strcpy(mesh->mysurf->inversefilename, inverse);
+
 
         mesh->mysurf->preloadedDataArray = dataArray;
 
@@ -739,3 +740,14 @@ void FileDialogWidget::on_startFrameSpinBox_editingFinished()
 {
 
 }
+
+
+
+
+
+
+
+
+
+
+

@@ -58,14 +58,14 @@ struct Surf_Input
   char* potfilename;
   char *fidfilename; /*** Potential data filename ***/
   char *chfilename; /*** Channels filename ***/
-  char *inversefilename; /*** inverse filename ***/
+ 
   char *clfilename; /*** Channellinks filename ***/
   char *llfilename; /*** Leadlinks filename ***/
   char *lmfilename; /*** Landmarks filename ***/
   char *tmpfilename; /*** temporary filename ***/
   long geomfiletype; /*** Geometry file type (.geom, .pts, etc.) ***/
   long datafiletype; /*** Data filetype (.data, .pot) ***/
-  long inversefiletype; /*** inverse filetype (.mat) ***/
+
 
   long geomsurfnum; /*** Surface number specified in geom file ***/
   long colour_grad; /*** Colour for drawing gradients ***/
@@ -82,7 +82,7 @@ struct Surf_Input
   long displaysurfnum; /*** First display surface number for this input ***/
   float potscale; /*** Scaling factor applied to all potentials ***/
 
-  float inversescale; /*** Scaling factor applied to inverse ***/
+
 
   float potusermax, potusermin; /*** User extrema for data scaling ***/
   long timeseries; /*** desired time series ***/
@@ -152,7 +152,7 @@ struct Global_Input
   bool qabsolute; /*** True for display in absolute coords ***/
   char *datapathname; /*** Path to the data files ***/
   char *geompathname; /*** Path to the geometry files ***/
-  char *inversepathname; /*** Path to the inverse files ***/
+
 
   Surf_Input *SurfList[MAX_SURFS]; // have last one be a global settings list
   int borderWidth;

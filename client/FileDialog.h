@@ -41,7 +41,7 @@ public slots:
   void on_dataIndexComboBox_activated ( const QString & text );
   void on_startFrameSpinBox_valueChanged ( int i );
   void on_endFrameSpinBox_valueChanged ( int i );
-  //void on_inverseLineEdit_editingFinished ();
+
 
   void on_geomBrowseButton_clicked ();
   void on_dataBrowseButton_clicked ();
@@ -49,7 +49,7 @@ public slots:
   void on_leadlinksBrowseButton_clicked ();
   void on_fiducialBrowseButton_clicked ();
   void on_landmarksBrowseButton_clicked ();
- // void on_inverseBrowseButton_clicked ();
+
 
 
   void on_geomSaveButton_clicked();
@@ -75,6 +75,7 @@ public:
 private slots:
   void on_endFrameSpinBox_editingFinished();
   void on_startFrameSpinBox_editingFinished();
+
 };
 
 void filesDialogCreate(bool show = true);

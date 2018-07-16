@@ -33,7 +33,6 @@ Mesh_List FindAndReadGeom(Surf_Input *, Mesh_List currentMeshes, int reload);
 void FindAndReadChannels(Surf_Input *, Map3d_Geom *);
 void FindAndReadLeadlinks(Surf_Input *, Map3d_Geom *);
 void FindAndReadData(Surf_Input *, Mesh_Info *, int reload);
-void FindAndReadInverse(Surf_Input *, Mesh_Info *);
 
 int DetectFileType(char *);
 const char *GetExtension(const char *s);

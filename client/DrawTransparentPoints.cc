@@ -133,12 +133,15 @@ void DrawTransparentPoints::Transp_Points_Callback()
 
 void DrawTransparentPoints::Activation_Callback()
 
-{   Q_ASSERT(sender());
+{
 
+    Q_ASSERT(sender());
     QVariant rowProp = sender()->property(MeshProperty_trans_Points);
     int row = rowProp.toInt();
     Mesh_Info* mesh = meshes[row];
     if (mesh->data) {
+
+        std::cout<< "activation time is "<<mesh->data->activationvals[0]<<std::endl;
 
         ActivationMapWindow* actimwin;
         actimwin = ActivationMapWindow::ActivationMapWindowCreate(0,0,0,0);

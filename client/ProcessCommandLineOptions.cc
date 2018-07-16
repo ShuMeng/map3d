@@ -609,6 +609,7 @@ Mesh_List FindAndReadGeom(Surf_Input * surf, Mesh_List currentMeshes, int reload
         strcpy(surf->potfilename, origPotfilename);
     }
 
+
     if (map3d_info.reportlevel)
         fprintf(stderr, "\n");
     return meshes;
@@ -669,21 +670,12 @@ void FindAndReadLeadlinks(Surf_Input * surf, Map3d_Geom * geom)
 void FindAndReadData(Surf_Input * surf, Mesh_Info * mesh, int reload)
 {
 
+    std::cout<<"FindAndReadData716 in processcommandlineoptions"<<std::endl;
 
     Surf_Data *s = 0;
     Surf_Data *save_mastersurf = 0;
     int fileType;
 
-    //  for (int i = 0; i < 512; i++)
-    //  {
-    //    if (surf->potfilenames[surf->potfileindex][i] == 0)
-    //      break;
-    //    printf("%c", surf->potfilenames[surf->potfileindex][i]);
-    //    fflush(stdout);
-    //  }
-    //  printf("surf->potfileindex = %i\n", surf->potfileindex);
-    //  printf("strlen(surf->potfilenames[surf->potfileindex]) = %i\n", strlen(surf->potfilenames[surf->potfileindex]));
-    //strcpy(filename, surf->potfilename);
     s = mesh->data;
 
     vector<Mesh_Info*> slaved_meshes;
@@ -1429,10 +1421,6 @@ void GetDataFileInfo(std::string filename, int& numTimeSeries, std::vector<int>&
                     if (outArray->isfieldCI("data")) temp = outArray->getfieldCI(i, "data");
                     if (outArray->isfieldCI("field")) temp = outArray->getfieldCI(i, "field");
                     if (outArray->isfieldCI("scalarfield")) temp = outArray->getfieldCI(i, "scalarfield");
-                    if (outArray->isfieldCI("inversevals")) temp = outArray->getfieldCI(i, "inversevals");
-
-                    if (outArray->isfieldCI("activationvals")) temp = outArray->getfieldCI(i, "activationvals");
-
 
                     if (!temp.isempty())
                     {
@@ -1447,7 +1435,7 @@ void GetDataFileInfo(std::string filename, int& numTimeSeries, std::vector<int>&
                         if (cell.isfieldCI("data")) temp = cell.getfieldCI(0, "data");
                         if (cell.isfieldCI("field")) temp = cell.getfieldCI(0, "field");
                         if (cell.isfieldCI("scalarfield")) temp = cell.getfieldCI(0, "scalarfield");
-                        if (cell.isfieldCI("activationvals")) temp = cell.getfieldCI(0, "activationvals");
+
                         if (!temp.isempty())
                         {
                             numframes = temp.getn();
@@ -1841,20 +1829,17 @@ void PrintCommandLineOptions(Global_Input & g)
             printf("  llfilename = %s\n", g.SurfList[loop]->llfilename);
         if (g.SurfList[loop]->lmfilename)
             printf("  lmfilename = %s\n", g.SurfList[loop]->lmfilename);
-        if (g.SurfList[loop]->inversefilename)
-            printf("  inversefilename = %s\n", g.SurfList[loop]->inversefilename);
+
         if (g.SurfList[loop]->parent->geompathname)
             printf("  geompathname = %s\n", g.SurfList[loop]->parent->geompathname);
         if (g.SurfList[loop]->parent->datapathname)
             printf("  datapathname = %s\n", g.SurfList[loop]->parent->datapathname);
-        if (g.SurfList[loop]->parent->inversepathname)
-            printf("  inversepathname = %s\n", g.SurfList[loop]->parent->inversepathname);
+
         if (g.SurfList[loop]->geomfiletype != -1)
             printf("  geomfiletype = %ld\n", g.SurfList[loop]->geomfiletype);
         if (g.SurfList[loop]->datafiletype != -1)
             printf("  datafiletype = %ld\n", g.SurfList[loop]->datafiletype);
-        if (g.SurfList[loop]->inversefiletype != -1)
-            printf("  inversefiletype = %ld\n", g.SurfList[loop]->inversefiletype);
+
         if (g.SurfList[loop]->geomsurfnum != -1)
             printf("  geomsurfnum = %ld\n", g.SurfList[loop]->geomsurfnum);
         if (g.SurfList[loop]->colour_grad != -1)
@@ -1917,5 +1902,10 @@ void PrintCommandLineOptions(Global_Input & g)
         loop++;
     }
 }
+
+
+
+
+
 
 

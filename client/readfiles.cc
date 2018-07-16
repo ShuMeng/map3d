@@ -436,7 +436,6 @@ Return:	    pointer to updated surf_data array or NULL for error
     reportlevel = map3d_info.reportlevel;
     errorlevel = 1;
 
-
     if (reportlevel)
         fprintf(stderr, "Reading matlab potential file %s, series #%ld\n", sinputlist->potfilename, insurfnum+1);
 
@@ -939,12 +938,10 @@ Return:	    pointer to updated surf_data array or NULL for error
         /******************** activation ***********************/
         if (!activationvals.isempty())
         {
-
             /*** Allocate the memeory we need.  ***/
             /*** First, the data storage buffer. ***/
             activationbuff = (float *)calloc((size_t) (numfileleads * 1), sizeof(float));
 
-            //activationbuff = new float[numfileleads*numfileframes];
             if (activationbuff == NULL) {
                 fprintf(stderr, "*** In ReadMatlabactivationFile I cannot get enough" " dynamic memory to buffer the data\n");
                 return 0;
@@ -953,35 +950,25 @@ Return:	    pointer to updated surf_data array or NULL for error
             /*** Get the activation buffer. ***/
             if (!activationvals.isempty()) activationvals.getnumericarray(activationbuff, activationvals.getnumelements());
 
-
             /*** Now move the data from the buffer to the proper locations in the
             data array, using indirection via the channels array.
             ***/
-
             maxindex = numfileleads -1;
-
             surfcount = 0;
-
             for (displaysurfnum = 0; displaysurfnum <= surfend - surfstart; displaysurfnum++) {
-
                 Surf_Data* surf = &surfdata[displaysurfnum];
-
-
                 numsurfnodes = map3d_geom[displaysurfnum].numpts;
-
                 if (numfileleads < numsurfnodes)
                 {
                     fprintf(stderr, "*** MAP3D ERROR: In ReadMatlabDataFile\n"
                                     "    For surface #%ld \n"
                                     "    Num Leads (%ld) < Geom Points (%ld)\n", surf->surfnum + 1, numfileleads, numsurfnodes);
                 }
+                for (nodenum = 0; nodenum < numsurfnodes; nodenum++) { // don't read higher nodes than your geom
 
-
-                    for (nodenum = 0; nodenum < numsurfnodes; nodenum++) { // don't read higher nodes than your geom
-
-                        index = nodenum;
-                        surf->activationvals[nodenum] = activationbuff[index] * potscale;
-                    }
+                    index = nodenum;
+                    surf->activationvals[nodenum] = activationbuff[index] * potscale;
+                }
 
                 surfcount++;
             }
@@ -2467,7 +2454,6 @@ leads.  So lead #4 could point to node 343 and be labelled V6.
     //    draw_info[onemap3dgeom->surfnum].qshowleadlabels = true;
     return 0;
 }
-
 
 
 

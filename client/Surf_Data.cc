@@ -49,7 +49,7 @@ Surf_Data::Surf_Data()
     label[0] = '\0';
     filepath[0] = '\0';
     potfilename[0] = '\0';
-    inversefilename[0] = '\0'; // Shu Meng
+
     userpotmin = 0.0f;
     userpotmax = 0.0f;
     usercontourstep = 0.0f;
@@ -264,8 +264,8 @@ Surf_Data *Surf_Data::AddASurfData(Surf_Data * surfdata, long newsurfnum, long n
     surfdata[newsurfnum].fids.leadfids = NULL;
     surfdata[newsurfnum].fids.numfidleads = NULL;
     surfdata[newsurfnum].potfilename[0] = '\0';
-    surfdata[newsurfnum].inversefilename[0] = '\0';// Shu Meng
-    //strcpy(surfdata[newsurfnum].potfilename,"");
+
+
 
     if (newsurfnum > 0)
         surfdata[newsurfnum].numconts = surfdata[newsurfnum - 1].numconts;
@@ -278,8 +278,6 @@ Surf_Data *Surf_Data::AddASurfData(Surf_Data * surfdata, long newsurfnum, long n
 
 void Surf_Data::FrameAdvance(int delta_frames, bool loopIfPastEnd /* = false */)
 {
-
-
     int newframe = framenum + delta_frames;
     if (newframe < 0 && loopIfPastEnd)
         newframe = newframe + numframes; // loop back to the end

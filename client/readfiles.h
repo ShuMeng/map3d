@@ -59,7 +59,6 @@ Surf_Data *ReadMatlabDataFile(Surf_Input * sinputlist, Surf_Data * surfdata,
 			      long numsurfsread, long insurfnum);
 
 
-
 long ReadMap3dFidfile(Surf_Input * sinputlist, Surf_Data * surfdata, long numsurfsread, long insurfnum);
 long CopyFidTypes(Series_Fids * outfidseries, Series_Fids * infidseries);
 long CopyFidNames(Series_Fids * outfidseries, Series_Fids * infidseries);
