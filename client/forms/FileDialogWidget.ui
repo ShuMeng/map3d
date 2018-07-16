@@ -429,7 +429,7 @@ border: none;
             <property name="spacing">
              <number>3</number>
             </property>
-            <item row="0" column="5">
+            <item row="0" column="4">
              <widget class="QToolButton" name="channelsSaveButton">
               <property name="text">
                <string/>
@@ -457,42 +457,49 @@ border: none;
               </property>
              </widget>
             </item>
-            <item row="1" column="2">
+            <item row="1" column="1">
              <widget class="QLineEdit" name="leadlinksLineEdit">
               <property name="text">
                <string>ll file</string>
               </property>
              </widget>
             </item>
-            <item row="2" column="2">
+            <item row="2" column="1">
              <widget class="QLineEdit" name="fiducialLineEdit">
               <property name="text">
                <string>fid file</string>
               </property>
              </widget>
             </item>
-            <item row="0" column="2">
+            <item row="0" column="1">
              <widget class="QLineEdit" name="channelsLineEdit">
               <property name="text">
                <string>ch file</string>
               </property>
              </widget>
             </item>
-            <item row="0" column="4">
+            <item row="0" column="3">
              <widget class="QToolButton" name="channelsBrowseButton">
               <property name="text">
                <string>...</string>
               </property>
              </widget>
             </item>
-            <item row="1" column="4">
+            <item row="3" column="4">
+             <widget class="QToolButton" name="landmarksSaveButton">
+              <property name="text">
+               <string/>
+              </property>
+             </widget>
+            </item>
+            <item row="1" column="3">
              <widget class="QToolButton" name="leadlinksBrowseButton">
               <property name="text">
                <string>...</string>
               </property>
              </widget>
             </item>
-            <item row="2" column="4">
+            <item row="2" column="3">
              <widget class="QToolButton" name="fiducialBrowseButton">
               <property name="text">
                <string>...</string>
@@ -506,21 +513,14 @@ border: none;
               </property>
              </widget>
             </item>
-            <item row="3" column="2">
+            <item row="3" column="1">
              <widget class="QLineEdit" name="landmarksLineEdit">
               <property name="text">
                <string>lm file</string>
               </property>
              </widget>
             </item>
-            <item row="3" column="5">
-             <widget class="QToolButton" name="landmarksSaveButton">
-              <property name="text">
-               <string/>
-              </property>
-             </widget>
-            </item>
-            <item row="3" column="4">
+            <item row="3" column="3">
              <widget class="QToolButton" name="landmarksBrowseButton">
               <property name="text">
                <string>...</string>
