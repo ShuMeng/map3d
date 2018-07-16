@@ -42,6 +42,8 @@
 #include "GetMatrixSlice.h"
 #include "texture.h"
 
+#include <algorithm>
+
 #include <QFile>
 #include <QDebug>
 #include <QCloseEvent>
@@ -194,7 +196,9 @@ void ActivationMapWindow::paintGL()
         /* compute the mesh position (rotations, translations, etc.) */
         Transform(curmesh, 0, true);
 
-         DrawSurf(curmesh);
+        glEnable(GL_POLYGON_OFFSET_FILL);
+        DrawSurf(curmesh);
+        glDisable(GL_POLYGON_OFFSET_FILL);
 
 //        /* draw the color mapped surface */
 //        if (curmesh->shadingmodel != SHADE_NONE && curmesh->geom->points[curmesh->geom->geom_index] && !curmesh->shadefids &&
@@ -217,7 +221,7 @@ void ActivationMapWindow::paintGL()
 
 void ActivationMapWindow::DrawSurf(Mesh_Info * curmesh)
 {
-    int curframe = 0;
+
     int length = 0;
     int index;
     int loop2, loop3;
@@ -229,6 +233,8 @@ void ActivationMapWindow::DrawSurf(Mesh_Info * curmesh)
     Map3d_Geom *curgeom = 0;
     Surf_Data *cursurf = 0;
 
+    int  maxactivation, minactivation;
+
     curgeom = curmesh->geom;
     cursurf = curmesh->data;
 
@@ -236,31 +242,8 @@ void ActivationMapWindow::DrawSurf(Mesh_Info * curmesh)
     ptnormals = curgeom->ptnormals;
     fcnormals = curgeom->fcnormals;
 
-
- //  std::cout<<"test if activation times are read in "<< cursurf->activationvals[0]<<std::endl;
-
-    if (cursurf) {
-        curframe =0;
-    }
-
-    if ((int)a == INT_MAX || (int)b == INT_MAX) //change by BJW to avoid crash
-        a = b = 0;                  //when there is no data
-
-    float potmin, potmax;
-    cursurf->get_minmax(potmin, potmax);
-
-    if (map3d_info.scale_mapping == SYMMETRIC) {
-        if (fabs(potmax) > fabs(potmin))
-            potmin = -potmax;
-        else
-            potmax = -potmin;
-    }
-    if (map3d_info.scale_mapping == SEPARATE) {
-        if (potmax < 0)
-            potmax = 0;
-        if (potmin > 0)
-            potmin = 0;
-    }
+    maxactivation = *std::max_element(cursurf->activationvals,cursurf->activationvals+curgeom->numpts);
+    minactivation = *std::min_element(cursurf->activationvals,cursurf->activationvals+curgeom->numpts);
 
     unsigned char color[3];
 
@@ -291,13 +274,13 @@ void ActivationMapWindow::DrawSurf(Mesh_Info * curmesh)
         length = curgeom->numelements;
         glBegin(GL_TRIANGLES);
 
-        float potval;
+        float activationval;
         for (loop2 = 0; loop2 < length; loop2++) {
             if (curmesh->shadingmodel == SHADE_GOURAUD) {
                 // avoid repeating code 3 times
                 for (loop3 = 0; loop3 < 3; loop3++) {
                     index = curgeom->elements[loop2][loop3];
-                    if (cursurf->potvals[curframe][index] == UNUSED_DATA)
+                    if (cursurf->activationvals[index] == UNUSED_DATA)
                         break;
                 }
                 if (loop3 < 3)
@@ -305,7 +288,7 @@ void ActivationMapWindow::DrawSurf(Mesh_Info * curmesh)
                     continue;
                 for (loop3 = 0; loop3 < 3; loop3++) {
                     index = curgeom->elements[loop2][loop3];
-                    potval = cursurf->potvals[curframe][index];
+                    activationval = cursurf->activationvals[index];
 
                     if (use_textures)
                     {
@@ -316,14 +299,11 @@ void ActivationMapWindow::DrawSurf(Mesh_Info * curmesh)
                         }
                         else
                             UseTexture(map3d_info.jet_texture);
-                        glTexCoord1f(getContNormalizedValue(potval, potmin, potmax, curmesh->invert));
+
+                        glTexCoord1f(getContNormalizedValue(activationval, minactivation, maxactivation, curmesh->invert));
                     }
 
-                    else {
-                        getContColor(potval, potmin, potmax, curmesh->cmap, color, curmesh->invert);
 
-                        glColor4ub(color[0],color[1],color[2],color[3]);
-                    }
                     glNormal3fv(ptnormals[index]);
                     glVertex3fv(modelpts[index]);
                 }
@@ -332,17 +312,17 @@ void ActivationMapWindow::DrawSurf(Mesh_Info * curmesh)
                 mean = 0;
                 for (loop3 = 0; loop3 < 3; loop3++) {
                     index = curgeom->elements[loop2][loop3];
-                    potval = cursurf->potvals[curframe][index];
-                    if (potval == UNUSED_DATA)
+                    activationval = cursurf->activationvals[index];
+                    if (activationval == UNUSED_DATA)
                         break;
-                    mean += potval;
+                    mean += activationval;
                 }
                 if (loop3 < 3)
                     // we have "UNUSED_DATA" on a node in this triangle, so don't draw here
                     continue;
 
                 mean /= 3;
-                getContColor(mean, potmin, potmax, curmesh->cmap, color, curmesh->invert);
+                getContColor(mean, minactivation, maxactivation, curmesh->cmap, color, curmesh->invert);
                 glColor4ub(color[0],color[1],color[2],color[3]);
                 glNormal3fv(fcnormals[loop2]);
 

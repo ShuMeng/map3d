@@ -81,8 +81,6 @@ GetMatrixSlice::GetMatrixSlice():
     indexSpinBox->setRange(1,map3d_info.maxnumframes);
     indexSlider->setRange(1,map3d_info.maxnumframes);
 
-std::cout<<"map3d_info.maxnumframes  "<<map3d_info.maxnumframes<<std::endl;
-
 }
 
 
@@ -95,7 +93,7 @@ void GetMatrixSlice::on_firstIndexButton_clicked()
 void GetMatrixSlice::on_lastIndexButton_clicked()
 {
     indexSpinBox->setValue(map3d_info.maxnumframes);
-    indexSlider->setValue(map3d_info.maxnumframes-1);
+    indexSlider->setValue(map3d_info.maxnumframes);
 }
 
 

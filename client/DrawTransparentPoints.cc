@@ -141,11 +141,8 @@ void DrawTransparentPoints::Activation_Callback()
     Mesh_Info* mesh = meshes[row];
     if (mesh->data) {
 
-        std::cout<< "activation time is "<<mesh->data->activationvals[0]<<std::endl;
-
         ActivationMapWindow* actimwin;
         actimwin = ActivationMapWindow::ActivationMapWindowCreate(0,0,0,0);
-
         actimwin->addMesh(mesh);
     }
 }
