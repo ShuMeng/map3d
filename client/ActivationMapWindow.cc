@@ -202,23 +202,67 @@ void ActivationMapWindow::paintGL()
         DrawSurf(curmesh);
         glDisable(GL_POLYGON_OFFSET_FILL);
 
-//        /* draw the color mapped surface */
-//        if (curmesh->shadingmodel != SHADE_NONE && curmesh->geom->points[curmesh->geom->geom_index] && !curmesh->shadefids &&
-//                curmesh->data && curmesh->drawmesh != RENDER_MESH_ELTS && curmesh->drawmesh != RENDER_MESH_ELTS_CONN) {
-//            glEnable(GL_POLYGON_OFFSET_FILL);
-
-//            DrawSurf(curmesh);
-//            glDisable(GL_POLYGON_OFFSET_FILL);
-//        }
-
     }
 
+    glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+    /* print the window's info text */
+    if (showinfotext && !clip->back_enabled && !clip->front_enabled) {
+        DrawInfo();
+    }
 
 #if SHOW_OPENGL_ERRORS
     GLenum e = glGetError();
     if (e)
         printf("GeomWindow Repaint OpenGL Error: %s\n", gluErrorString(e));
 #endif
+}
+
+void ActivationMapWindow::DrawInfo()
+{
+    int nummesh = meshes.size();
+    int surfnum = 0;
+    float position[3] = { -1.f, static_cast<float>(height() - 15.0), 0.f };
+    Mesh_Info *dommesh = 0;
+
+    glMatrixMode(GL_MODELVIEW);
+    glLoadIdentity();
+    glMatrixMode(GL_PROJECTION);
+    glLoadIdentity();
+    gluOrtho2D(0, width(), 0, height());
+    glColor3f(fgcolor[0], fgcolor[1], fgcolor[2]);
+
+    glMatrixMode(GL_MODELVIEW);
+    glPushMatrix();
+    glPopMatrix();
+    if (nummesh == 1 || (dominantsurf != -1 && nummesh > dominantsurf)) {
+        dommesh = nummesh == 1 ? meshes[0] : meshes[dominantsurf];
+        char surfstr[240];
+        if (dommesh->geom->subsurf <= 0)
+            sprintf(surfstr, "Activation map Surface #%d", dommesh->geom->surfnum);
+        else
+            sprintf(surfstr, "Activation map Surface #%d-%d", dommesh->geom->surfnum, dommesh->geom->subsurf);
+        surfnum = dommesh->geom->surfnum;
+        position[0] = (float)width()/2.0 -((float)getFontWidth((int)large_font, surfstr)/2.0);
+        position[1] = height() - getFontHeight((int)large_font);
+
+        renderString3f(position[0], position[1], position[2], (int)large_font, surfstr);
+
+        position[1] -= getFontHeight((int)med_font)*.8 ;
+        if (dommesh->data){
+            char * slash = 0;// FIX shorten_filename(dommesh->data->potfilename);
+            //position[0] = (float)width()/2.0 - ((float)getFontWidth((int)med_font, slash)/2.0);
+            // FIX renderString3f(position[0], position[1], position[2], (int)med_font, "%s@%d", slash, dommesh->data->seriesnum+1);
+        }
+        else{
+            char * slash = 0; // FIX shorten_filename(dommesh->geom->basefilename);
+            //position[0] = (float)width()/2.0 - ((float)getFontWidth((int)med_font, slash)/2.0);
+            // FIX renderString3f(position[0], position[1], position[2], (int)med_font, slash);
+        }
+    }
+    else if (nummesh > 1) {
+        position[0] = (float)width()/2.0 -((float)getFontWidth((int)large_font, "All Surfaces")/2.0);
+        renderString3f(position[0], position[1], position[2], (int)large_font, "All Surfaces");
+    }
 }
 
 void ActivationMapWindow::DrawSurf(Mesh_Info * curmesh)
@@ -234,8 +278,6 @@ void ActivationMapWindow::DrawSurf(Mesh_Info * curmesh)
     float **fcnormals = 0;
     Map3d_Geom *curgeom = 0;
     Surf_Data *cursurf = 0;
-
-
 
     curgeom = curmesh->geom;
     cursurf = curmesh->data;
@@ -409,8 +451,6 @@ void ActivationMapWindow::addMesh(Mesh_Info *curmesh)
     clip->bd.qNow = curmesh->tran->rotate.qNow;
     Qt_ToMatrix(Qt_Conj(clip->bd.qNow), clip->bd.mNow);
     Ball_EndDrag(&clip->bd);
-
-
 
     // copy surf's bg/fg color
     bgcolor[0] = curmesh->mysurf->colour_bg[0] / 255.f;

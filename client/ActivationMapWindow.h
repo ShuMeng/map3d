@@ -41,6 +41,7 @@ public:
     void DrawBGImage();
 
     void DrawSurf(Mesh_Info * curmesh);
+    void DrawInfo();
 
    // Mesh_List findMeshesFromSameInput(Mesh_Info* mesh);
 

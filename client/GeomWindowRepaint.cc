@@ -1606,11 +1606,11 @@ void GeomWindow::DrawInfo()
     glPopMatrix();
     if (nummesh == 1 || (dominantsurf != -1 && nummesh > dominantsurf)) {
         dommesh = nummesh == 1 ? meshes[0] : meshes[dominantsurf];
-        char surfstr[24];
+        char surfstr[240];
         if (dommesh->geom->subsurf <= 0)
-            sprintf(surfstr, "Surface #%d", dommesh->geom->surfnum);
+            sprintf(surfstr, "Potential map Surface #%d", dommesh->geom->surfnum);
         else
-            sprintf(surfstr, "Surface #%d-%d", dommesh->geom->surfnum, dommesh->geom->subsurf);
+            sprintf(surfstr, "Potential map Surface #%d-%d", dommesh->geom->surfnum, dommesh->geom->subsurf);
         surfnum = dommesh->geom->surfnum;
         position[0] = (float)width()/2.0 -((float)getFontWidth((int)large_font, surfstr)/2.0);
         position[1] = height() - getFontHeight((int)large_font);
