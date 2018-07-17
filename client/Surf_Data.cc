@@ -22,6 +22,8 @@ extern vector<Surface_Group> surf_group;
 extern Map3d_Info map3d_info;
 extern const char *units_strings[5];
 
+extern int  maxactivation, minactivation;
+
 Surf_Data::Surf_Data()
 {
     qgotpots = 0;
@@ -405,7 +407,7 @@ void Surf_Data::get_minmax(float &min, float &max)
         min = map3d_info.global_potmin;
         break;
 
-    case GLOBAL_GLOBAL_USER_DEFINE:
+    case GLOBAL_GLOBAL_USER_DEFINE: //shu meng
         max = map3d_info.global_user_potmax;
         min = map3d_info.global_user_potmin;
         break;
@@ -450,6 +452,14 @@ void Surf_Data::get_minmax(float &min, float &max)
         min = minmaxframes[curframe].potmin;
         break;
     }
+}
+
+
+void Surf_Data::get_activation_minmax(float &min, float &max)
+{
+
+      min= minactivation;
+    max=maxactivation;
 }
 
 void Surf_Data::get_fid_minmax(float &min, float &max, int type)

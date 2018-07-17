@@ -14,7 +14,7 @@
 #include "map3d-struct.h"
 #include "matlabarray.h"
 #include "GetMatrixSlice.h"
-#include "LegendWindow.h"
+#include "ActivationLegendWindow.h"
 
 #include "ActivationMapWindow.h"
 #include <QPushButton>
@@ -22,6 +22,8 @@
 
 
 extern Map3d_Info map3d_info;
+
+extern int  maxactivation, minactivation;
 
 #include <iostream>
 
@@ -105,23 +107,18 @@ void DrawTransparentPoints::Transp_Points_Callback()
 
             if (fixedPointsOnlyBoxes[row]->isChecked())
             {
-
                 mesh->data->user_pointsonly = true;
                 unlock_electrode_surfnum[row]=row+1;
             }
             else {
-
                 mesh->data->user_pointsonly = false;
                 unlock_electrode_surfnum[row]=0;
             }
-
-
             if (fixedTransparentBoxes[row]->isChecked())
             {
                 mesh->data->user_transparent = true;
                 unlock_transparency_surfnum[row]=row+1;
             }
-
             else {
                 mesh->data->user_transparent = false;
                 unlock_transparency_surfnum[row]=0;
@@ -140,9 +137,6 @@ void DrawTransparentPoints::Activation_Callback()
     int row = rowProp.toInt();
 
     Mesh_Info* mesh = meshes[row];
-
-
-
     if (mesh->data->activationvals[0]!=0) {
 
         ActivationMapWindow* actimwin;
@@ -152,39 +146,34 @@ void DrawTransparentPoints::Activation_Callback()
         Surf_Data *s=0;
         s=mesh->data;
 
+        /* create colormap legend window */
+        ActivationLegendWindow *lpriv = NULL;
+        int width, height;
+        width = mesh->lw_xmax - mesh->lw_xmin;
+        height = mesh->lw_ymax - mesh->lw_ymin;
+        lpriv = ActivationLegendWindow::ActivationLegendWindowCreate(mesh, width, height, mesh->lw_xmin, mesh->lw_ymin, !mesh->showlegend);
 
+        if (lpriv != NULL) {
+            // can fail if more than MAX_SURFS l-wins.
+            lpriv->orientation = 1;
+            if (mesh->mysurf->legendticks != -1) {
+                lpriv->nticks = mesh->mysurf->legendticks;
+                lpriv->matchContours = false;
+            }
 
+            lpriv->surf = s;
+            lpriv->mesh = mesh;
+            lpriv->map = &mesh->cmap;
+ //           mesh->legendwin = lpriv;
 
-//        /* create colormap legend window */
-//        LegendWindow *lpriv = NULL;
-
-//        int width, height;
-//        width = mesh->lw_xmax - mesh->lw_xmin;
-//        height = mesh->lw_ymax - mesh->lw_ymin;
-//        lpriv = LegendWindow::LegendWindowCreate(mesh, width, height, mesh->lw_xmin, mesh->lw_ymin, !mesh->showlegend);
-
-//        if (lpriv != NULL) {
-//            // can fail if more than MAX_SURFS l-wins.
-//            lpriv->orientation = 1;
-//            if (mesh->mysurf->legendticks != -1) {
-//                lpriv->nticks = mesh->mysurf->legendticks;
-//                lpriv->matchContours = false;
-//            }
-
-//            lpriv->surf = s;
-//            lpriv->mesh = mesh;
-//            lpriv->map = &mesh->cmap;
-//            mesh->legendwin = lpriv;
-
-//            // background color
-//            lpriv->bgcolor[0] = mesh->mysurf->colour_bg[0] / 255.f;
-//            lpriv->bgcolor[1] = mesh->mysurf->colour_bg[1] / 255.f;
-//            lpriv->bgcolor[2] = mesh->mysurf->colour_bg[2] / 255.f;
-//            lpriv->fgcolor[0] = mesh->mysurf->colour_fg[0] / 255.f;
-//            lpriv->fgcolor[1] = mesh->mysurf->colour_fg[1] / 255.f;
-//            lpriv->fgcolor[2] = mesh->mysurf->colour_fg[2] / 255.f;
-
-//        }
+            // background color
+            lpriv->bgcolor[0] = mesh->mysurf->colour_bg[0] / 255.f;
+            lpriv->bgcolor[1] = mesh->mysurf->colour_bg[1] / 255.f;
+            lpriv->bgcolor[2] = mesh->mysurf->colour_bg[2] / 255.f;
+            lpriv->fgcolor[0] = mesh->mysurf->colour_fg[0] / 255.f;
+            lpriv->fgcolor[1] = mesh->mysurf->colour_fg[1] / 255.f;
+            lpriv->fgcolor[2] = mesh->mysurf->colour_fg[2] / 255.f;
+       }
     }
 
     else {

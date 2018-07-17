@@ -71,6 +71,8 @@ static const int default_height = 380;
 
 GLuint selectbufferActivate[2048];
 
+int  maxactivation, minactivation;
+
 
 ActivationMapWindow::ActivationMapWindow(QWidget *parent) : Map3dGLWidget(parent, ACTIVATIONWINDOW, "Activation Display",min_width, min_height)
 {
@@ -233,7 +235,7 @@ void ActivationMapWindow::DrawSurf(Mesh_Info * curmesh)
     Map3d_Geom *curgeom = 0;
     Surf_Data *cursurf = 0;
 
-    int  maxactivation, minactivation;
+
 
     curgeom = curmesh->geom;
     cursurf = curmesh->data;
@@ -425,17 +427,6 @@ void ActivationMapWindow::addMesh(Mesh_Info *curmesh)
 
   }
 
-  // make legend window's fg/bg equal to this one
-  LegendWindow* lw = curmesh->legendwin;
-
-  if (lw) {
-    lw->bgcolor[0] = bgcolor[0];
-    lw->bgcolor[1] = bgcolor[1];
-    lw->bgcolor[2] = bgcolor[2];
-    lw->fgcolor[0] = fgcolor[0];
-    lw->fgcolor[1] = fgcolor[1];
-    lw->fgcolor[2] = fgcolor[2];
-  }
 }
 
 void ActivationMapWindow::recalcMinMax()

@@ -83,7 +83,8 @@ HEADERS += GeomWindow.h \
     GetMatrixSlice.h \
     RescaleColorMap.h \
     DrawTransparentPoints.h \
-    ActivationMapWindow.h
+    ActivationMapWindow.h \
+    ActivationLegendWindow.h
            
 
 SOURCES += Ball.cc \
@@ -129,5 +130,6 @@ SOURCES += Ball.cc \
     GetMatrixSlice.cc \
     RescaleColorMap.cc \
     DrawTransparentPoints.cc \
-    ActivationMapWindow.cc
+    ActivationMapWindow.cc \
+    ActivationLegendWindow.cc
            

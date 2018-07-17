@@ -27,6 +27,9 @@ public:
   void StackSubseries();
   void UnstackSubseries();
   void get_minmax(float &min, float &max);
+
+  void get_activation_minmax(float &min, float &max);
+
   void get_fid_minmax(float &min, float &max, int type);
   void MinMaxPot(Map3d_Geom * onemap3dgeom);
   void ChangeReference(long leadnum, Map3d_Geom * onemap3dgeom);

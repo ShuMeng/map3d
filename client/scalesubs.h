@@ -13,7 +13,9 @@
 #define GROUP_GLOBAL       5
 #define SLAVE_FRAME        6  /*** Slave scaling ****/
 #define SLAVE_GLOBAL       7
-#define GLOBAL_GLOBAL_USER_DEFINE        8
+#define GLOBAL_GLOBAL_USER_DEFINE        8 /*** fixed global scaling ****/
+
+
 
 // it is imperative that these defines are 0-n, as they are array indices
 #define LINEAR     0 /*** Used for scale_model ***/
