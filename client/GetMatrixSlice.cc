@@ -86,14 +86,13 @@ GetMatrixSlice::GetMatrixSlice():
 
 void GetMatrixSlice::on_firstIndexButton_clicked()
 {
-    indexSpinBox->setValue(1);
-    indexSlider->setValue(0);
+//    indexSpinBox->setValue(1);
+//    indexSlider->setValue(0);
 }
 
 void GetMatrixSlice::on_lastIndexButton_clicked()
 {
-    indexSpinBox->setValue(map3d_info.maxnumframes);
-    indexSlider->setValue(map3d_info.maxnumframes);
+
 }
 
 

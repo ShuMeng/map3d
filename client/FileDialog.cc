@@ -665,9 +665,7 @@ void FileDialog::on_applyButton_clicked()
     }
 
     getmatrixslice = new GetMatrixSlice;
-
     GeomWindow *test = GetGeomWindow(0);
-
     connect(getmatrixslice->nextIndexButton,SIGNAL(clicked()),test,SLOT(AdvanceButtonControl()));
     connect(getmatrixslice->previousIndexButton,SIGNAL(clicked()),test,SLOT(BackwardButtonControl()));
     connect(getmatrixslice->firstIndexButton,SIGNAL(clicked()),test,SLOT(ButtonControlFirstFrame()));

@@ -19,6 +19,7 @@
 #include "ActivationMapWindow.h"
 #include <QPushButton>
 #include <QMessageBox>
+#include <QLabel>
 
 
 extern Map3d_Info map3d_info;
@@ -136,35 +137,59 @@ void DrawTransparentPoints::Activation_Callback()
     QVariant rowProp = sender()->property(MeshProperty_trans_Points);
     int row = rowProp.toInt();
 
+    QWidget *actiWidget;
+    QHBoxLayout *gLayout;
+    actiWidget = new QWidget();
+
+    gLayout = new QHBoxLayout(actiWidget);
+
     Mesh_Info* mesh = meshes[row];
     if (mesh->data->activationvals[0]!=0) {
 
-        ActivationMapWindow* actimwin;
-        actimwin = ActivationMapWindow::ActivationMapWindowCreate(0,0,0,0);
-        actimwin->addMesh(mesh);
+         ActivationMapWindow* actiwin;
+        actiwin = new ActivationMapWindow(actiWidget);
+        //actiwin = ActivationMapWindow::ActivationMapWindowCreate(0,0,0,0);
+        actiwin->addMesh(mesh);
+        actiwin->setWindowFlags(Qt::WindowTransparentForInput);
+
 
         Surf_Data *s=0;
         s=mesh->data;
 
         /* create colormap legend window */
         ActivationLegendWindow *lpriv = NULL;
+        lpriv = new ActivationLegendWindow(actiWidget);
+
         int width, height;
         width = mesh->lw_xmax - mesh->lw_xmin;
         height = mesh->lw_ymax - mesh->lw_ymin;
-        lpriv = ActivationLegendWindow::ActivationLegendWindowCreate(mesh, width, height, mesh->lw_xmin, mesh->lw_ymin, !mesh->showlegend);
+        //lpriv = ActivationLegendWindow::ActivationLegendWindowCreate(mesh, width, height, mesh->lw_xmin, mesh->lw_ymin, !mesh->showlegend);
+
+
+        gLayout->addWidget(actiwin);
+        gLayout->setStretch(0,3);
+        gLayout->addWidget(lpriv);
+        gLayout->setStretch(1,1);
+
+        lpriv->setVisible(true);
+        actiwin->show();
+
+        actiWidget->setMinimumSize(500,380);
+        actiWidget->show();
+
 
         if (lpriv != NULL) {
             // can fail if more than MAX_SURFS l-wins.
             lpriv->orientation = 1;
             if (mesh->mysurf->legendticks != -1) {
                 lpriv->nticks = mesh->mysurf->legendticks;
-                lpriv->matchContours = false;
+                lpriv->matchContours = true;
             }
 
             lpriv->surf = s;
             lpriv->mesh = mesh;
             lpriv->map = &mesh->cmap;
- //           mesh->legendwin = lpriv;
+
 
             // background color
             lpriv->bgcolor[0] = mesh->mysurf->colour_bg[0] / 255.f;
@@ -173,11 +198,12 @@ void DrawTransparentPoints::Activation_Callback()
             lpriv->fgcolor[0] = mesh->mysurf->colour_fg[0] / 255.f;
             lpriv->fgcolor[1] = mesh->mysurf->colour_fg[1] / 255.f;
             lpriv->fgcolor[2] = mesh->mysurf->colour_fg[2] / 255.f;
-       }
+        }
     }
 
     else {
-      QMessageBox::warning(this,QString("Warning"),QString("No Activation times for this surface!"));
+
+        QMessageBox::warning(this,QString("Warning"),QString("No Activation times for this surface!"));
     }
 }
 

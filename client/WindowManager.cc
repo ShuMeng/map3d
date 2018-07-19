@@ -315,7 +315,7 @@ void Broadcast(int message, Map3dGLWidget* widget, QEvent * event, int data)
             if (mesh->data && (map3d_info.selected_group == -1 || map3d_info.selected_group == mesh->groupid))
                 mesh->data->framenum =cur;
 
-           // std::cout<<"mesh->data->framenum value in MAP3D_SLIDER_FRAMES is "<<cur<<std::endl;
+            // std::cout<<"mesh->data->framenum value in MAP3D_SLIDER_FRAMES is "<<cur<<std::endl;
 
         }
     }
@@ -334,8 +334,6 @@ void Broadcast(int message, Map3dGLWidget* widget, QEvent * event, int data)
         if (!map3d_info.frame_loop)
             cur += fstep*multiplier;
 
-
-
         for (MeshIterator mi(0,0); !mi.isDone(); ++mi) {
             Mesh_Info* mesh = mi.getMesh();
             if (mesh->data && (map3d_info.selected_group == -1 || map3d_info.selected_group == mesh->groupid))
@@ -344,6 +342,7 @@ void Broadcast(int message, Map3dGLWidget* widget, QEvent * event, int data)
             // std::cout<<"FrameAdvance is called in case MAP3D_BUTTON_ADVANCE"<<cur<<std::endl;
 
             getmatrixslice->indexSpinBox->setValue(cur+1);
+
         }
     }
 
@@ -365,10 +364,10 @@ void Broadcast(int message, Map3dGLWidget* widget, QEvent * event, int data)
             Mesh_Info* mesh = mi.getMesh();
             if (mesh->data && (map3d_info.selected_group == -1 || map3d_info.selected_group == mesh->groupid))
                 mesh->data->FrameAdvance(multiplier*fstep, map3d_info.frame_loop);
-          getmatrixslice->indexSpinBox->setValue(cur+1);
+            getmatrixslice->indexSpinBox->setValue(cur+1);
 
             // std::cout<<"FrameAdvance is called in case MAP3D_BUTTON_BACKWARD"<<cur<<std::endl;
-           // getmatrixslice->indexSpinBox->setValue(cur);
+            // getmatrixslice->indexSpinBox->setValue(cur);
         }
     }
 
@@ -389,6 +388,9 @@ void Broadcast(int message, Map3dGLWidget* widget, QEvent * event, int data)
                 mesh->data->framenum =0;
             //std::cout<<"FrameAdvance is called in case MAP3D_BUTTON_FIRST"<<cur<<std::endl;
         }
+
+        //getmatrixslice->indexSpinBox->setValue(0);
+        getmatrixslice->indexSlider->setValue(0);
     }
         Broadcast(MAP3D_UPDATE);
         break;
@@ -406,6 +408,9 @@ void Broadcast(int message, Map3dGLWidget* widget, QEvent * event, int data)
                 mesh->data->framenum =cur;
             //  std::cout<<"FrameAdvance is called in case MAP3D_BUTTON_LAST"<<cur<<std::endl;
         }
+
+        getmatrixslice->indexSpinBox->setValue(map3d_info.maxnumframes);
+        getmatrixslice->indexSlider->setValue(map3d_info.maxnumframes);
     }
         Broadcast(MAP3D_UPDATE);
         break;
@@ -443,7 +448,7 @@ void Broadcast(int message, Map3dGLWidget* widget, QEvent * event, int data)
         for (loop = 0; loop < glength; loop++) {
             if (GeomWindows[loop] != 0) {
                 GeomWindows[loop]->UpdateAndRedraw();
-               // getmatrixslice->indexSpinBox->setValue(cur+1);
+
             }
         }
         if (masterWindow)

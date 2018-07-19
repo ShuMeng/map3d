@@ -24,7 +24,7 @@
 #include "Map3d_Geom.h"
 #include "Surf_Data.h"
 #include "WindowManager.h"
-#include "LegendWindow.h"
+#include "ActivationLegendWindow.h"
 #include "PickWindow.h"
 #include "MainWindow.h"
 #include "ProcessCommandLineOptions.h"
@@ -54,6 +54,7 @@
 #include "GenericWindow.h"
 #include "MeshList.h"
 #include "GeomWindowMenu.h"
+
 
 #include <QApplication>
 #include <QDesktopWidget>
@@ -236,7 +237,7 @@ void ActivationMapWindow::DrawInfo()
     glPopMatrix();
     if (nummesh == 1 || (dominantsurf != -1 && nummesh > dominantsurf)) {
         dommesh = nummesh == 1 ? meshes[0] : meshes[dominantsurf];
-        char surfstr[240];
+        char surfstr[50];
         if (dommesh->geom->subsurf <= 0)
             sprintf(surfstr, "Activation map Surface #%d", dommesh->geom->surfnum);
         else

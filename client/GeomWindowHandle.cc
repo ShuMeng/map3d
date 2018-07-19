@@ -159,7 +159,9 @@ bool GeomWindow::HandleFrameAdvances()
 
 bool GeomWindow::mouseSliderEvent()
 
-{   static QTime time;
+{
+
+    static QTime time;
     static bool firstTime = true;
 
     if (firstTime)
@@ -190,7 +192,8 @@ bool GeomWindow::mouseSliderEvent()
 
 bool GeomWindow::SpinBoxEvent()
 
-{   static QTime time;
+{
+    static QTime time;
     static bool firstTime = true;
 
     if (firstTime)
@@ -230,7 +233,7 @@ bool GeomWindow::PlayButtonControl()
 
 {
     connect(play_timer, SIGNAL(timeout()), this, SLOT(AdvanceButtonControl()));
-    play_timer->start();
+    play_timer->start(0.0001);
 
 }
 
@@ -242,7 +245,9 @@ bool GeomWindow::PauseButtonControl()
 
 
 bool GeomWindow::AdvanceButtonControl()
-{   static QTime time;
+{
+
+    static QTime time;
     static bool firstTime = true;
 
     if (firstTime)
@@ -273,7 +278,10 @@ bool GeomWindow::AdvanceButtonControl()
 
 
 bool GeomWindow::BackwardButtonControl()
-{   static QTime time;
+{
+    play_timer->stop();
+
+    static QTime time;
     static bool firstTime = true;
     if (firstTime)
         time.start();
@@ -302,7 +310,9 @@ bool GeomWindow::BackwardButtonControl()
 }
 
 bool GeomWindow::ButtonControlFirstFrame()
-{   static QTime time;
+{
+    play_timer->stop();
+    static QTime time;
     static bool firstTime = true;
     if (firstTime)
         time.start();
@@ -331,7 +341,9 @@ bool GeomWindow::ButtonControlFirstFrame()
 }
 
 bool GeomWindow::ButtonControlLastFrame()
-{   static QTime time;
+{
+    play_timer->stop();
+    static QTime time;
     static bool firstTime = true;
     if (firstTime)
         time.start();
@@ -348,7 +360,7 @@ bool GeomWindow::ButtonControlLastFrame()
 
     if (map3d_info.lockframes) {
         Broadcast(MAP3D_BUTTON_LAST);
-        //std::cout<<"Entering Broadcast(MAP3D_BUTTON_LAST) in lock mode "<<std::endl;
+
     }
     else {
         std::cout<<"Warning: Frames Unlocked, use <- -> to control frames seperately "<<std::endl;

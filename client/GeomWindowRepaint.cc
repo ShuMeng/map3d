@@ -1606,7 +1606,7 @@ void GeomWindow::DrawInfo()
     glPopMatrix();
     if (nummesh == 1 || (dominantsurf != -1 && nummesh > dominantsurf)) {
         dommesh = nummesh == 1 ? meshes[0] : meshes[dominantsurf];
-        char surfstr[240];
+        char surfstr[50];
         if (dommesh->geom->subsurf <= 0)
             sprintf(surfstr, "Potential map Surface #%d", dommesh->geom->surfnum);
         else
@@ -1619,14 +1619,10 @@ void GeomWindow::DrawInfo()
 
         position[1] -= getFontHeight((int)med_font)*.8 ;
         if (dommesh->data){
-            char * slash = 0;// FIX shorten_filename(dommesh->data->potfilename);
-            //position[0] = (float)width()/2.0 - ((float)getFontWidth((int)med_font, slash)/2.0);
-            // FIX renderString3f(position[0], position[1], position[2], (int)med_font, "%s@%d", slash, dommesh->data->seriesnum+1);
+            char * slash = 0;
         }
         else{
-            char * slash = 0; // FIX shorten_filename(dommesh->geom->basefilename);
-            //position[0] = (float)width()/2.0 - ((float)getFontWidth((int)med_font, slash)/2.0);
-            // FIX renderString3f(position[0], position[1], position[2], (int)med_font, slash);
+            char * slash = 0;
         }
     }
     else if (nummesh > 1) {
