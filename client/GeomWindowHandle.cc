@@ -160,7 +160,6 @@ bool GeomWindow::HandleFrameAdvances()
 bool GeomWindow::mouseSliderEvent()
 
 {
-
     static QTime time;
     static bool firstTime = true;
 

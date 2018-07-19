@@ -57,6 +57,8 @@ extern MainWindow *masterWindow;
 
 extern GetMatrixSlice* getmatrixslice;
 
+extern QTimer *play_timer;
+
 
 PickInfo *pickstack[100] = { 0 };
 int pickstacktop = -1;
@@ -389,6 +391,9 @@ void PickWindow::RMSButtonPress(QMouseEvent * event)
 
 void PickWindow::mouseMoveEvent(QMouseEvent* event)
 {
+
+    play_timer->stop();
+
     if (rms)
     {
         RMSMotion(event);
