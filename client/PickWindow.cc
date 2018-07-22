@@ -799,6 +799,7 @@ void PickWindow::DrawNode()
                     else{
                         glColor3f(graphcolor[0], graphcolor[1], graphcolor[0]);
                         glVertex3f(left * width() + d * counter, data->potvals[loop][pick->node] * a + b, 0);
+
                         if (data->inversevals[loop][pick->node]!=0){
                             glColor3f(graphcolor[0], graphcolor[0], graphcolor[0]);
                             glVertex3f(left * width() + d * counter, data->inversevals[loop][pick->node] * a + b, 0);

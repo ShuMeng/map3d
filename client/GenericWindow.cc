@@ -207,7 +207,7 @@ void Map3dGLWidget::renderString3f(float x, float y, float z, float size, QStrin
   QFontMetrics fontMetrics(f);
   
   glEnable(GL_BLEND);
-  //glColor3f(1,1,1);
+  glColor3f(0,0,0);
   glDisable(GL_ALPHA_TEST);
   //glAlphaFunc(GL_GEQUAL, 0.0001f);
   glEnable(GL_TEXTURE_2D);
