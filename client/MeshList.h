@@ -119,6 +119,9 @@ ActivationMapWindow *actipriv;   /* activation window where mesh is present */
   bool mark_all_sphere;         /* mark all with sphere */
   bool mark_all_sphere_value;   /* whether the spheres are mapped to the data value */
   char mark_all_number;         /* mark all with node, channel or value */
+
+char mark_all_activation_number; /* mark all with node in activaion map, channel or value */
+
   float mark_extrema_color[4];  /* color of extrema node marking */
   float mark_extrema_size;      /* color of extrema node marking */
   bool mark_extrema_sphere;     /* mark extrema with sphere */

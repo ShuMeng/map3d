@@ -78,6 +78,9 @@ Mesh_Info::Mesh_Info()
   mark_all_sphere = 0;
   mark_all_sphere_value = 0;
   mark_all_number = 0;
+
+  mark_all_activation_number=0;
+
   mark_extrema_sphere = 0;
   mark_extrema_number = 0;
   mark_ts_sphere = 1;

@@ -25,6 +25,12 @@ public:
     virtual void mouseReleaseEvent ( QMouseEvent * event );
     virtual void closeEvent(QCloseEvent * event);
 
+    int OpenMenu(QPoint point);
+    void MenuEvent(int menu_data);
+    void HandleMenu(int menu_data);
+    void DrawNodes(Mesh_Info * curmesh);
+    float fontScale();
+
 
     virtual void initializeGL();
     virtual void paintGL ();

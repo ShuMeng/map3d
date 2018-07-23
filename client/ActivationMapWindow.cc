@@ -55,7 +55,7 @@
 #include "MeshList.h"
 #include "GeomWindowMenu.h"
 
-
+#include <QMenu>
 #include <QApplication>
 #include <QDesktopWidget>
 
@@ -202,6 +202,9 @@ void ActivationMapWindow::paintGL()
         glEnable(GL_POLYGON_OFFSET_FILL);
         DrawSurf(curmesh);
         glDisable(GL_POLYGON_OFFSET_FILL);
+
+        if (curmesh->qshowpnts)
+            DrawNodes(curmesh);
 
     }
 
@@ -439,83 +442,92 @@ void ActivationMapWindow::DrawSurf(Mesh_Info * curmesh)
 
 void ActivationMapWindow::addMesh(Mesh_Info *curmesh)
 {
-  /* copy from meshes to this window's mesh list */
-  meshes.push_back(curmesh);
-  curmesh->actipriv = this;
-  recalcMinMax();
+    /* copy from meshes to this window's mesh list */
+    meshes.push_back(curmesh);
+    curmesh->actipriv = this;
+    recalcMinMax();
 
-  // if this is the first mesh, copy vfov to the window and the
-  // rotation quaternion to the clipping planes (these could have
-  // been set by the command line).
-  if (meshes.size() == 1) {
-    vfov = curmesh->mysurf->vfov;
-    clip->bd.qNow = curmesh->tran->rotate.qNow;
-    Qt_ToMatrix(Qt_Conj(clip->bd.qNow), clip->bd.mNow);
-    Ball_EndDrag(&clip->bd);
+    // if this is the first mesh, copy vfov to the window and the
+    // rotation quaternion to the clipping planes (these could have
+    // been set by the command line).
+    if (meshes.size() == 1) {
+        vfov = curmesh->mysurf->vfov;
+        clip->bd.qNow = curmesh->tran->rotate.qNow;
+        Qt_ToMatrix(Qt_Conj(clip->bd.qNow), clip->bd.mNow);
+        Ball_EndDrag(&clip->bd);
 
-    // copy surf's bg/fg color
-    bgcolor[0] = curmesh->mysurf->colour_bg[0] / 255.f;
-    bgcolor[1] = curmesh->mysurf->colour_bg[1] / 255.f;
-    bgcolor[2] = curmesh->mysurf->colour_bg[2] / 255.f;
-    fgcolor[0] = curmesh->mysurf->colour_fg[0] / 255.f;
-    fgcolor[1] = curmesh->mysurf->colour_fg[1] / 255.f;
-    fgcolor[2] = curmesh->mysurf->colour_fg[2] / 255.f;
-    large_font = (float)curmesh->mysurf->large_font;
-    med_font = (float)curmesh->mysurf->med_font;
-    small_font = (float)curmesh->mysurf->small_font;
+        // copy surf's bg/fg color
+        bgcolor[0] = curmesh->mysurf->colour_bg[0] / 255.f;
+        bgcolor[1] = curmesh->mysurf->colour_bg[1] / 255.f;
+        bgcolor[2] = curmesh->mysurf->colour_bg[2] / 255.f;
+        fgcolor[0] = curmesh->mysurf->colour_fg[0] / 255.f;
+        fgcolor[1] = curmesh->mysurf->colour_fg[1] / 255.f;
+        fgcolor[2] = curmesh->mysurf->colour_fg[2] / 255.f;
+        large_font = (float)curmesh->mysurf->large_font;
+        med_font = (float)curmesh->mysurf->med_font;
+        small_font = (float)curmesh->mysurf->small_font;
 
-    if (curmesh->mysurf->showinfotext != -1) showinfotext = curmesh->mysurf->showinfotext;
+        if (curmesh->mysurf->showinfotext != -1) showinfotext = curmesh->mysurf->showinfotext;
 
-  }
+    }
 
 }
 
 void ActivationMapWindow::recalcMinMax()
 {
-  xmin = ymin = zmin = FLT_MAX;
-  xmax = ymax = zmax = -FLT_MAX;
+    xmin = ymin = zmin = FLT_MAX;
+    xmax = ymax = zmax = -FLT_MAX;
 
-  for (unsigned i = 0; i < meshes.size(); i++) {
-    Mesh_Info* curmesh = meshes[i];
-    xmin = MIN(xmin, curmesh->geom->xmin);
-    ymin = MIN(ymin, curmesh->geom->ymin);
-    zmin = MIN(zmin, curmesh->geom->zmin);
-    xmax = MAX(xmax, curmesh->geom->xmax);
-    ymax = MAX(ymax, curmesh->geom->ymax);
-    zmax = MAX(zmax, curmesh->geom->zmax);
-  }
+    for (unsigned i = 0; i < meshes.size(); i++) {
+        Mesh_Info* curmesh = meshes[i];
+        xmin = MIN(xmin, curmesh->geom->xmin);
+        ymin = MIN(ymin, curmesh->geom->ymin);
+        zmin = MIN(zmin, curmesh->geom->zmin);
+        xmax = MAX(xmax, curmesh->geom->xmax);
+        ymax = MAX(ymax, curmesh->geom->ymax);
+        zmax = MAX(zmax, curmesh->geom->zmax);
+    }
 
-  float xsize = xmax - xmin;
-  float ysize = ymax - ymin;
-  float zsize = zmax - zmin;
-  xcenter = xsize / 2.f + xmin;
-  ycenter = ysize / 2.f + ymin;
-  zcenter = zsize / 2.f + zmin;
+    float xsize = xmax - xmin;
+    float ysize = ymax - ymin;
+    float zsize = zmax - zmin;
+    xcenter = xsize / 2.f + xmin;
+    ycenter = ysize / 2.f + ymin;
+    zcenter = zsize / 2.f + zmin;
 
-  // Set the "fit" for the window.  If -ss is specified, set
-  // all windows' fit to the first window's.  If it's the first
-  // window, set it only once.
-  ActivationMapWindow* first_geom_window = GetActivationMapWindow(0);
-  bool lock_l2norms = map3d_info.same_scale;
-  if (!lock_l2norms || (this == first_geom_window && l2norm == 0))
-    l2norm = sqrt(xsize * xsize + ysize * ysize + zsize * zsize);
-  else if (lock_l2norms && this != first_geom_window)
-    l2norm = first_geom_window->l2norm;
+    // Set the "fit" for the window.  If -ss is specified, set
+    // all windows' fit to the first window's.  If it's the first
+    // window, set it only once.
+    ActivationMapWindow* first_geom_window = GetActivationMapWindow(0);
+    bool lock_l2norms = map3d_info.same_scale;
+    if (!lock_l2norms || (this == first_geom_window && l2norm == 0))
+        l2norm = sqrt(xsize * xsize + ysize * ysize + zsize * zsize);
+    else if (lock_l2norms && this != first_geom_window)
+        l2norm = first_geom_window->l2norm;
 
-  qDebug() << l2norm;
+    qDebug() << l2norm;
 
-  /* Adjust clipping plane coordinates */
-  clip->front_init = clip->front = zmax - zsize / 4;
-  clip->back_init = clip->back = -zmin - zsize / 4;
-  clip->step = zsize / 200;
-  clip->frontmax = zmax + clip->step;
-  clip->backmax = -zmin + clip->step;
+    /* Adjust clipping plane coordinates */
+    clip->front_init = clip->front = zmax - zsize / 4;
+    clip->back_init = clip->back = -zmin - zsize / 4;
+    clip->step = zsize / 200;
+    clip->frontmax = zmax + clip->step;
+    clip->backmax = -zmin + clip->step;
 }
 
 void ActivationMapWindow::mousePressEvent(QMouseEvent * event)
 {
     setMoveCoordinates(event);
-    HandleButtonPress(event, (float)event->x() / (float)width(), (float)event->y() / (float)height());
+    int button = mouseButtonOverride(event);
+    if (button == Qt::RightButton){       // right click
+
+        int menu_data = OpenMenu(mapToGlobal(event->pos()));
+        if (menu_data >= 0)
+            MenuEvent(menu_data);
+    }
+    else {
+        HandleButtonPress(event, (float)event->x() / (float)width(), (float)event->y() / (float)height());
+    }
 }
 
 
@@ -533,8 +545,8 @@ void ActivationMapWindow::mouseReleaseEvent(QMouseEvent * event)
 
 void ActivationMapWindow::closeEvent(QCloseEvent * event)
 {
-        close();
- }
+    close();
+}
 
 
 void ActivationMapWindow::HandleButtonPress(QMouseEvent * event, float xn, float yn)
@@ -823,6 +835,177 @@ void ActivationMapWindow::DrawBGImage()
 }
 
 
+int ActivationMapWindow::OpenMenu(QPoint point)
+{
+    int all_node_num = 0;
 
+    QMenu menu(this);
+
+    QMenu* submenu = menu.addMenu("Node Marking");
+
+    QAction* action = submenu->addAction("Node #");
+    action->setData(mark_all_activation_node); action->setCheckable(true); action->setChecked(all_node_num == 1);
+
+    action = submenu->addAction("activation time");
+    action->setData(mark_all_activation_value); action->setCheckable(true); action->setChecked(all_node_num == 2);
+
+    action = menu.exec(point);
+    if (action)
+        return action->data().toInt();
+    else
+        return -1;
+
+}
+
+void ActivationMapWindow::MenuEvent(int menu)
+{
+    HandleMenu(menu);
+}
+
+void ActivationMapWindow::HandleMenu(int menu_data)
+{
+
+    int length = meshes.size();
+    int loop = 0;
+
+    Mesh_Info *mesh = 0;
+
+    if(length > 1 && !map3d_info.lockframes && (menu_data == frame_reset || menu_data == frame_zero)){
+        loop = secondarysurf;
+        length = loop +1;
+    }
+    else if (length > 1 && !map3d_info.lockgeneral) {
+        loop = dominantsurf;
+        length = loop + 1;
+    }
+    for (; loop < length; loop++) {
+        mesh = meshes[loop];
+
+        //switch for every mesh in the window, based on general lock status
+        switch ((menu_data)) {
+
+        case mark_all_activation_node:
+            if (mesh->mark_all_activation_number == 1) {
+                // toggle the value
+                mesh->mark_all_activation_number = 0;
+            }
+            else {
+                mesh->mark_all_activation_number = 1;
+                mesh->qshowpnts = 1;
+            }
+            break;
+
+        case mark_all_activation_value:
+            if (mesh->mark_all_activation_number == 2) {
+                // toggle the value
+                mesh->mark_all_activation_number = 0;
+            }
+            else {
+                mesh->mark_all_activation_number = 2;
+                mesh->qshowpnts = 1;
+            }
+            break;
+        }
+    }
+    update();
+}
+
+
+void ActivationMapWindow::DrawNodes(Mesh_Info * curmesh)
+{
+    //  int curframe = 0;
+    int length = 0, loop = 0;
+    float min = 0, max = 0, value = 0;
+    float mNowI[16];
+    float **modelpts = 0;
+    Map3d_Geom *curgeom = 0;
+    Surf_Data *cursurf = 0;
+    HMatrix mNow;
+
+    ColorMap *curmap = 0;
+    curgeom = curmesh->geom;
+    cursurf = curmesh->data;
+
+    modelpts = curgeom->points[curgeom->geom_index];
+
+    if (cursurf) {
+        curmap = curmesh->cmap;
+    }
+
+    length = curgeom->numpts;
+
+    /* set the transform for billboarding */
+    Ball_Value(&curmesh->tran->rotate, mNow);
+    TransposeMatrix16((float *)mNow, mNowI);
+    Transform(curmesh, 0.01f, true);
+    glPushMatrix();
+
+    //if (!cursurf)
+    //return;
+    if (cursurf)
+        cursurf->get_minmax(min, max);
+    unsigned char color[3];
+    float pos[3];
+
+    if (curmesh->mark_all_activation_number) {
+        //glDepthMask(GL_FALSE);
+
+        for (loop = 0; loop < length; loop++) {
+            if (cursurf) {
+                value = cursurf->potvals[cursurf->framenum][loop];
+                getContColor(value, min, max, curmap, color, curmesh->invert);
+            }
+            glTranslatef(modelpts[loop][0], modelpts[loop][1], modelpts[loop][2]);
+            glMultMatrixf((float *)mNowI);
+            glTranslatef(-modelpts[loop][0], -modelpts[loop][1], -modelpts[loop][2]);
+            pos[0] = modelpts[loop][0];
+            pos[1] = modelpts[loop][1];
+            pos[2] = modelpts[loop][2];
+
+            int number = 0;
+
+            if (curmesh->mark_all_activation_number) {
+                // this is a function of the fov (zoom), the ratio of
+                // mesh's l2norm to the window's l2norm and the window
+                // height to determine whether the numbers will be too
+                // close together or not
+
+                glColor3f(curmesh->mark_all_color[0], curmesh->mark_all_color[1], curmesh->mark_all_color[2]);
+                number = curmesh->mark_all_activation_number;
+            }
+
+            float scale = fontScale();
+            switch (number) {
+            case 1:
+                renderString3f(pos[0], pos[1], pos[2], (int)small_font, QString::number(loop + 1), scale);
+                break;
+
+            case 2:
+                if (cursurf && cursurf->activationvals && cursurf->activationvals[loop] != UNUSED_DATA)
+                    renderString3f(pos[0], pos[1], pos[2], (int)small_font,
+                            QString::number(cursurf->activationvals[loop], 'g', 2), scale);
+                break;
+
+
+            }
+            glPopMatrix();
+            glPushMatrix();
+        }
+        glDepthMask(GL_TRUE);
+    }
+
+    glPopMatrix();
+
+#if SHOW_OPENGL_ERRORS
+    GLenum e = glGetError();
+    if (e)
+        printf("GeomWindow DrawNodes OpenGL Error: %s\n", gluErrorString(e));
+#endif
+}
+
+float ActivationMapWindow::fontScale()
+{
+    return l2norm * vfov / height() / 29;
+}
 
 
