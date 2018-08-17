@@ -592,9 +592,9 @@ bool FileDialogWidget::updateFiles()
 
                 while (tmp.size() > 0) {
 
-//                    GetMatrixSlice* getmatrixslice;
-//                    getmatrixslice = new GetMatrixSlice;
-//                    getmatrixslice->show();
+                    //                    GetMatrixSlice* getmatrixslice;
+                    //                    getmatrixslice = new GetMatrixSlice;
+                    //                    getmatrixslice->show();
                     mesh->gpriv->meshes.push_back(tmp.back());
                     tmp.pop_back();
                 }
@@ -664,22 +664,24 @@ void FileDialog::on_applyButton_clicked()
         widget->updateFiles();
     }
 
-    getmatrixslice = new GetMatrixSlice;
-    GeomWindow *test = GetGeomWindow(0);
-    connect(getmatrixslice->nextIndexButton,SIGNAL(clicked()),test,SLOT(AdvanceButtonControl()));
-    connect(getmatrixslice->previousIndexButton,SIGNAL(clicked()),test,SLOT(BackwardButtonControl()));
-    connect(getmatrixslice->firstIndexButton,SIGNAL(clicked()),test,SLOT(ButtonControlFirstFrame()));
-    connect(getmatrixslice->lastIndexButton,SIGNAL(clicked()),test,SLOT(ButtonControlLastFrame()));
-    connect(getmatrixslice->indexSlider,SIGNAL(sliderMoved(int)),test,SLOT(mouseSliderEvent()));
-    connect(getmatrixslice->playButton,SIGNAL(clicked()),test,SLOT(PlayButtonControl()));
-    connect(getmatrixslice->pauseButton,SIGNAL(clicked()),test,SLOT(PauseButtonControl()));
-    connect(getmatrixslice->indexSpinBox,SIGNAL(valueChanged(int)),test,SLOT(SpinBoxEvent()));
-    getmatrixslice->show();
+        getmatrixslice = new GetMatrixSlice;
+        GeomWindow *test = GetGeomWindow(0);
+        connect(getmatrixslice->nextIndexButton,SIGNAL(clicked()),test,SLOT(AdvanceButtonControl()));
+        connect(getmatrixslice->previousIndexButton,SIGNAL(clicked()),test,SLOT(BackwardButtonControl()));
+        connect(getmatrixslice->firstIndexButton,SIGNAL(clicked()),test,SLOT(ButtonControlFirstFrame()));
+        connect(getmatrixslice->lastIndexButton,SIGNAL(clicked()),test,SLOT(ButtonControlLastFrame()));
+        connect(getmatrixslice->indexSlider,SIGNAL(sliderMoved(int)),test,SLOT(mouseSliderEvent()));
+        connect(getmatrixslice->playButton,SIGNAL(clicked()),test,SLOT(PlayButtonControl()));
+        connect(getmatrixslice->pauseButton,SIGNAL(clicked()),test,SLOT(PauseButtonControl()));
+        connect(getmatrixslice->indexSpinBox,SIGNAL(valueChanged(int)),test,SLOT(SpinBoxEvent()));
+        getmatrixslice->show();
 
-    Broadcast(MAP3D_UPDATE,0);
-    close();
-    deleteLater();
-    filedialog = 0;
+        Broadcast(MAP3D_UPDATE,0);
+        close();
+        deleteLater();
+        filedialog = 0;
+
+
 }
 
 void FileDialog::on_cancelButton_clicked()

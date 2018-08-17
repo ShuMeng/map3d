@@ -80,6 +80,8 @@ bool getFileWithPath(char* filename, char* path1, char* path2, char out[])
         printf("Final filename is %s\n",out);
     return true;
 }
+
+
 long ReadPts(Map3d_Geom* onemap3dgeom)
 /*** 
 Read the point locations from the already open file
@@ -410,7 +412,7 @@ Return:	    pointer to updated surf_data array or NULL for error
     long framestart, frameend, framestep, numreadframes;
     long displaysurfnum, surfstart, surfend, surfcount;
     long nodenum, numsurfnodes;
-    long numleads, numfileleads = 0;
+    long numleads, numfileleads,numdatacloudleads = 0;
     long index, maxindex;
     long localunits = 0;
     long reportlevel;
@@ -418,6 +420,7 @@ Return:	    pointer to updated surf_data array or NULL for error
     float *databuff;
     float *inversebuff;
     float *activationbuff;
+    float *datacloudbuff;
     char  clabel[100], csurface[20], cseries[20];
 
 
@@ -430,6 +433,7 @@ Return:	    pointer to updated surf_data array or NULL for error
     matlabarray fids;
     matlabarray inversevals;
     matlabarray activationvals;
+    matlabarray datacloudvals;
 
 
     /*********************************************************************/
@@ -492,6 +496,8 @@ Return:	    pointer to updated surf_data array or NULL for error
         if (ma.isfieldCI("inversevals")) inversevals = ma.getfieldCI(insurfnum,"inversevals");
 
         if (ma.isfieldCI("activationvals")) activationvals = ma.getfieldCI(insurfnum,"activationvals");
+
+         if (ma.isfieldCI("datacloudvals")) datacloudvals = ma.getfieldCI(insurfnum,"datacloudvals");
     }
 
     else if (ma.iscell()) {
@@ -507,6 +513,8 @@ Return:	    pointer to updated surf_data array or NULL for error
         if (cell.isfieldCI("inversevals")) inversevals = cell.getfieldCI(0,"inversevals");
 
         if (cell.isfieldCI("activationvals")) activationvals = cell.getfieldCI(0,"activationvals");
+
+        if (cell.isfieldCI("datacloudvals")) datacloudvals = cell.getfieldCI(0,"datacloudvals");
 
     }
     else if (ma.isdense()) {
@@ -558,10 +566,16 @@ Return:	    pointer to updated surf_data array or NULL for error
     for (displaysurfnum = 0; displaysurfnum <= surfend - surfstart; displaysurfnum++) {
         numfileframes = 0;
         numfileleads = 0;
+        numdatacloudleads=0;
 
         if (!potvals.isempty()) {
             numfileleads = potvals.getm();
             numfileframes = potvals.getn();
+
+            if(!datacloudvals.isempty()){
+
+               numdatacloudleads = datacloudvals.getm();
+            }
 
             if((numfileleads != map3d_geom[displaysurfnum].numpts)&&
                     (numfileframes == map3d_geom[displaysurfnum].numpts)){
@@ -651,7 +665,7 @@ Return:	    pointer to updated surf_data array or NULL for error
             map3d_info.maxnumframes = numreadframes;
         /*  numleads = pnt_end[displaysurfnum] - pnt_start[displaysurfnum] + 1; */
         numleads = map3d_geom[displaysurfnum].numpts;
-        if ((surfdata = Surf_Data::AddASurfData(surfdata, displaysurfnum, numreadframes, numleads)) == NULL) {
+        if ((surfdata = Surf_Data::AddASurfData(surfdata, displaysurfnum, numreadframes, numleads,numdatacloudleads)) == NULL) {
             fprintf(stderr, "Failed to allocate memory for data file: ", datafilename);
             return (NULL);
         }
@@ -934,6 +948,50 @@ Return:	    pointer to updated surf_data array or NULL for error
             /*** Clean up and get back to calling routine.  ***/
             free(inversebuff);
         }
+
+        /******************** datacloud forward value ***********************/
+        if (!datacloudvals.isempty())
+        {
+            /*** Allocate the memeory we need.  ***/
+            /*** First, the data storage buffer. ***/
+            datacloudbuff = (float *)calloc((size_t) (numdatacloudleads * numfileframes), sizeof(float));
+
+           // std::cout<<"numdatacloudleads * numfileframes" <<numdatacloudleads<<"     "<<numfileframes<<std::endl;
+
+            //datacloudbuff = new float[numfileleads*numfileframes];
+            if (datacloudbuff == NULL) {
+                fprintf(stderr, "*** In ReadMatlabdatacloudFile I cannot get enough" " dynamic memory to buffer the data\n");
+                return 0;
+            }
+
+            /*** Get the datacloud buffer. ***/
+            if (!datacloudvals.isempty()) datacloudvals.getnumericarray(datacloudbuff, datacloudvals.getnumelements());
+
+
+            /*** Now move the data from the buffer to the proper locations in the
+            data array, using indirection via the channels array.
+            ***/
+           surfcount = 0;
+
+            for (displaysurfnum = 0; displaysurfnum <= surfend - surfstart; displaysurfnum++) {
+
+                Surf_Data* surf = &surfdata[displaysurfnum];
+
+                for (framenum = framestart, modelframenum = 0; framenum <= frameend;
+                     framenum += framestep, modelframenum++) {
+                    for (nodenum = 0; nodenum < numdatacloudleads; nodenum++) { // don't read higher nodes than your geom
+
+                        index = framenum * numdatacloudleads +nodenum;
+                        surf->datacloudvals[modelframenum][nodenum] = datacloudbuff[index] * potscale;
+                    }
+                }
+                surfcount++;
+            }
+
+            /*** Clean up and get back to calling routine.  ***/
+            free(datacloudbuff);
+        }
+
 
         /******************** activation ***********************/
         if (!activationvals.isempty())
@@ -1255,10 +1313,14 @@ long ReadMatlabGeomFile(Map3d_Geom* geom, long insurfnum)
     matlabarray seg;
     matlabarray cha;
 
+    matlabarray datcld;
+
     if (ma.isstruct()) {
         if (ma.isfieldCI("pts")) pts = ma.getfieldCI(index,"pts");
         if (ma.isfieldCI("pts_mv")) pts_mv = ma.getfieldCI(index,"pts_mv");
         if (ma.isfieldCI("node")) pts = ma.getfieldCI(index,"node");
+
+        if (ma.isfieldCI("datcld")) datcld = ma.getfieldCI(index,"datcld");
 
         if (ma.isfieldCI("fac")) fac = ma.getfieldCI(index,"fac");
         if (ma.isfieldCI("face")) fac = ma.getfieldCI(index,"face");
@@ -1280,6 +1342,8 @@ long ReadMatlabGeomFile(Map3d_Geom* geom, long insurfnum)
             if (cell.isfieldCI("pts")) pts = cell.getfieldCI(0,"pts");
             if (cell.isfieldCI("pts_mv")) pts_mv = cell.getfieldCI(0,"pts_mv");
             if (cell.isfieldCI("node")) pts = cell.getfieldCI(0,"node");
+
+            if (cell.isfieldCI("node")) datcld = cell.getfieldCI(0,"datcld");
 
             if (cell.isfieldCI("fac")) fac = cell.getfieldCI(0,"fac");
             if (cell.isfieldCI("face")) fac = cell.getfieldCI(0,"face");
@@ -1315,6 +1379,17 @@ long ReadMatlabGeomFile(Map3d_Geom* geom, long insurfnum)
             return 0;
         }
     }
+
+
+    if (!datcld.isempty()) {
+        if ((datcld.getm() != 3)&&(datcld.getn()==3)) datcld.transpose();
+        if (datcld.getm() != 3) {
+            printf("Datacloud matrix must have dimensions 3xn\n");
+            return 0;
+        }
+    }
+
+
 
     if (!pts_mv.isempty()) {
         if (((pts_mv.getm() % 3) != 0)&&((pts_mv.getn() % 3) == 0)) pts_mv.transpose();
@@ -1357,6 +1432,25 @@ long ReadMatlabGeomFile(Map3d_Geom* geom, long insurfnum)
         printf("Must only specify one of fac (%sspeficied), seg (%sspecified), or tetra (%sspecified)\n", (fac.isempty() ? "not " : ""), (seg.isempty() ? "not " : ""), (tet.isempty() ? "not " : ""));
         return 0;
     }
+
+
+    if (!datcld.isempty()) {
+        geom->numdatacloud = datcld.getnumelements()/3;
+        geom->datacloud[geom->geom_index] = Alloc_fmatrix(geom->numdatacloud, 3);
+        float** datacloud = geom->datacloud[geom->geom_index];
+        float* elements = new float[geom->numdatacloud*3];
+        datcld.getnumericarray(elements, geom->numdatacloud*3);
+        for (int i = 0; i < geom->numdatacloud; i++) {
+            datacloud [i][0] = elements[i*3+0];
+            datacloud [i][1] = elements[i*3+1];
+            datacloud [i][2] = elements[i*3+2];
+        }
+        delete[] elements;
+
+        std::cout<<"test if datacloud is read in  "<< datacloud [26153][0]<<std::endl;
+
+    }
+
 
     if (!pts.isempty()) {
         geom->numpts = pts.getnumelements()/3;
@@ -1837,7 +1931,7 @@ Input:
     long surfcount;
     long displaysurfnum; /*** Surface into which we place data. ***/
     long framenum, numpotsurfs;
-    long numframes, numleads;
+    long numframes, numleads ,numdatacloudleads;
     long filenum, filenum1, filenum2, filestep;
     long *channels_p;  /*** Pointer to one surface worth of channels ***/
     char filename[200], basefilename[200];
@@ -1881,6 +1975,7 @@ Input:
         displaysurfnum = insurfnum + surfcount;
         numleads = map3dgeom[displaysurfnum].numpts;
         channels_p = map3dgeom[displaysurfnum].channels;
+        numdatacloudleads =map3dgeom[displaysurfnum].numdatacloud;
 
         /*** Set up the sequence of files that we want to read in for this
       surface.
@@ -1912,7 +2007,7 @@ Input:
                 //numframes = (long)((filenum2 - filenum1) + 1);
                 if (numframes > map3d_info.maxnumframes)
                     map3d_info.maxnumframes = numframes;
-                if ((surfdata = Surf_Data::AddASurfData(surfdata, displaysurfnum, numframes, numleads)) == NULL)
+                if ((surfdata = Surf_Data::AddASurfData(surfdata, displaysurfnum, numframes, numleads,numdatacloudleads)) == NULL)
                     return (NULL);
                 surfdata->ts_end = filenum2;
                 surfdata->ts_start = filenum1;

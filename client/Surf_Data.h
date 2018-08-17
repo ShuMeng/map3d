@@ -17,7 +17,7 @@ class Surf_Data  /*** Data for a single surface. ***/
 public:
   Surf_Data();
   ~Surf_Data();
-  static Surf_Data *AddASurfData(Surf_Data * surfdata, long newsurfnum, long numframes, long numleads);
+  static Surf_Data *AddASurfData(Surf_Data * surfdata, long newsurfnum, long numframes, long numleads, long numdatacloudleads);
 
   //! Advance specified number of frames.  Loop is to largely be controlled by keyboard advancement IF global frame Loop
   //! option is set
@@ -83,6 +83,8 @@ public:
   float fidmin, fidmax; /*** Extrame over all fids in this surface ***/
   float **potvals; /*** Array of data values ***/
   float **inversevals; /*** Array of inverse values ***/
+
+float **datacloudvals;
 
   float *activationvals; 
 

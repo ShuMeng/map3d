@@ -72,6 +72,7 @@ Surf_Data::Surf_Data()
     potvals = 0;
     inversevals = 0;// Shu Meng
     activationvals = 0 ;
+    datacloudvals =0;
 
     mastersurf = 0;
     meanpotvals = 0;
@@ -108,6 +109,9 @@ Surf_Data::~Surf_Data()
     if (activationvals)
         free(activationvals);
 
+    if (datacloudvals)
+        free(datacloudvals);
+
 
     if (minmaxframes)
         free(minmaxframes);
@@ -130,7 +134,7 @@ Surf_Data::~Surf_Data()
 }
 
 //static Surf_Data member
-Surf_Data *Surf_Data::AddASurfData(Surf_Data * surfdata, long newsurfnum, long numframes, long numleads)
+Surf_Data *Surf_Data::AddASurfData(Surf_Data * surfdata, long newsurfnum, long numframes, long numleads, long numdatacloudleads)
 {
 
     /*** Set up a new surface in the surfdata array
@@ -190,6 +194,23 @@ Surf_Data *Surf_Data::AddASurfData(Surf_Data * surfdata, long newsurfnum, long n
         surfdata[newsurfnum].inversevals = NULL;
     }
 
+    /*** Now allocate some memory for the datdacloud in the surface. ***/
+
+    if (numframes > 0 && numdatacloudleads > 0) {
+
+        if ((surfdata[newsurfnum].datacloudvals = Alloc_fmatrix(numframes, numdatacloudleads)) == NULL) {
+            fprintf(stderr, "*** AddaDataSurf: error getting 333 first memory\n");
+            return (NULL);
+        }
+    }
+    else {
+        surfdata[newsurfnum].datacloudvals = NULL;
+    }
+
+
+
+
+ /*** Now allocate some memory for the activation in the surface. ***/
 
     if (numleads > 0) {
 

@@ -32,6 +32,7 @@ using namespace std;
 
 int unlock_transparency_surfnum[30];
 int unlock_electrode_surfnum[30];
+int unlock_datacloud_surfnum[30];
 
 const char* MeshProperty_trans_Points = "MeshProperty_trans_Points";
 

@@ -136,7 +136,7 @@ void GeomWindow::paintGL()
             Map3d_Geom *curgeom = 0;
             curgeom = curmesh->geom;
 
-            if (curgeom->surfnum!=unlock_electrode_surfnum[curgeom->surfnum-1]){
+          //  if (curgeom->surfnum!=unlock_electrode_surfnum[curgeom->surfnum-1]){
 
             if ((curgeom->surfnum==unlock_transparency_surfnum[curgeom->surfnum-1])&& (curmesh->transparent==1)){
 
@@ -146,20 +146,29 @@ void GeomWindow::paintGL()
             }
             DrawSurf(curmesh);
             glDisable(GL_POLYGON_OFFSET_FILL);
-            }
+        //    }
+
+
+
+
 
 
             if (curgeom->surfnum==unlock_electrode_surfnum[curgeom->surfnum-1]){
                 curmesh->mark_all_sphere=1;
                 curmesh->mark_all_sphere_value=1;
-                curmesh->mark_all_size=6;
-                DrawElectrodesOnly(curmesh);
+                curmesh->mark_all_size=1;
+               // DrawElectrodesOnly(curmesh);
+
+                DrawDatacloudOnly(curmesh); //needed to be change back
 
             }
             else{
                 curmesh->mark_all_sphere=0;
                 curmesh->mark_all_sphere_value=0;
-                DrawElectrodesOnly(curmesh);
+               // DrawElectrodesOnly(curmesh);
+
+                 DrawDatacloudOnly(curmesh);
+
             }
         }
 
@@ -354,6 +363,105 @@ void GeomWindow::DrawElectrodesOnly(Mesh_Info * curmesh) //show the catheters on
         }
         glPopMatrix();
         glPushMatrix();
+    }
+
+    glDisable(GL_ALPHA_TEST);
+    glDisable(GL_BLEND);
+
+
+    glPopMatrix();
+
+#if SHOW_OPENGL_ERRORS
+    GLenum e = glGetError();
+    if (e)
+        printf("GeomWindow DrawNodes OpenGL Error: %s\n", gluErrorString(e));
+#endif
+}
+
+
+
+void GeomWindow::DrawDatacloudOnly(Mesh_Info * curmesh) //show the catheters only in nodes, not in surface ,shu meng
+{
+    int length = 0, loop = 0;
+    float min = 0, max = 0, value = 0;
+    float mNowI[16];
+    float **modelpts = 0;
+    Map3d_Geom *curgeom = 0;
+    Surf_Data *cursurf = 0;
+    HMatrix mNow;
+
+    ColorMap *curmap = 0;
+    curgeom = curmesh->geom;
+    cursurf = curmesh->data;
+
+    modelpts = curgeom->datacloud[curgeom->geom_index];
+
+
+   // std::cout<<cursurf->datacloudvals[311][26153]<<std::endl;
+
+
+    if (cursurf) {
+        curmap = curmesh->cmap;
+    }
+
+    length = curgeom->numdatacloud;
+
+    /* set the transform for billboarding */
+    Ball_Value(&curmesh->tran->rotate, mNow);
+    TransposeMatrix16((float *)mNow, mNowI);
+    Transform(curmesh, 0.01f, true);
+    glPushMatrix();
+
+    if (cursurf)
+        cursurf->get_minmax(min, max);
+    unsigned char color[3];
+
+    glEnable(GL_ALPHA_TEST);
+    glAlphaFunc(GL_GEQUAL, .4f);
+    float sphere_size = 1.0f;
+
+    for (loop = 0; loop < length; loop++) {
+        if (cursurf ) {
+            value = cursurf->datacloudvals[cursurf->framenum][loop];
+            getContColor(value, min, max, curmap, color, curmesh->invert);
+
+        }
+
+        if (curmesh->mark_all_sphere) {
+            if (curmesh->mark_all_sphere_value && cursurf && value != UNUSED_DATA) {
+                glColor3ubv(color);
+            }
+            else {
+                glColor3f(curmesh->mark_all_color[0], curmesh->mark_all_color[1], curmesh->mark_all_color[2]);
+            }
+            glPointSize(height() / 200 * curmesh->mark_all_size);
+            sphere_size = curmesh->mark_all_size;
+        }
+        else {
+            continue;
+        }
+        glTranslatef(modelpts[loop][0], modelpts[loop][1], modelpts[loop][2]);
+        glMultMatrixf((float *)mNowI);
+        glTranslatef(-modelpts[loop][0], -modelpts[loop][1], -modelpts[loop][2]);
+
+        // try to convert the sphere size from geometry units to pixels
+        // 400 is a good number to use to normalize the l2norm
+        sphere_size = sphere_size*l2norm/400;
+        if (curmesh->draw_marks_as_spheres)
+        {
+            DrawDot(modelpts[loop][0], modelpts[loop][1], modelpts[loop][2], sphere_size);
+
+             }
+
+        else {
+            glBegin(GL_POINTS);
+            glVertex3f(modelpts[loop][0], modelpts[loop][1], modelpts[loop][2]);
+            glEnd();
+        }
+        glPopMatrix();
+        glPushMatrix();
+
+
     }
 
     glDisable(GL_ALPHA_TEST);

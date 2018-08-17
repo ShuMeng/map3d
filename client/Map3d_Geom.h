@@ -41,6 +41,10 @@ public:
   float cubescale; /*** Scaling variable used to draw sphers and cubes ***/
 
   std::vector<float **> points;    /*** Point array for whole geometry, possibly time-dependent ***/
+
+  std::vector<float **> datacloud;  /*** datacloud within whole geometry, possibly time-dependent ***/
+  long numdatacloud;         /*** Number of points within the surface geometry. ***/
+
   int geom_index;
   long **elements;     /*** Segment array for whole geometry ***/
   long *channels;      /*** Channels for this surface ***/

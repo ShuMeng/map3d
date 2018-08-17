@@ -29,6 +29,10 @@ void Map3d_Geom::init()
   numleadlinks = 0;
   cubescale = 0.0f;
 
+  numdatacloud =0; // shu meng
+  datacloud.clear();
+  datacloud.push_back(0);
+
   // set up first set of points
   points.clear();
   points.push_back(0);
