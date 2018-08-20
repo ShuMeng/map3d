@@ -33,11 +33,12 @@ using namespace std;
 int unlock_transparency_surfnum[30];
 int unlock_electrode_surfnum[30];
 int unlock_datacloud_surfnum[30];
+int unlock_forward_surfnum[30];
 
 const char* MeshProperty_trans_Points = "MeshProperty_trans_Points";
 
 enum contTableCols{
-    SurfNum, Transparencycol, PointsOnlyCols, ActivationCols
+    SurfNum, Transparencycol, PointsOnlyCols, ActivationCols, DatacloudCols, ForwardCols
 };
 
 
@@ -55,16 +56,25 @@ DrawTransparentPoints::DrawTransparentPoints()
 
         bool origPointsOnly = false;
         bool origtransparent = false;
+        bool origDatacloudIni = false;
+        bool origForwardIni = false;
+
 
 
         if (mesh->data)
         {
             origPointsOnly = mesh->data->user_pointsonly;
             origtransparent = mesh->data->user_transparent;
+            origDatacloudIni = mesh->data->user_datacloud;
+            origForwardIni = mesh->data->user_forward;
+
+
         }
 
         origPointsOnlyFix << origPointsOnly;
         origFixedTranparent << origtransparent;
+        origForward << origDatacloudIni;
+        origDatacloud << origForwardIni;
 
 
         meshes << mesh;
@@ -90,9 +100,24 @@ DrawTransparentPoints::DrawTransparentPoints()
         fixedbutton->setProperty(MeshProperty_trans_Points, index);
         gridLayout->addWidget(fixedbutton, row, ActivationCols);
 
+        QCheckBox* fixdatacloud = new QCheckBox(this);
+        fixdatacloud->setChecked(origDatacloudIni);
+        fixdatacloud->setProperty(MeshProperty_trans_Points, index);
+        fixedDatacloudBoxes << fixdatacloud;
+        gridLayout->addWidget(fixdatacloud, row, DatacloudCols);
+
+
+        QCheckBox* fixforward = new QCheckBox(this);
+        fixforward->setChecked(origForwardIni);
+        fixforward->setProperty(MeshProperty_trans_Points, index);
+        fixedForwardBoxes << fixforward;
+        gridLayout->addWidget(fixforward, row, ForwardCols);
+
         connect(fixedPoints , SIGNAL(toggled(bool)), this, SLOT(Transp_Points_Callback()));
         connect(fixedTrans, SIGNAL(toggled(bool)), this, SLOT(Transp_Points_Callback()));
         connect(fixedbutton, SIGNAL(clicked()), this, SLOT(Activation_Callback()));
+        connect(fixdatacloud, SIGNAL(toggled(bool)), this, SLOT(Transp_Points_Callback()));
+        connect(fixforward, SIGNAL(toggled(bool)), this, SLOT(Transp_Points_Callback()));
 
     }
 }
@@ -111,11 +136,15 @@ void DrawTransparentPoints::Transp_Points_Callback()
             {
                 mesh->data->user_pointsonly = true;
                 unlock_electrode_surfnum[row]=row+1;
+
+
             }
             else {
                 mesh->data->user_pointsonly = false;
                 unlock_electrode_surfnum[row]=0;
             }
+
+
             if (fixedTransparentBoxes[row]->isChecked())
             {
                 mesh->data->user_transparent = true;
@@ -125,7 +154,29 @@ void DrawTransparentPoints::Transp_Points_Callback()
                 mesh->data->user_transparent = false;
                 unlock_transparency_surfnum[row]=0;
             }
-        }
+
+
+            if (fixedDatacloudBoxes[row]->isChecked())
+            {
+                mesh->data->user_datacloud = true;
+                unlock_datacloud_surfnum[row]=row+1;
+            }
+            else {
+                mesh->data->user_datacloud = false;
+                unlock_datacloud_surfnum[row]=0;
+            }
+
+
+            if (fixedForwardBoxes[row]->isChecked())
+            {
+                mesh->data->user_forward = true;
+                unlock_forward_surfnum[row]=row+1;
+            }
+            else {
+                mesh->data->user_forward = false;
+                unlock_forward_surfnum[row]=0;
+            }
+       }
 
         Broadcast(MAP3D_UPDATE);
 }

@@ -89,6 +89,10 @@ Surf_Data::Surf_Data()
     user_scaling = 0;
     user_transparent =0;
     user_pointsonly = 0;
+
+    user_datacloud = 0;
+    user_forward = 0;
+
 }
 
 Surf_Data::~Surf_Data()

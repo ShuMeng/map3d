@@ -64,6 +64,11 @@ extern MainWindow *masterWindow;
 extern int unlock_transparency_surfnum[];
 extern int unlock_electrode_surfnum[];
 
+extern int unlock_datacloud_surfnum[];
+extern int unlock_forward_surfnum[];
+
+
+
 //extern unsigned char *color;
 
 //void GeomWindowRepaint(GeomWindow *priv)
@@ -136,40 +141,55 @@ void GeomWindow::paintGL()
             Map3d_Geom *curgeom = 0;
             curgeom = curmesh->geom;
 
-          //  if (curgeom->surfnum!=unlock_electrode_surfnum[curgeom->surfnum-1]){
+            if (curgeom->surfnum!=unlock_electrode_surfnum[curgeom->surfnum-1]){
 
-            if ((curgeom->surfnum==unlock_transparency_surfnum[curgeom->surfnum-1])&& (curmesh->transparent==1)){
+                if ((curgeom->surfnum==unlock_transparency_surfnum[curgeom->surfnum-1])&& (curmesh->transparent==1)){
 
-                glDepthMask(false);
-                glEnable (GL_BLEND);
-                glBlendFunc (GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+                    glDepthMask(false);
+                    glEnable (GL_BLEND);
+                    glBlendFunc (GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+                }
+                DrawSurf(curmesh);
+                glDisable(GL_POLYGON_OFFSET_FILL);
             }
-            DrawSurf(curmesh);
-            glDisable(GL_POLYGON_OFFSET_FILL);
-        //    }
-
-
-
-
 
 
             if (curgeom->surfnum==unlock_electrode_surfnum[curgeom->surfnum-1]){
                 curmesh->mark_all_sphere=1;
                 curmesh->mark_all_sphere_value=1;
-                curmesh->mark_all_size=1;
-               // DrawElectrodesOnly(curmesh);
-
-                DrawDatacloudOnly(curmesh); //needed to be change back
+                curmesh->mark_all_size=6;
+                DrawElectrodesOnly(curmesh);
 
             }
             else{
                 curmesh->mark_all_sphere=0;
                 curmesh->mark_all_sphere_value=0;
-               // DrawElectrodesOnly(curmesh);
-
-                 DrawDatacloudOnly(curmesh);
+                DrawElectrodesOnly(curmesh);
 
             }
+
+
+            if (curgeom->surfnum==unlock_datacloud_surfnum[curgeom->surfnum-1]){
+                curmesh->mark_all_sphere=1;
+                curmesh->mark_all_sphere_value=1;
+                curmesh->mark_all_size=1;
+                DrawDatacloudOnly(curmesh); //needed to be change back
+            }
+            else{
+                curmesh->mark_all_sphere=0;
+                curmesh->mark_all_sphere_value=0;
+                DrawDatacloudOnly(curmesh);
+
+            }
+
+
+
+
+
+
+
+
+
         }
 
 
@@ -276,7 +296,7 @@ void GeomWindow::paintGL()
     if (showinfotext && !clip->back_enabled && !clip->front_enabled) {
         DrawInfo();
     }
-    
+
     /* draw lock icons */
     if (showlocks && !clip->back_enabled && !clip->front_enabled) {
         if (map3d_info.lockgeneral != LOCK_OFF)
@@ -397,7 +417,7 @@ void GeomWindow::DrawDatacloudOnly(Mesh_Info * curmesh) //show the catheters onl
     modelpts = curgeom->datacloud[curgeom->geom_index];
 
 
-   // std::cout<<cursurf->datacloudvals[311][26153]<<std::endl;
+    // std::cout<<cursurf->datacloudvals[311][26153]<<std::endl;
 
 
     if (cursurf) {
@@ -451,7 +471,7 @@ void GeomWindow::DrawDatacloudOnly(Mesh_Info * curmesh) //show the catheters onl
         {
             DrawDot(modelpts[loop][0], modelpts[loop][1], modelpts[loop][2], sphere_size);
 
-             }
+        }
 
         else {
             glBegin(GL_POINTS);

@@ -32,12 +32,18 @@ private:
   QList<bool> origFixedTranparent;
   QList<bool> origPointsOnlyFix;
 
+  QList<bool> origForward;
+  QList<bool> origDatacloud;
+
   QList<Mesh_Info*> meshes;
 
   // widgets
 
   QList<QCheckBox*> fixedPointsOnlyBoxes;
   QList<QCheckBox*> fixedTransparentBoxes;
+  QList<QCheckBox*> fixedDatacloudBoxes;
+  QList<QCheckBox*> fixedForwardBoxes;
+
   QList<QPushButton*> ActivationButton;
 };
 

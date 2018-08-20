@@ -99,6 +99,9 @@ bool user_transparent;
 
 bool user_pointsonly;
 
+bool user_datacloud;
+bool user_forward;
+
 
   
   Surf_Data *mastersurf;
