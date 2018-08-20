@@ -73,6 +73,7 @@ Surf_Data::Surf_Data()
     inversevals = 0;// Shu Meng
     activationvals = 0 ;
     datacloudvals =0;
+    forwardvals =0;
 
     mastersurf = 0;
     meanpotvals = 0;
@@ -109,6 +110,10 @@ Surf_Data::~Surf_Data()
 
     if (inversevals)
         Free_fmatrix(inversevals, numframes); // Shu Meng
+
+    if (forwardvals)
+        Free_fmatrix(forwardvals, numframes); // Shu Meng
+
 
     if (activationvals)
         free(activationvals);
@@ -197,6 +202,22 @@ Surf_Data *Surf_Data::AddASurfData(Surf_Data * surfdata, long newsurfnum, long n
     else {
         surfdata[newsurfnum].inversevals = NULL;
     }
+
+
+    /*** Now allocate some memory for the forward solution in the surface. ***/
+
+    if (numframes > 0 && numleads > 0) {
+
+        if ((surfdata[newsurfnum].forwardvals = Alloc_fmatrix(numframes, numleads)) == NULL) {
+            fprintf(stderr, "*** AddaDataSurf: error getting 333 first memory\n");
+            return (NULL);
+        }
+    }
+    else {
+        surfdata[newsurfnum].forwardvals = NULL;
+    }
+
+
 
     /*** Now allocate some memory for the datdacloud in the surface. ***/
 

@@ -1723,7 +1723,7 @@ int GeomWindow::OpenMenu(QPoint point)
 
 
 
-    submenu->addAction("Individual Transparency/Points Setting ")->setData(transparent_point);
+    submenu->addAction("Individual Transparency/Points/Activation Setting ")->setData(transparent_point);
 
 
 

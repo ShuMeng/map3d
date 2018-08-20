@@ -419,6 +419,7 @@ Return:	    pointer to updated surf_data array or NULL for error
     float potscale;
     float *databuff;
     float *inversebuff;
+
     float *activationbuff;
     float *datacloudbuff;
     char  clabel[100], csurface[20], cseries[20];
@@ -434,6 +435,8 @@ Return:	    pointer to updated surf_data array or NULL for error
     matlabarray inversevals;
     matlabarray activationvals;
     matlabarray datacloudvals;
+
+    matlabarray forwardvals;
 
 
     /*********************************************************************/
@@ -494,10 +497,10 @@ Return:	    pointer to updated surf_data array or NULL for error
         if (ma.isfieldCI("scalarfield")) potvals = ma.getfieldCI(insurfnum,"scalarfield");
         if (ma.isfieldCI("fids")) fids = ma.getfieldCI(insurfnum,"fids");
         if (ma.isfieldCI("inversevals")) inversevals = ma.getfieldCI(insurfnum,"inversevals");
-
         if (ma.isfieldCI("activationvals")) activationvals = ma.getfieldCI(insurfnum,"activationvals");
+        if (ma.isfieldCI("datacloudvals")) datacloudvals = ma.getfieldCI(insurfnum,"datacloudvals");
 
-         if (ma.isfieldCI("datacloudvals")) datacloudvals = ma.getfieldCI(insurfnum,"datacloudvals");
+
     }
 
     else if (ma.iscell()) {
@@ -511,10 +514,9 @@ Return:	    pointer to updated surf_data array or NULL for error
         if (cell.isfieldCI("scalarfield")) potvals = cell.getfieldCI(0,"scalarfield");
         if (cell.isfieldCI("fids")) fids = cell.getfieldCI(0,"fids");
         if (cell.isfieldCI("inversevals")) inversevals = cell.getfieldCI(0,"inversevals");
-
         if (cell.isfieldCI("activationvals")) activationvals = cell.getfieldCI(0,"activationvals");
-
         if (cell.isfieldCI("datacloudvals")) datacloudvals = cell.getfieldCI(0,"datacloudvals");
+
 
     }
     else if (ma.isdense()) {
@@ -949,7 +951,8 @@ Return:	    pointer to updated surf_data array or NULL for error
             free(inversebuff);
         }
 
-        /******************** datacloud forward value ***********************/
+
+        /******************** datacloud value ***********************/
         if (!datacloudvals.isempty())
         {
             /*** Allocate the memeory we need.  ***/

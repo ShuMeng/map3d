@@ -114,6 +114,7 @@ public:
 
  void DrawElectrodesOnly(Mesh_Info * curmesh);
  void DrawDatacloudOnly(Mesh_Info * curmesh);
+ void DrawForwardOnly(Mesh_Info * curmesh);
 
 
   // how much to scale the node marks by

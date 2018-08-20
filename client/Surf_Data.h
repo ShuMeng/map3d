@@ -85,6 +85,7 @@ public:
   float **inversevals; /*** Array of inverse values ***/
 
 float **datacloudvals;
+float **forwardvals;
 
   float *activationvals; 
 
