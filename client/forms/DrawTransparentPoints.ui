@@ -6,12 +6,12 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>712</width>
+    <width>823</width>
     <height>225</height>
    </rect>
   </property>
   <property name="windowTitle">
-   <string>Contour Spacing</string>
+   <string>Show Surface</string>
   </property>
   <property name="styleSheet">
    <string notr="true"/>
@@ -23,7 +23,7 @@
    <item>
     <widget class="QFrame" name="headerFrame">
      <property name="styleSheet">
-      <string notr="true">#surfHeaderLabel, #TransparencyLabel,#ActivationmapLabel, #DrawPointsLabel {
+      <string notr="true">#surfHeaderLabel, #TransparencyLabel,#ActivationmapLabel, #DrawPointsLabel #DrawDatacloudLabel,#DrawForwardLabel{
 }
 
 #surfHeaderLabel {
@@ -45,6 +45,18 @@ border-left-width: 0px;
 }
 
 #ActivationmapLabel{
+padding: 4px;
+border: 1px solid black;
+border-left-width: 0px;
+}
+
+#DrawDatacloudLabel{
+padding: 4px;
+border: 1px solid black;
+border-left-width: 0px;
+}
+
+#DrawForwardLabel{
 padding: 4px;
 border: 1px solid black;
 border-left-width: 0px;
@@ -116,7 +128,14 @@ border-left-width: 0px;
       <item row="0" column="3">
        <widget class="QLabel" name="ActivationmapLabel">
         <property name="text">
-         <string>         Activation map</string>
+         <string>    Activation map</string>
+        </property>
+       </widget>
+      </item>
+      <item row="0" column="5">
+       <widget class="QLabel" name="DrawForwardLabel">
+        <property name="text">
+         <string>Draw Forward Solution</string>
         </property>
        </widget>
       </item>
@@ -137,6 +156,13 @@ border-right-color: rgb(0, 0, 0);</string>
         </property>
         <property name="alignment">
          <set>Qt::AlignCenter</set>
+        </property>
+       </widget>
+      </item>
+      <item row="0" column="4">
+       <widget class="QLabel" name="DrawDatacloudLabel">
+        <property name="text">
+         <string>   Draw Datacloud </string>
         </property>
        </widget>
       </item>
