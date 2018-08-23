@@ -232,6 +232,7 @@ bool GeomWindow::PlayButtonControl()
 
 {
     connect(play_timer, SIGNAL(timeout()), this, SLOT(AdvanceButtonControl()));
+
     play_timer->start(0.0001);
 
 }

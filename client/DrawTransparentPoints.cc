@@ -21,14 +21,20 @@
 #include <QMessageBox>
 #include <QLabel>
 
+#include <iostream>
+using namespace std;
+
+#include <algorithm>
+#include <vector>
+#include <cmath>
+#include <tuple>
+
+#include <functional>
+
 
 extern Map3d_Info map3d_info;
-
 extern int  maxactivation, minactivation;
 
-#include <iostream>
-
-using namespace std;
 
 int unlock_transparency_surfnum[30];
 int unlock_electrode_surfnum[30];
@@ -59,16 +65,12 @@ DrawTransparentPoints::DrawTransparentPoints()
         bool origDatacloudIni = false;
         bool origForwardIni = false;
 
-
-
         if (mesh->data)
         {
             origPointsOnly = mesh->data->user_pointsonly;
             origtransparent = mesh->data->user_transparent;
             origDatacloudIni = mesh->data->user_datacloud;
             origForwardIni = mesh->data->user_forward;
-
-
         }
 
         origPointsOnlyFix << origPointsOnly;
@@ -171,12 +173,29 @@ void DrawTransparentPoints::Transp_Points_Callback()
             {
                 mesh->data->user_forward = true;
                 unlock_forward_surfnum[row]=row+1;
+
+                int length = meshes.size();
+
+                if ((length>1) && (row+1<length))
+                {
+                    Mesh_Info *sourcemesh = 0;
+                    sourcemesh=meshes[row+1];
+                    Map3d_Geom *sourcegeom = 0;
+                    sourcegeom = sourcemesh->geom;
+
+//                    if (sourcegeom->numdatacloud==0)
+
+//                    {
+//                        QMessageBox::warning(this,QString("Warning"),QString("Provide values for internal datacloud"));
+//                    }
+                }
+
             }
             else {
                 mesh->data->user_forward = false;
                 unlock_forward_surfnum[row]=0;
             }
-       }
+        }
 
         Broadcast(MAP3D_UPDATE);
 }
@@ -198,7 +217,7 @@ void DrawTransparentPoints::Activation_Callback()
     Mesh_Info* mesh = meshes[row];
     if (mesh->data->activationvals[0]!=0) {
 
-         ActivationMapWindow* actiwin;
+        ActivationMapWindow* actiwin;
         actiwin = new ActivationMapWindow(actiWidget);
         //actiwin = ActivationMapWindow::ActivationMapWindowCreate(0,0,0,0);
         actiwin->addMesh(mesh);
@@ -258,6 +277,7 @@ void DrawTransparentPoints::Activation_Callback()
         QMessageBox::warning(this,QString("Warning"),QString("No Activation times for this surface!"));
     }
 }
+
 
 
 void DrawTransparentPoints::on_applyButton_clicked()

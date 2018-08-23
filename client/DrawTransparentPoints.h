@@ -6,11 +6,8 @@
 #include <QList>
 
 class QPushButton;
-
 class QDoubleSpinBox;
-
 class QCheckBox;
-
 
 
 class DrawTransparentPoints : public QDialog, public Ui::DrawTransparentPoints
@@ -25,6 +22,7 @@ public slots:
   void on_cancelButton_clicked ();
   void Transp_Points_Callback();
   void Activation_Callback();
+
 
 
 private:

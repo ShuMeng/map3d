@@ -24,6 +24,53 @@ class Surf_Data;
 struct PickInfo;
 struct Clip_Planes;
 
+
+#include <boost/foreach.hpp>
+#include <boost/range.hpp>     // begin(), end()
+#include <boost/tr1/tuple.hpp> // get<>, tuple<>, cout <<
+
+namespace {
+typedef double coord_t;
+typedef std::tr1::tuple<coord_t,coord_t,coord_t> point_t;
+
+// calculate distance (squared) between points `a` & `b`
+coord_t distance_sq(const point_t& a, const point_t& b);
+
+// read from input stream `in` to the point `point_out`
+std::istream& getpoint(std::istream& in, point_t& point_out);
+
+// Adaptable binary predicate that defines whether the first
+// argument is nearer than the second one to given reference point
+class less_distance : public std::binary_function<point_t, point_t, bool> {
+    const point_t& point;
+public:
+    explicit less_distance(const point_t& reference_point)
+        : point(reference_point) {}
+    bool operator () (const point_t& a, const point_t& b) const {
+        return distance_sq(a, point) < distance_sq(b, point);
+    }
+};
+}
+
+
+namespace {
+
+coord_t distance_sq(const point_t& a, const point_t& b) {
+    // boost::geometry::distance() squared
+    using std::tr1::get;
+    coord_t x = get<0>(a) - get<0>(b);
+    coord_t y = get<1>(a) - get<1>(b);
+    coord_t z = get<2>(a) - get<2>(b);
+    return x*x + y*y + z*z;
+}
+
+std::istream& getpoint(std::istream& in, point_t& point_out) {
+    using std::tr1::get;
+    return (in >> get<0>(point_out) >> get<1>(point_out) >> get<2>(point_out));
+}
+}
+
+
 class GeomWindow : public Map3dGLWidget
 {
   Q_OBJECT;
@@ -115,9 +162,12 @@ public:
  void DrawElectrodesOnly(Mesh_Info * curmesh);
  void DrawDatacloudOnly(Mesh_Info * curmesh);
  void DrawForwardOnly(Mesh_Info * curmesh);
+ void CalculateForwardValue(Mesh_Info * curmesh, Mesh_Info * sourcemesh);
+
+ void ApplyLocationTransform(Mesh_Info * curmesh);
 
 
-  // how much to scale the node marks by
+ // how much to scale the node marks by
   float fontScale();
   QTimer frameAdvanceTimer;
   public slots:

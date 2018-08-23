@@ -4,16 +4,23 @@ TARGET = map3d
 
 QT += opengl
 
+#INCLUDEPATH += ../flann-1.8.4-src/src/cpp
+#INCLUDEPATH += ../boost_1_68_0
+INCLUDEPATH += ../boost_1_61_0
 INCLUDEPATH += ../thirdparty/cutil
 INCLUDEPATH += ../thirdparty/fi
 INCLUDEPATH += ../thirdparty/fids
 INCLUDEPATH += ../thirdparty/gfilelib
 INCLUDEPATH += ../thirdparty/MatlabIO
 INCLUDEPATH += $$QMAKE_INCDIR_QT/../src/3rdparty/zlib
+#INCLUDEPATH +=../boost_1_68_0/Build/lib
 
 CONFIG += console link_prl
 
 include (../options.pri)
+#LIBS += -L../boost_1_68_0/Build/lib/
+
+LIBS += -L../boost_1_61_0/Build/lib/
 
 LIBS += -lMatlabIO
 LIBS += -lfids -lfi -lgfilelib -lcutil
@@ -37,6 +44,7 @@ win32 {
     PRE_TARGETDEPS *= ../thirdparty/gfilelib/libgfilelib.a
     PRE_TARGETDEPS *= ../thirdparty/cutil/libcutil.a
     PRE_TARGETDEPS *= ../thirdparty/MatlabIO/libMatlabIO.a
+
 }
 
 win32 {
@@ -54,6 +62,7 @@ QMAKE_LIBDIR += ../thirdparty/MatlabIO$$LIB_DIR
 QMAKE_LIBDIR += $$QMAKE_INCDIR_QT/../src/3rdparty/zlib
 
 include (../options.pri)
+
 
 FORMS += forms/FileDialog.ui \
          forms/FileDialogWidget.ui \
@@ -84,7 +93,8 @@ HEADERS += GeomWindow.h \
     RescaleColorMap.h \
     DrawTransparentPoints.h \
     ActivationMapWindow.h \
-    ActivationLegendWindow.h
+    ActivationLegendWindow.h\
+
            
 
 SOURCES += Ball.cc \
@@ -131,5 +141,6 @@ SOURCES += Ball.cc \
     RescaleColorMap.cc \
     DrawTransparentPoints.cc \
     ActivationMapWindow.cc \
-    ActivationLegendWindow.cc
+    ActivationLegendWindow.cc \
+
            

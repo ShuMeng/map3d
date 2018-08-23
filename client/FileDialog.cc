@@ -194,6 +194,8 @@ void FileDialogWidget::on_geomSaveButton_clicked ()
 
     Mesh_List meshes = mesh->gpriv->findMeshesFromSameInput(mesh);
     vector<bool> transforms(meshes.size(), selectedAction == transformAction);
+
+
     bool success = SaveMeshes(meshes, transforms, fileUTF.data());
 
     if (success)

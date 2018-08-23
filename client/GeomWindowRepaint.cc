@@ -43,17 +43,30 @@ using std::set;
 #include "reportstate.h"
 #include "GeomWindowMenu.h"
 #include "scalesubs.h"
+#include "DrawTransparentPoints.h"
 
 #include <algorithm>
 #include <iterator>
-
+#include <QMessageBox>
 
 #include <QApplication>
 #include <QDesktopWidget>
 
 #include <iostream>
 
+#include <vector>
+#include <cmath>
+#include <tuple>
+
+#include <functional>
+
+#include <boost/foreach.hpp>
+#include <boost/range.hpp>     // begin(), end()
+#include <boost/tr1/tuple.hpp> // get<>, tuple<>, cout <<
+
+#define foreach BOOST_FOREACH
 using namespace std;
+
 
 extern Map3d_Info map3d_info;
 extern vector<Surface_Group> surf_group;
@@ -74,6 +87,8 @@ void GeomWindow::paintGL()
     int length = meshes.size();
 
     Mesh_Info *curmesh = 0;
+
+    Mesh_Info *sourcemesh = 0;
 
     /* clear the screen */
     glClearColor(bgcolor[0], bgcolor[1], bgcolor[2], 1);
@@ -136,8 +151,9 @@ void GeomWindow::paintGL()
             Map3d_Geom *curgeom = 0;
             curgeom = curmesh->geom;
 
-            if ((curgeom->surfnum!=unlock_electrode_surfnum[curgeom->surfnum-1])&& (curgeom->surfnum!= unlock_forward_surfnum[curgeom->surfnum-1])){
-               if ((curgeom->surfnum==unlock_transparency_surfnum[curgeom->surfnum-1])&& (curmesh->transparent==1)){
+            if ((curgeom->surfnum!=unlock_electrode_surfnum[curgeom->surfnum-1])&& (curgeom->surfnum!= unlock_forward_surfnum[curgeom->surfnum-1]))
+            {
+                if ((curgeom->surfnum==unlock_transparency_surfnum[curgeom->surfnum-1])&& (curmesh->transparent==1)){
 
                     glDepthMask(false);
                     glEnable (GL_BLEND);
@@ -146,7 +162,6 @@ void GeomWindow::paintGL()
                 DrawSurf(curmesh);
                 glDisable(GL_POLYGON_OFFSET_FILL);
             }
-
 
             if (curgeom->surfnum==unlock_electrode_surfnum[curgeom->surfnum-1]){
                 curmesh->mark_all_sphere=1;
@@ -162,6 +177,37 @@ void GeomWindow::paintGL()
             }
 
 
+            if (curgeom->surfnum==unlock_forward_surfnum[curgeom->surfnum-1]){
+                curmesh->mark_all_sphere=1;
+                curmesh->mark_all_sphere_value=1;
+                curmesh->mark_all_size=6;
+
+                if ((length>1) && (loop+1<length))
+                {
+                    sourcemesh=meshes[loop+1];
+
+                    Map3d_Geom *sourcegeom = 0;
+                    Surf_Data *sourcesurf = 0;
+                    sourcegeom = sourcemesh->geom;
+                    sourcesurf = sourcemesh->data;
+
+                    if (sourcegeom->numdatacloud!=0)
+                   {
+                      //  ApplyLocationTransform(curmesh);
+                        CalculateForwardValue(curmesh,sourcemesh);
+                    }
+
+                }
+
+                DrawForwardOnly(curmesh);
+            }
+            else{
+                curmesh->mark_all_sphere=0;
+                curmesh->mark_all_sphere_value=0;
+                DrawForwardOnly(curmesh);
+            }
+
+
             if (curgeom->surfnum==unlock_datacloud_surfnum[curgeom->surfnum-1]){
                 curmesh->mark_all_sphere=1;
                 curmesh->mark_all_sphere_value=1;
@@ -172,19 +218,6 @@ void GeomWindow::paintGL()
                 curmesh->mark_all_sphere=0;
                 curmesh->mark_all_sphere_value=0;
                 DrawDatacloudOnly(curmesh);
-           }
-
-
-            if (curgeom->surfnum==unlock_forward_surfnum[curgeom->surfnum-1]){
-                curmesh->mark_all_sphere=1;
-                curmesh->mark_all_sphere_value=1;
-                curmesh->mark_all_size=6;
-                DrawForwardOnly(curmesh);
-            }
-            else{
-                curmesh->mark_all_sphere=0;
-                curmesh->mark_all_sphere_value=0;
-                DrawForwardOnly(curmesh);
             }
 
         }
@@ -313,7 +346,8 @@ void GeomWindow::paintGL()
 
 
 void GeomWindow::DrawElectrodesOnly(Mesh_Info * curmesh) //show the catheters only in nodes, not in surface ,shu meng
-{   int length = 0, loop = 0;
+{
+    int length = 0, loop = 0;
     float min = 0, max = 0, value = 0;
     float mNowI[16];
     float **modelpts = 0;
@@ -349,7 +383,6 @@ void GeomWindow::DrawElectrodesOnly(Mesh_Info * curmesh) //show the catheters on
         if (cursurf ) {
             value = cursurf->potvals[cursurf->framenum][loop];
             getContColor(value, min, max, curmap, color, curmesh->invert);
-
         }
 
         if (curmesh->mark_all_sphere) {
@@ -398,10 +431,14 @@ void GeomWindow::DrawElectrodesOnly(Mesh_Info * curmesh) //show the catheters on
 
 
 void GeomWindow::DrawForwardOnly(Mesh_Info * curmesh) //show the catheters only in nodes, not in surface ,shu meng
-{   int length = 0, loop = 0;
+{
+
+    int length = 0, loop = 0;
     float min = 0, max = 0, value = 0;
     float mNowI[16];
     float **modelpts = 0;
+
+
     Map3d_Geom *curgeom = 0;
     Surf_Data *cursurf = 0;
     HMatrix mNow;
@@ -434,9 +471,6 @@ void GeomWindow::DrawForwardOnly(Mesh_Info * curmesh) //show the catheters only 
         if (cursurf ) {
             value = cursurf->forwardvals[cursurf->framenum][loop];
             getContColor(value, min, max, curmap, color, curmesh->invert);
-
-            std::cout<<"forward values "<<value<<std::endl;
-
         }
 
         if (curmesh->mark_all_sphere) {
@@ -460,7 +494,10 @@ void GeomWindow::DrawForwardOnly(Mesh_Info * curmesh) //show the catheters only 
         // 400 is a good number to use to normalize the l2norm
         sphere_size = sphere_size*l2norm/400;
         if (curmesh->draw_marks_as_spheres)
+        {
             DrawDot(modelpts[loop][0], modelpts[loop][1], modelpts[loop][2], sphere_size);
+
+        }
         else {
             glBegin(GL_POINTS);
             glVertex3f(modelpts[loop][0], modelpts[loop][1], modelpts[loop][2]);
@@ -469,6 +506,7 @@ void GeomWindow::DrawForwardOnly(Mesh_Info * curmesh) //show the catheters only 
         glPopMatrix();
         glPushMatrix();
     }
+
 
     glDisable(GL_ALPHA_TEST);
     glDisable(GL_BLEND);
@@ -481,6 +519,181 @@ void GeomWindow::DrawForwardOnly(Mesh_Info * curmesh) //show the catheters only 
     if (e)
         printf("GeomWindow DrawNodes OpenGL Error: %s\n", gluErrorString(e));
 #endif
+}
+
+
+
+
+
+void GeomWindow::CalculateForwardValue(Mesh_Info * curmesh, Mesh_Info * sourcemesh)
+{
+    int length1 = 0, loop1 = 0, length2 =0, loop2=0;
+
+    float **modelpts = 0;
+    Map3d_Geom *curgeom = 0;
+    Surf_Data *cursurf = 0;
+
+    curgeom = curmesh->geom;
+    cursurf = curmesh->data;
+    modelpts = curgeom->points[curgeom->geom_index];
+    length1 = curgeom->numpts;
+
+    float **datacloudpts = 0;
+    Map3d_Geom *sourcegeom = 0;
+    Surf_Data *sourcesurf = 0;
+    sourcegeom = sourcemesh->geom;
+    sourcesurf = sourcemesh->data;
+    datacloudpts = sourcegeom->datacloud[sourcegeom->geom_index];
+    length2 = sourcegeom->numdatacloud;
+
+
+
+    GeomWindow* priv = curmesh->gpriv;
+    HMatrix mNow /*, original */ ;  // arcball rotation matrices
+    Transforms *tran = curmesh->tran;
+    //translation matrix in column-major
+    float centerM[4][4] = {{1,0,0,0},{0,1,0,0},{0,0,1,0},
+                           {-priv->xcenter,-priv->ycenter,-priv->zcenter,1}};
+    float invCenterM[4][4] = {{1,0,0,0},{0,1,0,0},{0,0,1,0},
+                              {priv->xcenter,priv->ycenter,priv->zcenter,1}};
+    float translateM[4][4] = { {1, 0, 0, 0}, {0, 1, 0, 0}, {0, 0, 1, 0},
+                               {tran->tx, tran->ty, tran->tz, 1}
+                             };
+
+    float temp[16];
+    float product[16];
+
+    //rotation matrix
+    Ball_Value(&tran->rotate, mNow);
+    // apply translation
+    // translate curmesh's center to origin
+    MultMatrix16x16((float *)translateM, (float *)invCenterM, (float*)product);
+    // rotate
+    MultMatrix16x16((float *)product, (float *)mNow, (float*)temp);
+    // revert curmesh translation to origin
+    MultMatrix16x16((float*)temp, (float *) centerM, (float*)product);
+
+
+    vector<point_t> data_points;
+
+    for (loop2 = 0; loop2 < length2; loop2++)
+    {
+        coord_t x,y,z;
+        x = datacloudpts[loop2][0];
+        y = datacloudpts[loop2][1];
+        z = datacloudpts[loop2][2];
+        data_points.push_back(tr1::make_tuple(x,y,z));
+    }
+
+    const size_t nneighbours = 1; // number of nearest neighbours to find
+    point_t points[nneighbours];
+
+    float** pts = curgeom->points[curgeom->geom_index];
+
+    for (loop1 = 0; loop1 < length1; loop1++)
+    {
+
+        float rhs[4];
+        float result[4];
+        rhs[0] = pts[loop1][0];
+        rhs[1] = pts[loop1][1];
+        rhs[2] = pts[loop1][2];
+        rhs[3] = 1;
+
+        MultMatrix16x4(product, rhs, result);
+
+        point_t point(result[0], result[1], result[2]);
+
+        //point_t point(modelpts[loop1][0], modelpts[loop1][1], modelpts[loop1][2]);
+
+        less_distance nearer(point);
+
+        foreach (point_t& p, points)
+
+            for (loop2 = 0; loop2 < length2; loop2++)
+            {
+                point_t current_point(datacloudpts[loop2][0],datacloudpts[loop2][1],datacloudpts[loop2][2]);
+                foreach (point_t& p, points)
+
+                    if (nearer(current_point, p))
+                        std::swap(current_point, p);
+            }
+
+        sort(boost::begin(points), boost::end(points), nearer);
+
+        foreach (point_t p, points)
+        {
+            for (loop2 = 0; loop2 < length2; loop2++)
+            {
+                if (p == data_points[loop2])
+                {
+                    // cout << loop2 << std::endl;
+
+                    cursurf->forwardvals[cursurf->framenum][loop1]= sourcesurf->datacloudvals[sourcesurf->framenum][loop2];
+                }
+            }
+        }
+
+    }
+}
+
+void GeomWindow::ApplyLocationTransform(Mesh_Info * curmesh)
+{
+    int loop;
+
+    Map3d_Geom* geom = curmesh->geom;
+    GeomWindow* priv = curmesh->gpriv;
+
+    HMatrix mNow /*, original */ ;  // arcball rotation matrices
+    Transforms *tran = curmesh->tran;
+    //translation matrix in column-major
+    float centerM[4][4] = {{1,0,0,0},{0,1,0,0},{0,0,1,0},
+                           {-priv->xcenter,-priv->ycenter,-priv->zcenter,1}};
+    float invCenterM[4][4] = {{1,0,0,0},{0,1,0,0},{0,0,1,0},
+                              {priv->xcenter,priv->ycenter,priv->zcenter,1}};
+    float translateM[4][4] = { {1, 0, 0, 0}, {0, 1, 0, 0}, {0, 0, 1, 0},
+                               {tran->tx, tran->ty, tran->tz, 1}
+                             };
+    //float **rotated_pts = 0;
+
+    float temp[16];
+    float product[16];
+
+    //rotation matrix
+    Ball_Value(&tran->rotate, mNow);
+    // apply translation
+    // translate curmesh's center to origin
+    MultMatrix16x16((float *)translateM, (float *)invCenterM, (float*)product);
+    // rotate
+    MultMatrix16x16((float *)product, (float *)mNow, (float*)temp);
+    // revert curmesh translation to origin
+    MultMatrix16x16((float*)temp, (float *) centerM, (float*)product);
+
+  //  cout<<"enter ApplyLocationTransform"<<std::endl;
+
+//     we need to go through this loop for geom files too, to transform
+//     its points
+
+    float** pts = geom->points[geom->geom_index];
+
+    for (loop = 0; loop < geom->numpts; loop++) {
+        float rhs[4];
+        float result[4];
+        rhs[0] = pts[loop][0];
+        rhs[1] = pts[loop][1];
+        rhs[2] = pts[loop][2];
+        rhs[3] = 1;
+
+
+       MultMatrix16x4(product, rhs, result);
+
+//        rotated_pts[loop][0] = result[0];
+//        rotated_pts[loop][1] = result[1];
+//        rotated_pts[loop][2] = result[2];
+   //     cout<<"result[0] " <<result[0]<<"   result[1]    "<<result[1]<<"     result[2]   "<<result[2]<<std::endl;
+
+        //geom->points[geom->geom_index] = rotated_pts;
+    }
 }
 
 
@@ -577,7 +790,6 @@ void GeomWindow::DrawDatacloudOnly(Mesh_Info * curmesh) //show the catheters onl
         printf("GeomWindow DrawNodes OpenGL Error: %s\n", gluErrorString(e));
 #endif
 }
-
 
 void DrawSurf(Mesh_Info * curmesh)
 {
