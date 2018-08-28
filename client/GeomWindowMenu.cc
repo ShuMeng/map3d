@@ -163,6 +163,13 @@ void GeomWindow::HandleMenu(int menu_data)
             }
             break;
 
+        case lock_forward_location:
+            MAP3D_MESH_LOCK_TOGGLE(map3d_info.lockgeneral, lock_forward);
+
+            if (lpriv) {
+                lpriv->update();
+            }
+            break;
 
 
         case fid_map_shade_toggle:
@@ -1300,6 +1307,7 @@ int GeomWindow::OpenMenu(QPoint point)
     bool invert = false;
 
     bool transparent = false;
+    bool lock_forward =false;
 
     bool all_node_sphere = false, ext_node_sphere = false, pick_node_sphere = false, lead_node_sphere = false;
     bool all_value = false;
@@ -1320,6 +1328,7 @@ int GeomWindow::OpenMenu(QPoint point)
         if (mesh->invert) invert = true;
 
         if (mesh->transparent)transparent =true;
+        if (mesh->lock_forward)lock_forward =true;
 
         if (mesh->mark_all_sphere) all_node_sphere = true;
         if (mesh->mark_all_sphere_value) all_node_sphere = all_value = true;
@@ -1720,6 +1729,11 @@ int GeomWindow::OpenMenu(QPoint point)
 
     action = submenu->addAction("Transparent (b)");
     action->setData(surface_render_transparent); action->setCheckable(true); action->setChecked(transparent);
+
+    action = submenu->addAction("Lock Catheter Location (v)");
+    action->setData(lock_forward_location); action->setCheckable(true); action->setChecked(lock_forward);
+
+
 
 
 

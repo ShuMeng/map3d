@@ -164,7 +164,7 @@ public:
  void DrawForwardOnly(Mesh_Info * curmesh);
  void CalculateForwardValue(Mesh_Info * curmesh, Mesh_Info * sourcemesh);
 
- void ApplyLocationTransform(Mesh_Info * curmesh);
+
 
 
  // how much to scale the node marks by

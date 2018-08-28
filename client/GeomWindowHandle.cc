@@ -737,6 +737,16 @@ void GeomWindow::HandleKeyPress(QKeyEvent* event)
             // the general lock is on) - n times in this loop and n times
             // in HandleMenu
             break;
+        case 'v':
+            menu_data = lock_forward_location;
+            HandleMenu(menu_data);
+            loop = length; // this is so that the change happens n*n times (when
+            // the general lock is on) - n times in this loop and n times
+            // in HandleMenu
+            break;
+
+
+
 
             // a - cycle colormaps
         case 'a':

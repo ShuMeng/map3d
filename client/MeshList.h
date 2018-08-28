@@ -84,6 +84,9 @@ ActivationMapWindow *actipriv;   /* activation window where mesh is present */
 
   bool transparent;    /* indicates whether mapping should be transparent or not */
 
+   bool lock_forward;
+
+
   LegendWindow *legendwin;      /* the id of this mesh's legend window */
 
   GetMatrixSlice *getmatrixslicewin;      /* the id of this mesh's legend window */

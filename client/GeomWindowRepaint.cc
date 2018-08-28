@@ -191,12 +191,10 @@ void GeomWindow::paintGL()
                     sourcegeom = sourcemesh->geom;
                     sourcesurf = sourcemesh->data;
 
-                    if (sourcegeom->numdatacloud!=0)
-                   {
-                      //  ApplyLocationTransform(curmesh);
+                    if ((sourcegeom->numdatacloud!=0)&&(curmesh->lock_forward!=1))
+                    {
                         CalculateForwardValue(curmesh,sourcemesh);
                     }
-
                 }
 
                 DrawForwardOnly(curmesh);
@@ -221,7 +219,6 @@ void GeomWindow::paintGL()
             }
 
         }
-
 
         /* draw fiducial map surface*/
         if (curmesh->data && curmesh->drawfids){
@@ -328,7 +325,8 @@ void GeomWindow::paintGL()
     }
 
     /* draw lock icons */
-    if (showlocks && !clip->back_enabled && !clip->front_enabled) {
+    if (showlocks && !clip->back_enabled && !clip->front_enabled)
+    {
         if (map3d_info.lockgeneral != LOCK_OFF)
             DrawLockSymbol(0, map3d_info.lockgeneral == LOCK_FULL);
         if (map3d_info.lockrotate != LOCK_OFF)
@@ -522,89 +520,152 @@ void GeomWindow::DrawForwardOnly(Mesh_Info * curmesh) //show the catheters only 
 }
 
 
-
-
-
 void GeomWindow::CalculateForwardValue(Mesh_Info * curmesh, Mesh_Info * sourcemesh)
 {
-    int length1 = 0, loop1 = 0, length2 =0, loop2=0;
+    int length1 = 0, loop1 = 0, length2 =0, loop2=0, loop_idx=0;
 
-    float **modelpts = 0;
+
     Map3d_Geom *curgeom = 0;
     Surf_Data *cursurf = 0;
-
     curgeom = curmesh->geom;
     cursurf = curmesh->data;
-    modelpts = curgeom->points[curgeom->geom_index];
     length1 = curgeom->numpts;
 
-    float **datacloudpts = 0;
+
     Map3d_Geom *sourcegeom = 0;
     Surf_Data *sourcesurf = 0;
     sourcegeom = sourcemesh->geom;
     sourcesurf = sourcemesh->data;
-    datacloudpts = sourcegeom->datacloud[sourcegeom->geom_index];
     length2 = sourcegeom->numdatacloud;
 
 
+    // this part is to rotate the catheter. if map3d_info.lockrotate==LOCK_OFF, only apply transform matrix to catheter
+    // if map3d_info.lockrotate==LOCK_FULL, apply both transform matrix to catheter and atrium, corresponding matrix is different.
+    float** pts = curgeom->points[curgeom->geom_index];
+    float** geom_temp_forward_pts=pts;
+    float **rotated_forward_pts = 0;
+    rotated_forward_pts= Alloc_fmatrix(curgeom->numpts, 3);
 
-    GeomWindow* priv = curmesh->gpriv;
-    HMatrix mNow /*, original */ ;  // arcball rotation matrices
-    Transforms *tran = curmesh->tran;
+    GeomWindow* priv_forward = curmesh->gpriv;
+    HMatrix mNow_forward /*, original */ ;  // arcball rotation matrices
+    Transforms *tran_forward = curmesh->tran;
     //translation matrix in column-major
-    float centerM[4][4] = {{1,0,0,0},{0,1,0,0},{0,0,1,0},
-                           {-priv->xcenter,-priv->ycenter,-priv->zcenter,1}};
-    float invCenterM[4][4] = {{1,0,0,0},{0,1,0,0},{0,0,1,0},
-                              {priv->xcenter,priv->ycenter,priv->zcenter,1}};
-    float translateM[4][4] = { {1, 0, 0, 0}, {0, 1, 0, 0}, {0, 0, 1, 0},
-                               {tran->tx, tran->ty, tran->tz, 1}
-                             };
-
-    float temp[16];
-    float product[16];
+    float centerM_forward[4][4] = {{1,0,0,0},{0,1,0,0},{0,0,1,0},
+                                   {-priv_forward->xcenter,-priv_forward->ycenter,-priv_forward->zcenter,1}};
+    float invCenterM_forward[4][4] = {{1,0,0,0},{0,1,0,0},{0,0,1,0},
+                                      {priv_forward->xcenter,priv_forward->ycenter,priv_forward->zcenter,1}};
+    float translateM_forward[4][4] = { {1, 0, 0, 0}, {0, 1, 0, 0}, {0, 0, 1, 0},
+                                       {tran_forward->tx, tran_forward->ty, tran_forward->tz, 1}
+                                     };
+    float temp_forward[16];
+    float product_forward[16];
 
     //rotation matrix
-    Ball_Value(&tran->rotate, mNow);
+    Ball_Value(&tran_forward->rotate, mNow_forward);
     // apply translation
     // translate curmesh's center to origin
-    MultMatrix16x16((float *)translateM, (float *)invCenterM, (float*)product);
+    MultMatrix16x16((float *)translateM_forward, (float *)invCenterM_forward, (float*)product_forward);
     // rotate
-    MultMatrix16x16((float *)product, (float *)mNow, (float*)temp);
+    MultMatrix16x16((float *)product_forward, (float *)mNow_forward, (float*)temp_forward);
     // revert curmesh translation to origin
-    MultMatrix16x16((float*)temp, (float *) centerM, (float*)product);
+    MultMatrix16x16((float*)temp_forward, (float *) centerM_forward, (float*)product_forward);
 
 
-    vector<point_t> data_points;
-
-    for (loop2 = 0; loop2 < length2; loop2++)
-    {
-        coord_t x,y,z;
-        x = datacloudpts[loop2][0];
-        y = datacloudpts[loop2][1];
-        z = datacloudpts[loop2][2];
-        data_points.push_back(tr1::make_tuple(x,y,z));
-    }
-
-    const size_t nneighbours = 1; // number of nearest neighbours to find
-    point_t points[nneighbours];
-
-    float** pts = curgeom->points[curgeom->geom_index];
 
     for (loop1 = 0; loop1 < length1; loop1++)
     {
 
-        float rhs[4];
-        float result[4];
-        rhs[0] = pts[loop1][0];
-        rhs[1] = pts[loop1][1];
-        rhs[2] = pts[loop1][2];
-        rhs[3] = 1;
+        float rhs_forward[4];
+        float result_forward[4];
+        rhs_forward[0] = pts[loop1][0];
+        rhs_forward[1] = pts[loop1][1];
+        rhs_forward[2] = pts[loop1][2];
+        rhs_forward[3] = 1;
 
-        MultMatrix16x4(product, rhs, result);
+        MultMatrix16x4(product_forward, rhs_forward, result_forward);
 
-        point_t point(result[0], result[1], result[2]);
+        rotated_forward_pts[loop1][0] = result_forward[0];
+        rotated_forward_pts[loop1][1] = result_forward[1];
+        rotated_forward_pts[loop1][2] = result_forward[2];
+    }
 
-        //point_t point(modelpts[loop1][0], modelpts[loop1][1], modelpts[loop1][2]);
+    geom_temp_forward_pts=rotated_forward_pts;
+
+    //this part is to rotate the source surface (atrium).transform matrix is not applied if map3d_info.lockrotate==LOCK_OFF
+
+    float** pts_source = sourcegeom->datacloud[sourcegeom->geom_index];
+    float** geom_temp_source_pts=pts_source;
+    float **rotated_source_pts = 0;
+    rotated_source_pts= Alloc_fmatrix(sourcegeom->numdatacloud, 3);
+
+
+    GeomWindow* priv_source = sourcemesh->gpriv;
+    HMatrix mNow_source /*, original */ ;  // arcball rotation matrices
+    Transforms *tran_source = sourcemesh->tran;
+    //translation matrix in column-major
+    float centerM_source[4][4] = {{1,0,0,0},{0,1,0,0},{0,0,1,0},
+                                  {-priv_source->xcenter,-priv_source->ycenter,-priv_source->zcenter,1}};
+    float invCenterM_source[4][4] = {{1,0,0,0},{0,1,0,0},{0,0,1,0},
+                                     {priv_source->xcenter,priv_source->ycenter,priv_source->zcenter,1}};
+    float translateM_source[4][4] = { {1, 0, 0, 0}, {0, 1, 0, 0}, {0, 0, 1, 0},
+                                      {tran_source->tx, tran_source->ty, tran_source->tz, 1}
+                                    };
+    float temp_source[16];
+    float product_source[16];
+
+    //rotation matrix
+    Ball_Value(&tran_source->rotate, mNow_source);
+    // apply translation
+    // translate sourcemesh's center to origin
+    MultMatrix16x16((float *)translateM_source, (float *)invCenterM_source, (float*)product_source);
+    // rotate
+    MultMatrix16x16((float *)product_source, (float *)mNow_source, (float*)temp_source);
+    // revert sourcemesh translation to origin
+    MultMatrix16x16((float*)temp_source, (float *) centerM_source, (float*)product_source);
+
+
+    for (loop2 = 0; loop2 < length2; loop2++)
+    {
+
+        float rhs_source[4];
+        float result_source[4];
+        rhs_source[0] = pts_source[loop2][0];
+        rhs_source[1] = pts_source[loop2][1];
+        rhs_source[2] = pts_source[loop2][2];
+        rhs_source[3] = 1;
+
+        MultMatrix16x4(product_source, rhs_source, result_source);
+
+        rotated_source_pts[loop2][0] = result_source[0];
+        rotated_source_pts[loop2][1] = result_source[1];
+        rotated_source_pts[loop2][2] = result_source[2];
+
+    }
+    geom_temp_source_pts=rotated_source_pts;
+
+
+    vector<point_t> data_points;
+    for (loop2 = 0; loop2 < length2; loop2++)
+    {
+        coord_t x,y,z;
+        x = geom_temp_source_pts[loop2][0];
+        y = geom_temp_source_pts[loop2][1];
+        z = geom_temp_source_pts[loop2][2];
+        data_points.push_back(tr1::make_tuple(x,y,z));
+    }
+
+
+    const size_t nneighbours = 1; // number of nearest neighbours to find
+    point_t points[nneighbours];
+
+
+    float **nearest_index = 0;
+    nearest_index= Alloc_fmatrix(curgeom->numpts, 1);
+
+
+    for (loop1 = 0; loop1 < length1; loop1++)
+    {
+        point_t point(geom_temp_forward_pts[loop1][0],geom_temp_forward_pts[loop1][1], geom_temp_forward_pts[loop1][2]);
 
         less_distance nearer(point);
 
@@ -612,7 +673,7 @@ void GeomWindow::CalculateForwardValue(Mesh_Info * curmesh, Mesh_Info * sourceme
 
             for (loop2 = 0; loop2 < length2; loop2++)
             {
-                point_t current_point(datacloudpts[loop2][0],datacloudpts[loop2][1],datacloudpts[loop2][2]);
+                point_t current_point(geom_temp_source_pts[loop2][0],geom_temp_source_pts[loop2][1],geom_temp_source_pts[loop2][2]);
                 foreach (point_t& p, points)
 
                     if (nearer(current_point, p))
@@ -620,16 +681,16 @@ void GeomWindow::CalculateForwardValue(Mesh_Info * curmesh, Mesh_Info * sourceme
             }
 
         sort(boost::begin(points), boost::end(points), nearer);
-
         foreach (point_t p, points)
-        {
-            for (loop2 = 0; loop2 < length2; loop2++)
-            {
-                if (p == data_points[loop2])
-                {
-                    // cout << loop2 << std::endl;
 
-                    cursurf->forwardvals[cursurf->framenum][loop1]= sourcesurf->datacloudvals[sourcesurf->framenum][loop2];
+        {
+            for (loop_idx = 0; loop_idx< length2; loop_idx++)
+            {
+                if (p == data_points[loop_idx])
+                {
+                    cursurf->forwardvals[cursurf->framenum][loop1]= sourcesurf->datacloudvals[sourcesurf->framenum][loop_idx];
+                    nearest_index[loop1][0]=loop_idx;
+                    cout<<"nearest_index "<<loop_idx<<"  loop1   "<<loop1<<std::endl;
                 }
             }
         }
@@ -637,64 +698,6 @@ void GeomWindow::CalculateForwardValue(Mesh_Info * curmesh, Mesh_Info * sourceme
     }
 }
 
-void GeomWindow::ApplyLocationTransform(Mesh_Info * curmesh)
-{
-    int loop;
-
-    Map3d_Geom* geom = curmesh->geom;
-    GeomWindow* priv = curmesh->gpriv;
-
-    HMatrix mNow /*, original */ ;  // arcball rotation matrices
-    Transforms *tran = curmesh->tran;
-    //translation matrix in column-major
-    float centerM[4][4] = {{1,0,0,0},{0,1,0,0},{0,0,1,0},
-                           {-priv->xcenter,-priv->ycenter,-priv->zcenter,1}};
-    float invCenterM[4][4] = {{1,0,0,0},{0,1,0,0},{0,0,1,0},
-                              {priv->xcenter,priv->ycenter,priv->zcenter,1}};
-    float translateM[4][4] = { {1, 0, 0, 0}, {0, 1, 0, 0}, {0, 0, 1, 0},
-                               {tran->tx, tran->ty, tran->tz, 1}
-                             };
-    //float **rotated_pts = 0;
-
-    float temp[16];
-    float product[16];
-
-    //rotation matrix
-    Ball_Value(&tran->rotate, mNow);
-    // apply translation
-    // translate curmesh's center to origin
-    MultMatrix16x16((float *)translateM, (float *)invCenterM, (float*)product);
-    // rotate
-    MultMatrix16x16((float *)product, (float *)mNow, (float*)temp);
-    // revert curmesh translation to origin
-    MultMatrix16x16((float*)temp, (float *) centerM, (float*)product);
-
-  //  cout<<"enter ApplyLocationTransform"<<std::endl;
-
-//     we need to go through this loop for geom files too, to transform
-//     its points
-
-    float** pts = geom->points[geom->geom_index];
-
-    for (loop = 0; loop < geom->numpts; loop++) {
-        float rhs[4];
-        float result[4];
-        rhs[0] = pts[loop][0];
-        rhs[1] = pts[loop][1];
-        rhs[2] = pts[loop][2];
-        rhs[3] = 1;
-
-
-       MultMatrix16x4(product, rhs, result);
-
-//        rotated_pts[loop][0] = result[0];
-//        rotated_pts[loop][1] = result[1];
-//        rotated_pts[loop][2] = result[2];
-   //     cout<<"result[0] " <<result[0]<<"   result[1]    "<<result[1]<<"     result[2]   "<<result[2]<<std::endl;
-
-        //geom->points[geom->geom_index] = rotated_pts;
-    }
-}
 
 
 
@@ -1267,7 +1270,7 @@ void DrawCont(Mesh_Info * curmesh)
             glColor3ub(0,0,0);
         if (curcont->isolevels[curcont->contcol[loop2]] < 0 && curmesh->negcontdashed)
             glEnable(GL_LINE_STIPPLE);
-        
+
         glBegin(GL_LINES);
         glVertex3fv(contpts1[loop2]);
         glVertex3fv(contpts2[loop2]);
@@ -2110,7 +2113,7 @@ void GeomWindow::DrawLockSymbol(int which, bool full)
     glDisable(GL_BLEND);
 }
 
-void DrawDot(float x, float y, float z, float size) 
+void DrawDot(float x, float y, float z, float size)
 {
     glEnable(GL_TEXTURE_2D);
     UseTexture(map3d_info.dot_texture);

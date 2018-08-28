@@ -964,8 +964,10 @@ int PickWindow::OpenMenu(QPoint point)
     menu.addAction("Axes Color")->setData(axes_color);
     menu.addAction("Graph Color")->setData(graph_color);
     menu.addAction("Graph Width")->setData(graph_width_menu);
+
     QAction* fullscreenAction = menu.addAction("Toggle Display Mode"); fullscreenAction->setData(full_screen);
     fullscreenAction->setCheckable(true); fullscreenAction->setChecked(showinfotext == 0);
+
     QAction* subseriesModeAction = menu.addAction("Toggle Subseries Mode"); subseriesModeAction->setData(toggle_subseries_mode);
     subseriesModeAction->setCheckable(true); subseriesModeAction->setChecked(map3d_info.subseries_mode);
 

@@ -38,6 +38,8 @@ Mesh_Info::Mesh_Info()
 
   transparent=0; //Shu Meng
 
+  lock_forward=0;
+
   legendwin = 0;
 
   getmatrixslicewin =0;

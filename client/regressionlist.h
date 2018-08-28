@@ -7,7 +7,7 @@
 const char *menulist[] = { "",
 		     "surface_color_rainbow", "surface_color_red2green", "surface_color_grayscale", "surface_color_jet",
 		     "surface_color_invert", "surface_render_none", "surface_render_flat",
-		     "surface_render_gouraud", "surface_render_banded","surface_render_transparent",
+		     "surface_render_gouraud", "surface_render_banded","surface_render_transparent","lock_forward_location",
 		     "scaling_global_frame", "scaling_global_surface", "scaling_dialog","rescaling_color_dialog",
 		     "scaling_global_global", "scaling_local", "scaling_function_linear",
 		     "scaling_local_group", "scaling_global_group", "scaling_local_slave",
