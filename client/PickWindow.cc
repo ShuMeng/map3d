@@ -793,6 +793,11 @@ void PickWindow::DrawNode()
                     if (QString::number(mesh->geom->surfnum)=="1"){
                         glColor3f(graphcolor[0], graphcolor[1], graphcolor[5]);
                         glVertex3f(left * width() + d * counter, data->potvals[loop][pick->node] * a + b, 0);
+                        if (!shownearestrecording)
+                        {
+                        glColor3f(graphcolor[0], graphcolor[8], graphcolor[3]);
+                        glVertex3f(left * width() + d * counter, data->nearestrecordingvals[loop][pick->node] * a + b, 0);
+                        }
                         if (data->inversevals[loop][pick->node]!=0){
                             glColor3f(graphcolor[5], graphcolor[0], graphcolor[0]);
                             glVertex3f(left * width() + d * counter, data->inversevals[loop][pick->node] * a + b, 0);
@@ -802,15 +807,17 @@ void PickWindow::DrawNode()
                         glColor3f(graphcolor[0], graphcolor[1], graphcolor[0]);
                         glVertex3f(left * width() + d * counter, data->potvals[loop][pick->node] * a + b, 0);
 
+                        if (!shownearestrecording)
+                        {
+                        glColor3f(graphcolor[0], graphcolor[8], graphcolor[3]);
+                        glVertex3f(left * width() + d * counter, data->nearestrecordingvals[loop][pick->node] * a + b, 0);
+                        }
+
                         if (data->inversevals[loop][pick->node]!=0){
                             glColor3f(graphcolor[0], graphcolor[0], graphcolor[0]);
                             glVertex3f(left * width() + d * counter, data->inversevals[loop][pick->node] * a + b, 0);
 
-                            if (!shownearestrecording)
-                            {
-                            glColor3f(graphcolor[0], graphcolor[8], graphcolor[3]);
-                            glVertex3f(left * width() + d * counter, data->nearestrecordingvals[loop][pick->node] * a + b, 0);
-                            }
+
                         }
                     }
                 }
