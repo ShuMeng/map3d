@@ -4,6 +4,7 @@
 #define PICKWINDOW_H
 
 #include "GenericWindow.h"
+#include "MeshList.h"
 
 struct PickInfo;
 class FileDialogWidget;
@@ -16,6 +17,9 @@ public:
   PickWindow(QWidget* parent, bool rms);
   ~PickWindow();
   static PickWindow* PickWindowCreate(int _width, int _height, int _x, int _y);
+
+
+  Mesh_List meshes; 
 
   void initializeGL();
   virtual void paintGL();
@@ -41,6 +45,8 @@ public:
   void DrawNode();
   void DrawPlot(int left, int right); // draws ONLY the plot, from [left to right), covering the entire plot space
   void SetStyle(int x);
+
+  void SetNearestElec(int x);
 
   // gets the frame range for specified subseries.  Entire series if subseriesNum < 0
   void getFrameRange(int subseriesNum, int& left, int& right);

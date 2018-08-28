@@ -86,6 +86,7 @@ public:
 
 float **datacloudvals;
 float **forwardvals;
+float **nearestrecordingvals;
 
   float *activationvals; 
 

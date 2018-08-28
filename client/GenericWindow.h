@@ -43,6 +43,8 @@ public:
   float fgcolor[4];             /* foreground color */
   char showinfotext;            /* show window content information */
 
+char shownearestrecording; /*show closest electrogram recording */
+
   int button;                   /* the current mouse button */
   int state;                    /* the current mouse button state */
   int modifiers;                /* the current modifier keys which aee pressed */

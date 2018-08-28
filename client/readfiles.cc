@@ -439,8 +439,6 @@ Return:	    pointer to updated surf_data array or NULL for error
     matlabarray activationvals;
     matlabarray datacloudvals;
 
-    matlabarray forwardvals;
-
 
     /*********************************************************************/
     reportlevel = map3d_info.reportlevel;

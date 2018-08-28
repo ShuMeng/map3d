@@ -163,6 +163,7 @@ void Init_Surf_Input(Surf_Input * s)
   s->showinfotext = -1;
   s->showlocks = -1;
   s->size_ll = -1;
+  s->shownearestrecording =-1;
 
   s->preloadedDataArray = NULL;
 }

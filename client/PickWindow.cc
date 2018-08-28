@@ -73,7 +73,7 @@ static const int min_height = 100;
 static const int default_width = 328;
 static const int default_height = 144;
 
-enum pickmenu { axes_color, graph_color, full_screen, graph_width_menu, toggle_subseries_mode};
+enum pickmenu { axes_color, graph_color, full_screen, graph_width_menu, toggle_subseries_mode, draw_nearest_electrogram};
 
 
 PickWindow::PickWindow(QWidget* parent) : Map3dGLWidget(parent)
@@ -156,6 +156,8 @@ void PickWindow::initializeGL()
         bgcolor[0] = bgcolor[1] = bgcolor[2] = bgcolor[3] = 0;
         fgcolor[0] = fgcolor[1] = fgcolor[2] = fgcolor[3] = 1;
     }
+
+
 }
 
 void PickWindow::Destroy()
@@ -261,9 +263,6 @@ void PickWindow::mouseReleaseEvent(QMouseEvent* event)
 
 
 
-
-
-
 // in here we hack the original values of event->x and event->y
 void PickWindow::mousePressEvent(QMouseEvent* event)
 {
@@ -275,7 +274,7 @@ void PickWindow::mousePressEvent(QMouseEvent* event)
 
     state = 1;
 
-   setMoveCoordinates(event);
+    setMoveCoordinates(event);
 
     if(!mesh)
         return;
@@ -332,6 +331,8 @@ void PickWindow::mousePressEvent(QMouseEvent* event)
     }
     update();
 }
+
+
 
 void PickWindow::RMSButtonRelease(QMouseEvent * event)
 {
@@ -594,6 +595,8 @@ void PickWindow::keyPressEvent(QKeyEvent* event)
 
 void PickWindow::DrawNode()
 {
+
+
     int loop;
     float a, b;
     float d;
@@ -612,6 +615,7 @@ void PickWindow::DrawNode()
     if (!mesh)
         return;
     Surf_Data* data = mesh->data;
+
 
     /* Find the extrema of the time signal */
     if (data && rms) {
@@ -651,10 +655,10 @@ void PickWindow::DrawNode()
     glColor3f(fgcolor[0], fgcolor[1], fgcolor[2]);
 
     QString toRender;
+
     if (showinfotext && !rms) {
 
         pos[1] = height() - getFontHeight(mesh->gpriv->med_font);
-
 
         if (data) {
             // print real frame num if start is not beginning
@@ -668,7 +672,7 @@ void PickWindow::DrawNode()
                         .arg((real_frame-zero_frame) * map3d_info.frames_per_time_unit).arg(map3d_info.time_unit);
 
 
-             }
+        }
         else {
             toRender = "Frame: ---";
         }
@@ -787,15 +791,13 @@ void PickWindow::DrawNode()
                 else {
 
                     if (QString::number(mesh->geom->surfnum)=="1"){
-
                         glColor3f(graphcolor[0], graphcolor[1], graphcolor[5]);
                         glVertex3f(left * width() + d * counter, data->potvals[loop][pick->node] * a + b, 0);
                         if (data->inversevals[loop][pick->node]!=0){
                             glColor3f(graphcolor[5], graphcolor[0], graphcolor[0]);
                             glVertex3f(left * width() + d * counter, data->inversevals[loop][pick->node] * a + b, 0);
-                        }
+                       }
                     }
-
                     else{
                         glColor3f(graphcolor[0], graphcolor[1], graphcolor[0]);
                         glVertex3f(left * width() + d * counter, data->potvals[loop][pick->node] * a + b, 0);
@@ -803,6 +805,12 @@ void PickWindow::DrawNode()
                         if (data->inversevals[loop][pick->node]!=0){
                             glColor3f(graphcolor[0], graphcolor[0], graphcolor[0]);
                             glVertex3f(left * width() + d * counter, data->inversevals[loop][pick->node] * a + b, 0);
+
+                            if (!shownearestrecording)
+                            {
+                            glColor3f(graphcolor[0], graphcolor[8], graphcolor[3]);
+                            glVertex3f(left * width() + d * counter, data->nearestrecordingvals[loop][pick->node] * a + b, 0);
+                            }
                         }
                     }
                 }
@@ -955,8 +963,22 @@ void PickWindow::SetStyle(int x)
         bottomoffset = .27f;
         break;
     }
-
 }
+
+void PickWindow::SetNearestElec(int x)
+{
+    switch (x) {
+    case 0:
+        shownearestrecording = 0;
+        break;
+
+    case 1:
+        shownearestrecording = 1;
+        break;
+    }
+}
+
+
 
 int PickWindow::OpenMenu(QPoint point)
 {
@@ -970,6 +992,9 @@ int PickWindow::OpenMenu(QPoint point)
 
     QAction* subseriesModeAction = menu.addAction("Toggle Subseries Mode"); subseriesModeAction->setData(toggle_subseries_mode);
     subseriesModeAction->setCheckable(true); subseriesModeAction->setChecked(map3d_info.subseries_mode);
+
+    QAction* shownearRcdAction = menu.addAction("Hide nearest recording drawing"); shownearRcdAction->setData(draw_nearest_electrogram);
+    shownearRcdAction->setCheckable(true); shownearRcdAction->setChecked(shownearestrecording == 0);
 
     QAction* action = menu.exec(point);
     if (action)
@@ -998,6 +1023,9 @@ void PickWindow::MenuEvent(int menu_data)
         break;
     case full_screen:
         SetStyle(showinfotext == 1 ? 0 : 1); // pass the opposite of what it currently is
+        break;
+    case draw_nearest_electrogram:
+        SetNearestElec(shownearestrecording ==1 ? 0 : 1);
         break;
     }
     update();

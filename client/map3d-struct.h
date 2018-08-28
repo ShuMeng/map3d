@@ -130,6 +130,8 @@ long lock_forward;
   long showinfotext;
   long showlocks;
 
+  long shownearestrecording;
+
   // node marking options
   long all_sphere, all_mark, all_value;
   long extrema_sphere, extrema_mark;

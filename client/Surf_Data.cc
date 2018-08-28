@@ -72,8 +72,9 @@ Surf_Data::Surf_Data()
     potvals = 0;
     inversevals = 0;// Shu Meng
     activationvals = 0 ;
-    datacloudvals =0;
-    forwardvals =0;
+    datacloudvals = 0;
+    forwardvals = 0;
+    nearestrecordingvals = 0;
 
     mastersurf = 0;
     meanpotvals = 0;
@@ -113,6 +114,9 @@ Surf_Data::~Surf_Data()
 
     if (forwardvals)
         Free_fmatrix(forwardvals, numframes); // Shu Meng
+
+    if (nearestrecordingvals)
+        Free_fmatrix(nearestrecordingvals,numframes);
 
 
     if (activationvals)
@@ -201,6 +205,21 @@ Surf_Data *Surf_Data::AddASurfData(Surf_Data * surfdata, long newsurfnum, long n
     }
     else {
         surfdata[newsurfnum].inversevals = NULL;
+    }
+
+
+
+    /*** Now allocate some memory for the nearest in the surface. ***/
+
+    if (numframes > 0 && numleads > 0) {
+
+        if ((surfdata[newsurfnum].nearestrecordingvals = Alloc_fmatrix(numframes, numleads)) == NULL) {
+            fprintf(stderr, "*** AddaDataSurf: error getting 333 first memory\n");
+            return (NULL);
+        }
+    }
+    else {
+        surfdata[newsurfnum].nearestrecordingvals = NULL;
     }
 
 
