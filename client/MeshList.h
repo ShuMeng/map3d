@@ -173,6 +173,8 @@ char mark_all_activation_number; /* mark all with node in activaion map, channel
 
   // pick stuff for this mesh
   PickInfo *pickstack[40];
+
+
   int pickstacktop;
   int curpicknode;
 

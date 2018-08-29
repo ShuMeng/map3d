@@ -63,6 +63,8 @@ extern QTimer *play_timer;
 PickInfo *pickstack[100] = { 0 };
 int pickstacktop = -1;
 
+
+
 #define CHAR_SIZE 70
 #define CHAR_BIG CHAR_SIZE * 4
 #define CHAR_MED CHAR_SIZE * 3
@@ -167,9 +169,11 @@ void PickWindow::Destroy()
     for (i = 0; i <= mesh->pickstacktop; i++) {
         if (mesh->pickstack[i]->pickwin == this) {
             delete mesh->pickstack[i];
+
             mesh->pickstacktop--;
             for (j = i; j <= mesh->pickstacktop; j++)
                 mesh->pickstack[j] = mesh->pickstack[j + 1];
+
             break;
         }
     }
@@ -793,15 +797,15 @@ void PickWindow::DrawNode()
                     if (QString::number(mesh->geom->surfnum)=="1"){
                         glColor3f(graphcolor[0], graphcolor[1], graphcolor[5]);
                         glVertex3f(left * width() + d * counter, data->potvals[loop][pick->node] * a + b, 0);
-                        if (!shownearestrecording)
-                        {
-                        glColor3f(graphcolor[0], graphcolor[8], graphcolor[3]);
-                        glVertex3f(left * width() + d * counter, data->nearestrecordingvals[loop][pick->node] * a + b, 0);
-                        }
+//                        if (!shownearestrecording)
+//                        {
+//                            glColor3f(graphcolor[0], graphcolor[8], graphcolor[3]);
+//                            glVertex3f(left * width() + d * counter, data->nearestrecordingvals[loop][pick->node] * a + b, 0);
+//                        }
                         if (data->inversevals[loop][pick->node]!=0){
                             glColor3f(graphcolor[5], graphcolor[0], graphcolor[0]);
                             glVertex3f(left * width() + d * counter, data->inversevals[loop][pick->node] * a + b, 0);
-                       }
+                        }
                     }
                     else{
                         glColor3f(graphcolor[0], graphcolor[1], graphcolor[0]);
@@ -809,8 +813,8 @@ void PickWindow::DrawNode()
 
                         if (!shownearestrecording)
                         {
-                        glColor3f(graphcolor[0], graphcolor[8], graphcolor[3]);
-                        glVertex3f(left * width() + d * counter, data->nearestrecordingvals[loop][pick->node] * a + b, 0);
+                            glColor3f(graphcolor[0], graphcolor[8], graphcolor[3]);
+                            glVertex3f(left * width() + d * counter, data->nearestrecordingvals[loop][pick->node] * a + b, 0);
                         }
 
                         if (data->inversevals[loop][pick->node]!=0){

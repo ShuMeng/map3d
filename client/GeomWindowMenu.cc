@@ -814,6 +814,7 @@ void GeomWindow::HandleMenu(int menu_data)
                 mesh->data->zerotimeframe = mesh->data->framenum;
                 for (int i = 0; i <= mesh->pickstacktop; i++) {
                     mesh->pickstack[i]->pickwin->update();
+
                 }
             }
             break;

@@ -82,6 +82,8 @@ using std::find;
 // made a little bigger
 GLuint selectbuffer[2048];
 
+float **recording_all_pts;
+bool plot_nearest_electrode;
 
 GeomWindow::GeomWindow(QWidget* parent) : Map3dGLWidget(parent, GEOMWINDOW, "Geometry Display",min_width, min_height)
 {
@@ -320,6 +322,7 @@ bool GeomWindow::Pick(int meshnum, int x, int y, bool del /*= false*/ )
     glPushName(meshnum);
     glPushName(1);
 
+
     // need to pick a triangle for these modes, not a node
     if (map3d_info.pickmode == FLIP_TRIANGLE_PICK_MODE ||
             map3d_info.pickmode == TRIANGLE_INFO_PICK_MODE || del) {
@@ -342,8 +345,11 @@ bool GeomWindow::Pick(int meshnum, int x, int y, bool del /*= false*/ )
     //pick a node
     else if (map3d_info.pickmode != EDIT_LANDMARK_PICK_MODE) {
 
+        cout<<"enter pick a node 29_08_2018"<<std::endl;
+
         length = curgeom->numpts;
         for (loop2 = 0; loop2 < length; loop2++) {
+
             glLoadName(loop2);
             glBegin(GL_POINTS);
             glVertex3f(modelpts[loop2][0], modelpts[loop2][1], modelpts[loop2][2]);
@@ -411,6 +417,7 @@ bool GeomWindow::Pick(int meshnum, int x, int y, bool del /*= false*/ )
         // for info modes we want to go through all picks instead of selecting one
         // otherwise, go through all records and pick the closest one
         if ( map3d_info.pickmode != INFO_PICK_MODE && map3d_info.pickmode != TRIANGLE_INFO_PICK_MODE) {
+
             GLuint* currentSelection = selectbuffer;
             for (int i = 0; i < orig_hits; i++) {
                 int numNames = currentSelection[0];
@@ -442,20 +449,22 @@ bool GeomWindow::Pick(int meshnum, int x, int y, bool del /*= false*/ )
             pick->node = selection[4];
             pick->depth = (float)selection[1] / 0x7fffffff;
 
-            /* don't change above*/
+            /* don't change above shu meng*/
 
             Mesh_Info *recordingmesh = 0; // specifically, recordingmesh is catheter, pick->mesh is atrial mesh.
             int nummeshes = meshes.size();
 
-            cout<<"nummeshes "<<nummeshes<<std::endl;
+        //    cout<<"nummeshes "<<nummeshes<<std::endl;
 
             if ((nummeshes>1) && (pick->mesh->geom->surfnum >1))
             {
-                cout<<"pick->mesh->geom->surfnum "<<pick->mesh->geom->surfnum<<std::endl;
-                cout<<"pick->mesh->geom->surfnum-1 "<<pick->mesh->geom->surfnum-1<<std::endl;
-
+//                cout<<"pick->mesh->geom->surfnum "<<pick->mesh->geom->surfnum<<std::endl;
+//                cout<<"pick->mesh->geom->surfnum-1 "<<pick->mesh->geom->surfnum-1<<std::endl;
+                plot_nearest_electrode = 1;
                 recordingmesh=meshes[selection[3]-1];
+
                 FindNearestRecording(pick,recordingmesh);
+
             }
 
             /* don't change below*/
@@ -575,11 +584,9 @@ bool GeomWindow::Pick(int meshnum, int x, int y, bool del /*= false*/ )
 
 void FindNearestRecording(PickInfo* pick, Mesh_Info* recordingmesh)
 {
+    // std::cout<< "enter FindNearestRecording"<<std::endl;
 
-    std::cout<< "enter FindNearestRecording"<<std::endl;
-
-    int length1 = 0, loop1 = 0, loop_idx=0, loop_frame=0;
-
+    int length1 = 0, loop1 = 0, loop_idx_nearest=0, loop_frame=0;
 
     float **modelpts = 0;
     Mesh_Info* curmesh = pick->mesh;
@@ -599,6 +606,8 @@ void FindNearestRecording(PickInfo* pick, Mesh_Info* recordingmesh)
     recordingpts = recordinggeom->points[recordinggeom->geom_index];
     length1 = recordinggeom->numpts;
 
+    recording_all_pts= recordingpts;
+
     // std::cout<< "recordingpts" <<recordingpts[0][0]<<"   "<<recordingpts[0][1]<<"     "<<recordingpts[0][2]<<std::endl;
 
     vector<point_t> data_points;
@@ -611,7 +620,6 @@ void FindNearestRecording(PickInfo* pick, Mesh_Info* recordingmesh)
         z = recordingpts[loop1][2];
         data_points.push_back(tr1::make_tuple(x,y,z));
     }
-
 
     const size_t nneighbours = 1; // number of nearest neighbours to find
 
@@ -636,28 +644,61 @@ void FindNearestRecording(PickInfo* pick, Mesh_Info* recordingmesh)
     foreach (point_t p, points)
     {
         point_t nearestpoint(p);
-        cout << p << ' ' << distance_sq(p, point) << '\n';
 
-        for (loop_idx = 0; loop_idx< length1; loop_idx++)
+        for (loop_idx_nearest = 0; loop_idx_nearest< length1; loop_idx_nearest++)
         {
-            if (nearestpoint == data_points[loop_idx])
+            if (nearestpoint == data_points[loop_idx_nearest])
             {
-                cout<<"loop_idx "<<loop_idx<<std::endl;
+
+                 pick->nearestIdx = loop_idx_nearest;
+
+                 cout<<"pick->nearestIdx "<<pick->nearestIdx<<std::endl;
 
                 for (loop_frame = 0; loop_frame <curmesh->data->numframes; loop_frame++)
                 {
+                    cursurf->nearestrecordingvals[loop_frame][pick->node]= recordingsurf->potvals[loop_frame][loop_idx_nearest];
 
-                cursurf->nearestrecordingvals[loop_frame][pick->node]= recordingsurf->potvals[loop_frame][loop_idx];
-
-                cout<<"nearestrecordingvals "<<cursurf->nearestrecordingvals[loop_frame][pick->node]<<std::endl;
-
-
-                 }
-
+                    // cout<<"nearestrecordingvals "<<cursurf->nearestrecordingvals[loop_frame][pick->node]<<std::endl;
+                }
             }
         }
-
     }
+}
+
+
+
+void GeneratePick(PickInfo * pick)
+{
+    cout<<"enter GeneratePick 29_08_2018 "<<pick->node<<std::endl;
+    Mesh_Info* mesh = pick->mesh;
+    PickWindow *ppriv = 0;
+
+    // make a new window if necessary
+    if (!map3d_info.useonepickwindow || map3d_info.numPickwins == 0)  // refresh pick window mode (only 1 window)
+    {
+        ppriv = PickWindow::PickWindowCreate(-1, -1, -1, -1);
+        if (map3d_info.useonepickwindow)
+            mesh->pickstacktop = 0;
+        else
+            mesh->pickstacktop++;
+    }
+    else
+    {
+        ppriv = map3d_info.pickwins[map3d_info.numPickwins-1];
+    }
+
+    if (!ppriv) return; // can fail if more than MAX_PICKS
+
+    pick->show = 1;
+    ppriv->pick = pick;
+    ppriv->mesh = mesh;
+    pick->pickwin = ppriv;
+    mesh->pickstack[mesh->pickstacktop] = pick;
+
+
+    ppriv->show();
+    ppriv->updateGL();
+
 }
 
 
@@ -786,37 +827,7 @@ void Triangulate(Mesh_Info * curmesh, int nodenum)
     geom->modified = true;
 }
 
-void GeneratePick(PickInfo * pick)
-{
-    Mesh_Info* mesh = pick->mesh;
-    PickWindow *ppriv = 0;
 
-    // make a new window if necessary
-    if (!map3d_info.useonepickwindow || map3d_info.numPickwins == 0)  // refresh pick window mode (only 1 window)
-    {
-        ppriv = PickWindow::PickWindowCreate(-1, -1, -1, -1);
-        if (map3d_info.useonepickwindow)
-            mesh->pickstacktop = 0;
-        else
-            mesh->pickstacktop++;
-    }
-    else
-    {
-        ppriv = map3d_info.pickwins[map3d_info.numPickwins-1];
-    }
-
-    if (!ppriv) return; // can fail if more than MAX_PICKS
-
-    pick->show = 1;
-    ppriv->pick = pick;
-    ppriv->mesh = mesh;
-    pick->pickwin = ppriv;
-    mesh->pickstack[mesh->pickstacktop] = pick;
-
-    ppriv->show();
-    ppriv->updateGL();
-
-}
 
 
 void printMatrix16(float* matrix) {
@@ -862,10 +873,6 @@ void SaveGeomToDisk(Mesh_Info * mesh, bool /*transform*/)
 
 
 
-
-
-
-
 // takes a meshlist, an array of transforms as long as meshlist, and one filename
 // should be called by SaveGeoms, a callback from the Save Dialog
 // returns true on success
@@ -889,7 +896,6 @@ bool SaveMeshes(Mesh_List& ml, vector<bool> transforms, char* filename)
         // no need prompt the user for overwrite since the QFile selector already prompts for overwrite
         KillFile(filename);
     }
-
 
     int loop, loop2;
     // we need to make a list of all meshes to save in one call

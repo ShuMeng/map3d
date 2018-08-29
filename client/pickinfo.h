@@ -15,6 +15,9 @@ struct PickInfo
   bool show;
   bool rms;
   double depth;
+  int nearestIdx;
+
+
 };
 
 #define NEW_WINDOW_PICK_MODE 0

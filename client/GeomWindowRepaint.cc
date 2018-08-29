@@ -76,10 +76,11 @@ extern MainWindow *masterWindow;
 
 extern int unlock_transparency_surfnum[];
 extern int unlock_electrode_surfnum[];
-
 extern int unlock_datacloud_surfnum[];
 extern int unlock_forward_surfnum[];
 
+extern float **recording_all_pts;
+extern bool plot_nearest_electrode;
 
 void GeomWindow::paintGL()
 {
@@ -166,7 +167,7 @@ void GeomWindow::paintGL()
             if (curgeom->surfnum==unlock_electrode_surfnum[curgeom->surfnum-1]){
                 curmesh->mark_all_sphere=1;
                 curmesh->mark_all_sphere_value=1;
-                curmesh->mark_all_size=6;
+                curmesh->mark_all_size=4;
                 DrawElectrodesOnly(curmesh);
 
             }
@@ -180,7 +181,7 @@ void GeomWindow::paintGL()
             if (curgeom->surfnum==unlock_forward_surfnum[curgeom->surfnum-1]){
                 curmesh->mark_all_sphere=1;
                 curmesh->mark_all_sphere_value=1;
-                curmesh->mark_all_size=6;
+                curmesh->mark_all_size=4;
 
                 if ((length>1) && (loop+1<length))
                 {
@@ -1790,8 +1791,14 @@ void GeomWindow::DrawNodes(Mesh_Info * curmesh)
     set<int> pick_nodes;
 
     for (int i = 0; i <= curmesh->pickstacktop; i++)
+    {
         pick_nodes.insert(curmesh->pickstack[i]->node);
 
+        cout<<"pickstacktop is"<<curmesh->pickstacktop<<std::endl;
+        cout<<"curmesh->pickstack[i]->node"<<i<<"  is  "<<curmesh->pickstack[i]->node<<std::endl;
+        cout<<"curmesh->pickstack[i]->nearestIdx"<<i<<"  is  "<<curmesh->pickstack[i]->nearestIdx<<std::endl;
+
+    }
     for (int i  = 0; i < curgeom->numleadlinks; i++) {
         lead_labels[curgeom->leadlinks[i]] = curgeom->leadlinklabels[i];
     }
@@ -1803,7 +1810,9 @@ void GeomWindow::DrawNodes(Mesh_Info * curmesh)
         glEnable(GL_ALPHA_TEST);
         glAlphaFunc(GL_GEQUAL, .4f);
         float sphere_size = 1.0f;
+
         for (loop = 0; loop < length; loop++) {
+
             if (cursurf ) {
                 value = cursurf->potvals[cursurf->framenum][loop];
                 getContColor(value, min, max, curmap, color, curmesh->invert);
@@ -1833,10 +1842,12 @@ void GeomWindow::DrawNodes(Mesh_Info * curmesh)
 
             // pick node
             else if (curmesh->mark_ts_sphere && pick_nodes.size() > 0 && pick_nodes.find(loop) != pick_nodes.end()) {
+
                 if (loop == curmesh->curpicknode)
                     glColor3f(1.0, 0.1, 1.f);
                 else
-                    glColor3f(curmesh->mark_ts_color[0], curmesh->mark_ts_color[1], curmesh->mark_ts_color[2]);
+                    glColor3f(curmesh->mark_ts_color[2], curmesh->mark_ts_color[2], curmesh->mark_ts_color[2]); //picked nodes in black
+
                 glPointSize(height() / 200 * curmesh->mark_ts_size);
                 sphere_size = curmesh->mark_ts_size;
             }
@@ -1871,15 +1882,30 @@ void GeomWindow::DrawNodes(Mesh_Info * curmesh)
                 continue;
             }
 
-            glTranslatef(modelpts[loop][0], modelpts[loop][1], modelpts[loop][2]);
-            glMultMatrixf((float *)mNowI);
-            glTranslatef(-modelpts[loop][0], -modelpts[loop][1], -modelpts[loop][2]);
+            if (plot_nearest_electrode!=1)
+            {
+                glTranslatef(modelpts[loop][0], modelpts[loop][1], modelpts[loop][2]);
+                glMultMatrixf((float *)mNowI);
+                glTranslatef(-modelpts[loop][0], -modelpts[loop][1], -modelpts[loop][2]);
+            }
 
             // try to convert the sphere size from geometry units to pixels
             // 400 is a good number to use to normalize the l2norm
             sphere_size = sphere_size*l2norm/400;
+
             if (curmesh->draw_marks_as_spheres)
+            {
                 DrawDot(modelpts[loop][0], modelpts[loop][1], modelpts[loop][2], sphere_size);
+
+                if (plot_nearest_electrode==1)
+                {
+                    for (int j = 0; j <= curmesh->pickstacktop; j++)
+                    {
+                        glColor3f(curmesh->mark_ts_color[0], curmesh->mark_ts_color[2], curmesh->mark_ts_color[0]);
+                        DrawDot(recording_all_pts[curmesh->pickstack[j]->nearestIdx][0], recording_all_pts[curmesh->pickstack[j]->nearestIdx][1], recording_all_pts[curmesh->pickstack[j]->nearestIdx][2], sphere_size);
+                    }
+                }
+            }
             else {
                 glBegin(GL_POINTS);
                 glVertex3f(modelpts[loop][0], modelpts[loop][1], modelpts[loop][2]);
