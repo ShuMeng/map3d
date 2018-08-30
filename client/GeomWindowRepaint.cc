@@ -1794,9 +1794,9 @@ void GeomWindow::DrawNodes(Mesh_Info * curmesh)
     {
         pick_nodes.insert(curmesh->pickstack[i]->node);
 
-        cout<<"pickstacktop is"<<curmesh->pickstacktop<<std::endl;
-        cout<<"curmesh->pickstack[i]->node"<<i<<"  is  "<<curmesh->pickstack[i]->node<<std::endl;
-        cout<<"curmesh->pickstack[i]->nearestIdx"<<i<<"  is  "<<curmesh->pickstack[i]->nearestIdx<<std::endl;
+        //        cout<<"pickstacktop is"<<curmesh->pickstacktop<<std::endl;
+        //        cout<<"curmesh->pickstack[i]->node"<<i<<"  is  "<<curmesh->pickstack[i]->node<<std::endl;
+        //        cout<<"curmesh->pickstack[i]->nearestIdx"<<i<<"  is  "<<curmesh->pickstack[i]->nearestIdx<<std::endl;
 
     }
     for (int i  = 0; i < curgeom->numleadlinks; i++) {
@@ -1895,15 +1895,26 @@ void GeomWindow::DrawNodes(Mesh_Info * curmesh)
 
             if (curmesh->draw_marks_as_spheres)
             {
-                DrawDot(modelpts[loop][0], modelpts[loop][1], modelpts[loop][2], sphere_size);
-
-                if (plot_nearest_electrode==1)
+                if (plot_nearest_electrode!=1)
                 {
+                    DrawDot(modelpts[loop][0], modelpts[loop][1], modelpts[loop][2], sphere_size);
+                }
+                else
+                {
+                    glEnable(GL_POINT_SMOOTH);
+                    glEnable(GL_PROGRAM_POINT_SIZE_EXT);
+                    glPointSize(10);
+                    glBegin(GL_POINTS);
+                    glVertex3f(modelpts[loop][0], modelpts[loop][1],modelpts[loop][2]);
+
                     for (int j = 0; j <= curmesh->pickstacktop; j++)
                     {
                         glColor3f(curmesh->mark_ts_color[0], curmesh->mark_ts_color[2], curmesh->mark_ts_color[0]);
-                        DrawDot(recording_all_pts[curmesh->pickstack[j]->nearestIdx][0], recording_all_pts[curmesh->pickstack[j]->nearestIdx][1], recording_all_pts[curmesh->pickstack[j]->nearestIdx][2], sphere_size);
+                        glVertex3f(recording_all_pts[curmesh->pickstack[j]->nearestIdx][0], recording_all_pts[curmesh->pickstack[j]->nearestIdx][1],recording_all_pts[curmesh->pickstack[j]->nearestIdx][2]);
                     }
+                    glEnd();
+                    glDisable(GL_POINT_SMOOTH);
+                    glDisable(GL_PROGRAM_POINT_SIZE_EXT);
                 }
             }
             else {
@@ -1941,9 +1952,15 @@ void GeomWindow::DrawNodes(Mesh_Info * curmesh)
                 value = cursurf->potvals[cursurf->framenum][loop];
                 getContColor(value, min, max, curmap, color, curmesh->invert);
             }
+
+            if (plot_nearest_electrode!=1)
+            {
             glTranslatef(modelpts[loop][0], modelpts[loop][1], modelpts[loop][2]);
             glMultMatrixf((float *)mNowI);
             glTranslatef(-modelpts[loop][0], -modelpts[loop][1], -modelpts[loop][2]);
+            }
+
+
             pos[0] = modelpts[loop][0];
             pos[1] = modelpts[loop][1];
             pos[2] = modelpts[loop][2];
@@ -1996,8 +2013,19 @@ void GeomWindow::DrawNodes(Mesh_Info * curmesh)
                 break;
             case 3:
                 if (cursurf && cursurf->potvals && cursurf->potvals[cursurf->framenum][loop] != UNUSED_DATA)
-                    renderString3f(pos[0], pos[1], pos[2], (int)small_font,
-                            QString::number(cursurf->potvals[cursurf->framenum][loop], 'g', 2), scale);
+
+                    for (int i = 0; i <= curmesh->pickstacktop; i++)
+                    {
+                        if (loop==curmesh->pickstack[i]->node){
+                            renderString3f(pos[0], pos[1], pos[2], (int)small_font,QString::number(i+1, 'g', 2), scale);
+                         if (plot_nearest_electrode==1)
+                           {
+                            renderString3f(recording_all_pts[curmesh->pickstack[i]->nearestIdx][0], recording_all_pts[curmesh->pickstack[i]->nearestIdx][1],recording_all_pts[curmesh->pickstack[i]->nearestIdx][2], (int)small_font,
+                                    QString::number(i+1, 'g', 2), scale);
+                           }
+                        }
+                    }
+
                 break;
             case 4:
                 // case 4 is dependent on which type of mark it is

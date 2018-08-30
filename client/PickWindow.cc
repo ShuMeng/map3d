@@ -697,13 +697,23 @@ void PickWindow::DrawNode()
         if (data->inversevals[data->framenum][pick->node]!=0){
             toRender = "Inverse Value: " + QString::number(data->inversevals[data->framenum][pick->node], 'g', 3);
         }
-        else {
-            toRender = "Inverse Value: ---";
-        }
+
         pos[0] = width() - getFontWidth(mesh->gpriv->med_font, toRender) - 2;
 
         renderString3f(pos[0], pos[1]-12, pos[2], mesh->gpriv->med_font, toRender);
         toRender = "";
+
+
+        pos[0] = width()/2 - getFontWidth(mesh->gpriv->med_font, "Time")/2;
+        pos[1] = height()/7.5f-18;
+        for (int i = 0; i <= mesh->pickstacktop; i++)
+        {
+            if (pick->node==mesh->pickstack[i]->node){
+                toRender = "Pick# " + QString::number(i + 1);
+
+                 renderString3f(pos[0], pos[1], pos[2], mesh->gpriv->med_font, toRender);
+            }
+        }
 
 
         pos[0] = 5;
@@ -718,6 +728,7 @@ void PickWindow::DrawNode()
 
         renderString3f(pos[0], pos[1], pos[2], mesh->gpriv->med_font, toRender);
         pos[0] = width() - getFontWidth(mesh->gpriv->med_font, toRender);
+
 
         toRender = "Surface# " + QString::number(mesh->geom->surfnum);
         if (mesh->geom->subsurf > 0)
@@ -780,7 +791,7 @@ void PickWindow::DrawNode()
 
             glLineWidth(graph_width);
 
-            glBegin(GL_POINTS);// Shu Meng
+            glBegin(GL_LINE_STRIP);// Shu Meng
 
 
             // loop is which frame to draw, counter is which position to draw it at
@@ -794,39 +805,64 @@ void PickWindow::DrawNode()
                 }
                 else {
 
-                    if (QString::number(mesh->geom->surfnum)=="1"){
-                        glColor3f(graphcolor[0], graphcolor[1], graphcolor[5]);
+                    if (mesh->geom->surfnum==1){
+                        glColor3f(graphcolor[0], graphcolor[1], graphcolor[0]);
                         glVertex3f(left * width() + d * counter, data->potvals[loop][pick->node] * a + b, 0);
-//                        if (!shownearestrecording)
-//                        {
-//                            glColor3f(graphcolor[0], graphcolor[8], graphcolor[3]);
-//                            glVertex3f(left * width() + d * counter, data->nearestrecordingvals[loop][pick->node] * a + b, 0);
-//                        }
+                    }
+                    else{
+                        glColor3f(graphcolor[0], graphcolor[1], graphcolor[0]);
+                        glVertex3f(left * width() + d * counter, data->potvals[loop][pick->node] * a + b, 0);
+                    }
+                }
+            }
+
+            glEnd();
+            glBegin(GL_LINE_STRIP);
+            // draw inversevals
+            for (int counter = 0, loop = leftFrame; loop <= rightFrame; loop++, counter++) {
+                // draw to the next frame if it exists
+                if (loop >= data->numframes)
+                    break;
+                if (rms) {
+                    glColor3f(graphcolor[0], graphcolor[1], graphcolor[0]);
+                    glVertex3f(left * width() + d * counter, data->rmspotvals[loop] * a + b, 0);
+                }
+                else {
+
+                    if ((QString::number(mesh->geom->surfnum)=="1")&&(data->inversevals[loop][pick->node]!=0))
+                    {
+                        glColor3f(graphcolor[0], graphcolor[0], graphcolor[0]);
+                        glVertex3f(left * width() + d * counter, data->inversevals[loop][pick->node] * a + b, 0);
+                    }
+                    else{
                         if (data->inversevals[loop][pick->node]!=0){
                             glColor3f(graphcolor[5], graphcolor[0], graphcolor[0]);
                             glVertex3f(left * width() + d * counter, data->inversevals[loop][pick->node] * a + b, 0);
                         }
                     }
-                    else{
-                        glColor3f(graphcolor[0], graphcolor[1], graphcolor[0]);
-                        glVertex3f(left * width() + d * counter, data->potvals[loop][pick->node] * a + b, 0);
-
-                        if (!shownearestrecording)
-                        {
-                            glColor3f(graphcolor[0], graphcolor[8], graphcolor[3]);
-                            glVertex3f(left * width() + d * counter, data->nearestrecordingvals[loop][pick->node] * a + b, 0);
-                        }
-
-                        if (data->inversevals[loop][pick->node]!=0){
-                            glColor3f(graphcolor[0], graphcolor[0], graphcolor[0]);
-                            glVertex3f(left * width() + d * counter, data->inversevals[loop][pick->node] * a + b, 0);
-
-
-                        }
-                    }
                 }
             }
 
+            glEnd();
+            glBegin(GL_LINE_STRIP);
+
+            for (int counter = 0, loop = leftFrame; loop <= rightFrame; loop++, counter++) {
+                // draw to the next frame if it exists
+                if (loop >= data->numframes)
+                    break;
+                if (rms) {
+                    glColor3f(graphcolor[0], graphcolor[1], graphcolor[0]);
+                    glVertex3f(left * width() + d * counter, data->rmspotvals[loop] * a + b, 0);
+                }
+                else {
+
+                    if ((mesh->geom->surfnum>1)&&(!shownearestrecording)){
+                        glColor3f(graphcolor[0], graphcolor[8], graphcolor[3]);
+                        glVertex3f(left * width() + d * counter, data->nearestrecordingvals[loop][pick->node] * a + b, 0);
+
+                    }
+                }
+            }
             glEnd();
             glDisable(GL_LINE_SMOOTH);
             glDisable(GL_BLEND);
