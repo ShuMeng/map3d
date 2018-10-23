@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>823</width>
-    <height>225</height>
+    <width>777</width>
+    <height>194</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -23,7 +23,7 @@
    <item>
     <widget class="QFrame" name="headerFrame">
      <property name="styleSheet">
-      <string notr="true">#surfHeaderLabel, #TransparencyLabel,#ActivationmapLabel, #DrawPointsLabel #DrawDatacloudLabel,#DrawForwardLabel{
+      <string notr="true">#surfHeaderLabel, #TransparencyLabel,#ActivationmapLabel, #DrawPointsLabel #DrawDatacloudLabel,#DrawForwardLabel, #MFSinverseLabel{
 }
 
 #surfHeaderLabel {
@@ -47,20 +47,29 @@ border-left-width: 0px;
 #ActivationmapLabel{
 padding: 4px;
 border: 1px solid black;
-border-left-width: 0px;
+
 }
 
 #DrawDatacloudLabel{
 padding: 4px;
 border: 1px solid black;
-border-left-width: 0px;
+
 }
 
 #DrawForwardLabel{
 padding: 4px;
 border: 1px solid black;
-border-left-width: 0px;
+
 }
+
+#MFSinverseLabel{
+padding: 4px;
+border: 1px solid black;
+border-right-width: 1px solid black;
+}
+
+
+
 
 
 </string>
@@ -87,7 +96,21 @@ border-left-width: 0px;
       <property name="spacing">
        <number>0</number>
       </property>
-      <item row="0" column="0">
+      <item row="0" column="3" alignment="Qt::AlignHCenter|Qt::AlignVCenter">
+       <widget class="QLabel" name="ActivationmapLabel">
+        <property name="text">
+         <string>Activation map</string>
+        </property>
+       </widget>
+      </item>
+      <item row="0" column="4" alignment="Qt::AlignHCenter">
+       <widget class="QLabel" name="DrawDatacloudLabel">
+        <property name="text">
+         <string>Draw Datacloud </string>
+        </property>
+       </widget>
+      </item>
+      <item row="0" column="0" alignment="Qt::AlignHCenter">
        <widget class="QLabel" name="surfHeaderLabel">
         <property name="styleSheet">
          <string notr="true">border-left-color: rgb(0, 0, 0);</string>
@@ -106,40 +129,14 @@ border-left-width: 0px;
         </property>
        </widget>
       </item>
-      <item row="0" column="1">
-       <widget class="QLabel" name="TransparencyLabel">
-        <property name="styleSheet">
-         <string notr="true">border-right-color: rgb(0, 0, 0);</string>
-        </property>
-        <property name="frameShape">
-         <enum>QFrame::NoFrame</enum>
-        </property>
-        <property name="frameShadow">
-         <enum>QFrame::Plain</enum>
-        </property>
+      <item row="0" column="6" alignment="Qt::AlignHCenter">
+       <widget class="QLabel" name="MFSinverseLabel">
         <property name="text">
-         <string>Transparency?</string>
-        </property>
-        <property name="alignment">
-         <set>Qt::AlignCenter</set>
+         <string>MFS inverse</string>
         </property>
        </widget>
       </item>
-      <item row="0" column="3">
-       <widget class="QLabel" name="ActivationmapLabel">
-        <property name="text">
-         <string>    Activation map</string>
-        </property>
-       </widget>
-      </item>
-      <item row="0" column="5">
-       <widget class="QLabel" name="DrawForwardLabel">
-        <property name="text">
-         <string>Draw Forward Solution</string>
-        </property>
-       </widget>
-      </item>
-      <item row="0" column="2">
+      <item row="0" column="2" alignment="Qt::AlignHCenter">
        <widget class="QLabel" name="DrawPointsLabel">
         <property name="styleSheet">
          <string notr="true">border-color: rgb(0, 0, 0);
@@ -159,10 +156,29 @@ border-right-color: rgb(0, 0, 0);</string>
         </property>
        </widget>
       </item>
-      <item row="0" column="4">
-       <widget class="QLabel" name="DrawDatacloudLabel">
+      <item row="0" column="1" alignment="Qt::AlignHCenter">
+       <widget class="QLabel" name="TransparencyLabel">
+        <property name="styleSheet">
+         <string notr="true">border-right-color: rgb(0, 0, 0);</string>
+        </property>
+        <property name="frameShape">
+         <enum>QFrame::NoFrame</enum>
+        </property>
+        <property name="frameShadow">
+         <enum>QFrame::Plain</enum>
+        </property>
         <property name="text">
-         <string>   Draw Datacloud </string>
+         <string>Transparency?</string>
+        </property>
+        <property name="alignment">
+         <set>Qt::AlignCenter</set>
+        </property>
+       </widget>
+      </item>
+      <item row="0" column="5" alignment="Qt::AlignHCenter">
+       <widget class="QLabel" name="DrawForwardLabel">
+        <property name="text">
+         <string>Draw Forward Solution</string>
         </property>
        </widget>
       </item>
