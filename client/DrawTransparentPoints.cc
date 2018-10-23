@@ -32,6 +32,8 @@ using namespace std;
 #include <functional>
 
 
+
+
 extern Map3d_Info map3d_info;
 extern int  maxactivation, minactivation;
 
@@ -40,11 +42,14 @@ int unlock_transparency_surfnum[30];
 int unlock_electrode_surfnum[30];
 int unlock_datacloud_surfnum[30];
 int unlock_forward_surfnum[30];
+int unlock_MFS_surfnum[30];
 
 const char* MeshProperty_trans_Points = "MeshProperty_trans_Points";
 
+
+
 enum contTableCols{
-    SurfNum, Transparencycol, PointsOnlyCols, ActivationCols, DatacloudCols, ForwardCols
+    SurfNum, Transparencycol, PointsOnlyCols, ActivationCols, DatacloudCols, ForwardCols, MFSCols
 };
 
 
@@ -64,6 +69,7 @@ DrawTransparentPoints::DrawTransparentPoints()
         bool origtransparent = false;
         bool origDatacloudIni = false;
         bool origForwardIni = false;
+        bool origMFSIni = false;
 
         if (mesh->data)
         {
@@ -71,13 +77,15 @@ DrawTransparentPoints::DrawTransparentPoints()
             origtransparent = mesh->data->user_transparent;
             origDatacloudIni = mesh->data->user_datacloud;
             origForwardIni = mesh->data->user_forward;
+            origMFSIni = mesh->data->user_MFS;
+
         }
 
         origPointsOnlyFix << origPointsOnly;
         origFixedTranparent << origtransparent;
         origForward << origDatacloudIni;
         origDatacloud << origForwardIni;
-
+        origMFS << origMFSIni;
 
         meshes << mesh;
 
@@ -115,11 +123,20 @@ DrawTransparentPoints::DrawTransparentPoints()
         fixedForwardBoxes << fixforward;
         gridLayout->addWidget(fixforward, row, ForwardCols);
 
+
+        QCheckBox* fixMFS = new QCheckBox(this);
+        fixMFS->setChecked(origMFSIni);
+        fixMFS->setProperty(MeshProperty_trans_Points, index);
+        fixedMFSBoxes << fixMFS;
+        gridLayout->addWidget(fixMFS, row, MFSCols);
+
+
         connect(fixedPoints , SIGNAL(toggled(bool)), this, SLOT(Transp_Points_Callback()));
         connect(fixedTrans, SIGNAL(toggled(bool)), this, SLOT(Transp_Points_Callback()));
         connect(fixedbutton, SIGNAL(clicked()), this, SLOT(Activation_Callback()));
         connect(fixdatacloud, SIGNAL(toggled(bool)), this, SLOT(Transp_Points_Callback()));
         connect(fixforward, SIGNAL(toggled(bool)), this, SLOT(Transp_Points_Callback()));
+        connect(fixMFS, SIGNAL(toggled(bool)), this, SLOT(Transp_Points_Callback()));
 
     }
 }
@@ -138,9 +155,8 @@ void DrawTransparentPoints::Transp_Points_Callback()
             {
                 mesh->data->user_pointsonly = true;
                 unlock_electrode_surfnum[row]=row+1;
-
-
             }
+
             else {
                 mesh->data->user_pointsonly = false;
                 unlock_electrode_surfnum[row]=0;
@@ -183,11 +199,11 @@ void DrawTransparentPoints::Transp_Points_Callback()
                     Map3d_Geom *sourcegeom = 0;
                     sourcegeom = sourcemesh->geom;
 
-//                    if (sourcegeom->numdatacloud==0)
+                    //                    if (sourcegeom->numdatacloud==0)
 
-//                    {
-//                        QMessageBox::warning(this,QString("Warning"),QString("Provide values for internal datacloud"));
-//                    }
+                    //                    {
+                    //                        QMessageBox::warning(this,QString("Warning"),QString("Provide values for internal datacloud"));
+                    //                    }
                 }
 
             }
@@ -195,6 +211,34 @@ void DrawTransparentPoints::Transp_Points_Callback()
                 mesh->data->user_forward = false;
                 unlock_forward_surfnum[row]=0;
             }
+
+
+            if (fixedMFSBoxes[row]->isChecked())
+            {
+                mesh->data->user_MFS = true;
+                unlock_MFS_surfnum[row]=row+1;
+
+                int length = meshes.size();
+
+                if ((length>1) && (row-1>=0))
+                {
+                    Mesh_Info *recordingmesh = 0;
+                    recordingmesh=meshes[row-1];
+                    Map3d_Geom *recordinggeom = 0;
+                    recordinggeom = recordingmesh->geom;
+
+                }
+
+            }
+            else {
+                mesh->data->user_forward = false;
+                unlock_forward_surfnum[row]=0;
+            }
+
+
+
+
+
         }
 
         Broadcast(MAP3D_UPDATE);

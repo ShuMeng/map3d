@@ -90,6 +90,8 @@ float **nearestrecordingvals;
 
   float *activationvals; 
 
+float **MFSvals;
+
   float *meanpotvals;           /* The mean potential over the surface at each time */
   float *rmspotvals;           /* The root mean square potential at each time */
   float *reference;             /* The reference signal for this surface */
@@ -103,6 +105,8 @@ bool user_pointsonly;
 
 bool user_datacloud;
 bool user_forward;
+
+bool user_MFS;
 
 
   

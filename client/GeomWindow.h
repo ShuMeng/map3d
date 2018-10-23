@@ -16,6 +16,7 @@
 #include "MeshList.h"
 #include "GeomWindowMenu.h"
 
+
 #include <QTimer>
 
 #include <QAbstractButton>
@@ -28,6 +29,7 @@ struct Clip_Planes;
 #include <boost/foreach.hpp>
 #include <boost/range.hpp>     // begin(), end()
 #include <boost/tr1/tuple.hpp> // get<>, tuple<>, cout <<
+
 
 namespace {
 typedef double coord_t;
@@ -164,7 +166,7 @@ public:
     void DrawForwardOnly(Mesh_Info * curmesh);
     void CalculateForwardValue(Mesh_Info * curmesh, Mesh_Info * sourcemesh);
 
-
+    void CalculateMFSValue(Mesh_Info *recordingmesh, Mesh_Info * curmesh);
 
 
     // how much to scale the node marks by
@@ -203,6 +205,8 @@ typedef struct _GdkEventKey GdkEventKey;
 
 void GeomWindowIdleFunc(void* data);
 void DrawSurf(Mesh_Info * curmesh);
+
+
 
 
 

@@ -14,6 +14,8 @@
 #include "savestate.h"
 
 #include <QApplication>
+#include <iostream>
+
 
 Map3d_Info map3d_info;
 
@@ -31,6 +33,7 @@ void dump()
 
 int main(int argc, char **argv)
 {
+
   //dump();
   Global_Input globalInput;
   map3d_info.gi = &globalInput;

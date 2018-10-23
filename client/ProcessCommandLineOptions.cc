@@ -196,8 +196,6 @@ int ProcessCommandLineOptions(Global_Input & g)
         filedialog->addRow(0);
     }
 
-
-
     for (loop = 0; loop < length; loop++) {
         curmesh = (*meshes)[loop];
         /* Now we should create scalar windows if they exist */
@@ -900,6 +898,7 @@ void FindAndReadData(Surf_Input * surf, Mesh_Info * mesh, int reload)
 
         /* create colormap legend window */
         LegendWindow *lpriv = NULL;
+        
         if (!s->mesh->legendwin && reload != LOAD_RMS_DATA) {
 
             int width, height;

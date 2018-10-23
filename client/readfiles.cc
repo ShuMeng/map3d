@@ -20,11 +20,8 @@
 #include "Contour_Info.h"
 #include <math.h>
 
+
 #include <stdlib.h>
-
-
-
-
 
 #ifdef _WIN32
 #pragma warning(disable:4172 4514)  /* quiet visual c++ */
@@ -386,6 +383,8 @@ New format using dynamic memory allocation.
     onemap3dgeom->numelements = nftetras;
     return 0;
 }
+
+
 
 /*=====================================================================
 

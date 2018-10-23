@@ -75,6 +75,7 @@ Surf_Data::Surf_Data()
     datacloudvals = 0;
     forwardvals = 0;
     nearestrecordingvals = 0;
+    MFSvals = 0;
 
     mastersurf = 0;
     meanpotvals = 0;
@@ -94,6 +95,8 @@ Surf_Data::Surf_Data()
 
     user_datacloud = 0;
     user_forward = 0;
+
+    user_MFS = 0;
 
 }
 
@@ -117,6 +120,10 @@ Surf_Data::~Surf_Data()
 
     if (nearestrecordingvals)
         Free_fmatrix(nearestrecordingvals,numframes);
+
+    if (MFSvals)
+        Free_fmatrix(MFSvals, numframes); // Shu Meng
+
 
 
     if (activationvals)
@@ -234,6 +241,20 @@ Surf_Data *Surf_Data::AddASurfData(Surf_Data * surfdata, long newsurfnum, long n
     }
     else {
         surfdata[newsurfnum].forwardvals = NULL;
+    }
+
+
+    /*** Now allocate some memory for the MFS solution in the surface. ***/
+
+    if (numframes > 0 && numleads > 0) {
+
+        if ((surfdata[newsurfnum].MFSvals = Alloc_fmatrix(numframes, numleads)) == NULL) {
+            fprintf(stderr, "*** AddaDataSurf: error getting 333 first memory\n");
+            return (NULL);
+        }
+    }
+    else {
+        surfdata[newsurfnum].MFSvals = NULL;
     }
 
 

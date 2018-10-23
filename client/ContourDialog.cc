@@ -12,6 +12,8 @@
 #include <QDoubleSpinBox>
 #include <QDebug>
 
+
+
 extern Map3d_Info map3d_info;
 
 #include <iostream>

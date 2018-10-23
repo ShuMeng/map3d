@@ -32,6 +32,7 @@ private:
 
   QList<bool> origForward;
   QList<bool> origDatacloud;
+  QList<bool> origMFS;
 
   QList<Mesh_Info*> meshes;
 
@@ -41,6 +42,7 @@ private:
   QList<QCheckBox*> fixedTransparentBoxes;
   QList<QCheckBox*> fixedDatacloudBoxes;
   QList<QCheckBox*> fixedForwardBoxes;
+  QList<QCheckBox*> fixedMFSBoxes;
 
   QList<QPushButton*> ActivationButton;
 };

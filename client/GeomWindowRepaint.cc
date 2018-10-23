@@ -64,6 +64,12 @@ using std::set;
 #include <boost/range.hpp>     // begin(), end()
 #include <boost/tr1/tuple.hpp> // get<>, tuple<>, cout <<
 
+#include <QDebug>
+#include <engine.h>
+#include <matrix.h>
+#include <mex.h>
+
+
 #define foreach BOOST_FOREACH
 using namespace std;
 
@@ -78,18 +84,23 @@ extern int unlock_transparency_surfnum[];
 extern int unlock_electrode_surfnum[];
 extern int unlock_datacloud_surfnum[];
 extern int unlock_forward_surfnum[];
-
+extern int unlock_MFS_surfnum[];
 extern float **recording_all_pts;
 extern bool plot_nearest_electrode;
 
+Engine *ep = engOpen(NULL);
+
 void GeomWindow::paintGL()
 {
+
     int loop = 0;
     int length = meshes.size();
 
     Mesh_Info *curmesh = 0;
 
     Mesh_Info *sourcemesh = 0;
+
+    Mesh_Info *recordingmesh = 0;
 
     /* clear the screen */
     glClearColor(bgcolor[0], bgcolor[1], bgcolor[2], 1);
@@ -144,13 +155,98 @@ void GeomWindow::paintGL()
         /* compute the mesh position (rotations, translations, etc.) */
         Transform(curmesh, 0, true);
 
+        Map3d_Geom *curgeom = 0;
+        curgeom = curmesh->geom;
+
+        if (curgeom->surfnum==unlock_electrode_surfnum[curgeom->surfnum-1]){
+            curmesh->mark_all_sphere=1;
+            curmesh->mark_all_sphere_value=1;
+            curmesh->mark_all_size=4;
+            DrawElectrodesOnly(curmesh);
+
+        }
+        else{
+            curmesh->mark_all_sphere=0;
+            curmesh->mark_all_sphere_value=0;
+            DrawElectrodesOnly(curmesh);
+        }
+
+
+        if (curgeom->surfnum==unlock_forward_surfnum[curgeom->surfnum-1]){
+            curmesh->mark_all_sphere=1;
+            curmesh->mark_all_sphere_value=1;
+            curmesh->mark_all_size=4;
+
+            if ((length>1) && (loop+1<length))
+            {
+                sourcemesh=meshes[loop+1];
+
+                Map3d_Geom *sourcegeom = 0;
+                Surf_Data *sourcesurf = 0;
+                sourcegeom = sourcemesh->geom;
+                sourcesurf = sourcemesh->data;
+
+                if ((sourcegeom->numdatacloud!=0)&&(curmesh->lock_forward!=1))
+                {
+                    CalculateForwardValue(curmesh,sourcemesh);
+                }
+            }
+
+            DrawForwardOnly(curmesh);
+        }
+        else{
+            curmesh->mark_all_sphere=0;
+            curmesh->mark_all_sphere_value=0;
+            DrawForwardOnly(curmesh);
+        }
+
+
+        if (curgeom->surfnum==unlock_datacloud_surfnum[curgeom->surfnum-1]){
+            curmesh->mark_all_sphere=1;
+            curmesh->mark_all_sphere_value=1;
+            curmesh->mark_all_size=1;
+            DrawDatacloudOnly(curmesh);
+        }
+        else{
+            curmesh->mark_all_sphere=0;
+            curmesh->mark_all_sphere_value=0;
+            DrawDatacloudOnly(curmesh);
+        }
+
+
+        if (curgeom->surfnum==unlock_MFS_surfnum[curgeom->surfnum-1]){
+
+
+            if ((length>1) && (loop-1>=0))
+            {
+
+                recordingmesh=meshes[loop-1];
+                Map3d_Geom *recordinggeom = 0;
+                recordinggeom = recordingmesh->geom;
+                Surf_Data *recordingsurf = 0;
+                recordingsurf = recordingmesh->data;
+                CalculateMFSValue(recordingmesh,curmesh);
+
+            }
+
+            Surf_Data *cursurf = 0;
+            cursurf = curmesh->data;
+            cursurf-> potvals =   cursurf->MFSvals;
+
+           // DrawDatacloudOnly(curmesh);
+        }
+
+
+
+
+
         /* draw the color mapped surface */
         if (curmesh->shadingmodel != SHADE_NONE && curmesh->geom->points[curmesh->geom->geom_index] && !curmesh->shadefids &&
                 curmesh->data && curmesh->drawmesh != RENDER_MESH_ELTS && curmesh->drawmesh != RENDER_MESH_ELTS_CONN) {
             glEnable(GL_POLYGON_OFFSET_FILL);
 
-            Map3d_Geom *curgeom = 0;
-            curgeom = curmesh->geom;
+            //            Map3d_Geom *curgeom = 0;
+            //            curgeom = curmesh->geom;
 
             if ((curgeom->surfnum!=unlock_electrode_surfnum[curgeom->surfnum-1])&& (curgeom->surfnum!= unlock_forward_surfnum[curgeom->surfnum-1]))
             {
@@ -162,61 +258,6 @@ void GeomWindow::paintGL()
                 }
                 DrawSurf(curmesh);
                 glDisable(GL_POLYGON_OFFSET_FILL);
-            }
-
-            if (curgeom->surfnum==unlock_electrode_surfnum[curgeom->surfnum-1]){
-                curmesh->mark_all_sphere=1;
-                curmesh->mark_all_sphere_value=1;
-                curmesh->mark_all_size=4;
-                DrawElectrodesOnly(curmesh);
-
-            }
-            else{
-                curmesh->mark_all_sphere=0;
-                curmesh->mark_all_sphere_value=0;
-                DrawElectrodesOnly(curmesh);
-            }
-
-
-            if (curgeom->surfnum==unlock_forward_surfnum[curgeom->surfnum-1]){
-                curmesh->mark_all_sphere=1;
-                curmesh->mark_all_sphere_value=1;
-                curmesh->mark_all_size=4;
-
-                if ((length>1) && (loop+1<length))
-                {
-                    sourcemesh=meshes[loop+1];
-
-                    Map3d_Geom *sourcegeom = 0;
-                    Surf_Data *sourcesurf = 0;
-                    sourcegeom = sourcemesh->geom;
-                    sourcesurf = sourcemesh->data;
-
-                    if ((sourcegeom->numdatacloud!=0)&&(curmesh->lock_forward!=1))
-                    {
-                        CalculateForwardValue(curmesh,sourcemesh);
-                    }
-                }
-
-                DrawForwardOnly(curmesh);
-            }
-            else{
-                curmesh->mark_all_sphere=0;
-                curmesh->mark_all_sphere_value=0;
-                DrawForwardOnly(curmesh);
-            }
-
-
-            if (curgeom->surfnum==unlock_datacloud_surfnum[curgeom->surfnum-1]){
-                curmesh->mark_all_sphere=1;
-                curmesh->mark_all_sphere_value=1;
-                curmesh->mark_all_size=1;
-                DrawDatacloudOnly(curmesh);
-            }
-            else{
-                curmesh->mark_all_sphere=0;
-                curmesh->mark_all_sphere_value=0;
-                DrawDatacloudOnly(curmesh);
             }
 
         }
@@ -346,6 +387,7 @@ void GeomWindow::paintGL()
 
 void GeomWindow::DrawElectrodesOnly(Mesh_Info * curmesh) //show the catheters only in nodes, not in surface ,shu meng
 {
+
     int length = 0, loop = 0;
     float min = 0, max = 0, value = 0;
     float mNowI[16];
@@ -521,6 +563,155 @@ void GeomWindow::DrawForwardOnly(Mesh_Info * curmesh) //show the catheters only 
 }
 
 
+
+void GeomWindow::CalculateMFSValue(Mesh_Info * recordingmesh, Mesh_Info * curmesh)
+
+{
+    engSetVisible(ep, false);
+
+    int catheter_num = 0, atria_num =0;
+
+
+    float **modelpts,**atriapts;
+    long **catheterelement, **atriaelement;
+
+
+    Map3d_Geom *recordinggeom = 0;
+    Surf_Data *recordingsurf = 0;
+    recordinggeom = recordingmesh->geom;
+    recordingsurf = recordingmesh->data;
+    catheter_num = recordinggeom->numpts;
+    modelpts = recordinggeom->points[recordinggeom->geom_index];
+    catheterelement = recordinggeom->elements;
+
+
+    Map3d_Geom *curgeom = 0;
+    Surf_Data *cursurf = 0;
+    curgeom = curmesh->geom;
+    cursurf = curmesh->data;
+    atria_num = curgeom->numpts;
+    atriapts = curgeom->points[curgeom->geom_index];
+    atriaelement = curgeom->elements;
+
+
+    // pass coordinates of catheters
+    double pot_temp[catheter_num], cath_x[catheter_num],cath_y[catheter_num],cath_z[catheter_num];
+
+    for (int i=0; i< catheter_num; i++)
+    {
+        pot_temp[i] =recordingsurf->potvals[recordingsurf->framenum][i];
+        cath_x[i] =  modelpts[i][0];
+        cath_y[i] =  modelpts[i][1];
+        cath_z[i] =  modelpts[i][2];
+    }
+
+    mxArray *catheter_potential_matlab = mxCreateDoubleMatrix(1,catheter_num, mxREAL);
+    memcpy(mxGetPr(catheter_potential_matlab), pot_temp, catheter_num*sizeof(double));
+    engPutVariable(ep, "catheter_potential",catheter_potential_matlab);
+
+    mxArray *cath_x_matlab = mxCreateDoubleMatrix(1,catheter_num, mxREAL);
+    memcpy(mxGetPr(cath_x_matlab), cath_x, catheter_num*sizeof(double));
+    engPutVariable(ep, "c_x",cath_x_matlab);
+
+    mxArray *cath_y_matlab = mxCreateDoubleMatrix(1,catheter_num, mxREAL);
+    memcpy(mxGetPr(cath_y_matlab), cath_y, catheter_num*sizeof(double));
+    engPutVariable(ep, "c_y",cath_y_matlab);
+
+    mxArray *cath_z_matlab = mxCreateDoubleMatrix(1,catheter_num, mxREAL);
+    memcpy(mxGetPr(cath_z_matlab), cath_z, catheter_num*sizeof(double));
+    engPutVariable(ep, "c_z",cath_z_matlab);
+
+    // pass coordinates of atria
+    double atria_x[atria_num],atria_y[atria_num],atria_z[atria_num];
+    for (int i=0; i< atria_num; i++)
+    {
+
+        atria_x[i] =  atriapts[i][0];
+        atria_y[i] =  atriapts[i][1];
+        atria_z[i] =  atriapts[i][2];
+    }
+    mxArray *atria_x_matlab = mxCreateDoubleMatrix(1,atria_num, mxREAL);
+    memcpy(mxGetPr(atria_x_matlab), atria_x, atria_num*sizeof(double));
+    engPutVariable(ep, "a_x",atria_x_matlab);
+
+    mxArray *atria_y_matlab = mxCreateDoubleMatrix(1,atria_num, mxREAL);
+    memcpy(mxGetPr(atria_y_matlab), atria_y, atria_num*sizeof(double));
+    engPutVariable(ep, "a_y",atria_y_matlab);
+
+    mxArray *atria_z_matlab = mxCreateDoubleMatrix(1,atria_num, mxREAL);
+    memcpy(mxGetPr(atria_z_matlab), atria_z, atria_num*sizeof(double));
+    engPutVariable(ep, "a_z",atria_z_matlab);
+
+
+
+    // pass elements of catheters
+    double c_ele_1[recordinggeom->numelements],c_ele_2[recordinggeom->numelements],c_ele_3[recordinggeom->numelements];
+    for (int j=0; j< recordinggeom->numelements; j++)
+    {
+        c_ele_1[j] = catheterelement[j][0]+1;
+        c_ele_2[j] = catheterelement[j][1]+1;
+        c_ele_3[j] = catheterelement[j][2]+1;
+    }
+
+    mxArray *cath_e1_matlab = mxCreateDoubleMatrix(1,recordinggeom->numelements, mxREAL);
+    memcpy(mxGetPr(cath_e1_matlab), c_ele_1, recordinggeom->numelements*sizeof(double));
+    engPutVariable(ep, "c_ele_1",cath_e1_matlab);
+
+    mxArray *cath_e2_matlab = mxCreateDoubleMatrix(1,recordinggeom->numelements, mxREAL);
+    memcpy(mxGetPr(cath_e2_matlab), c_ele_2, recordinggeom->numelements*sizeof(double));
+    engPutVariable(ep, "c_ele_2",cath_e2_matlab);
+
+    mxArray *cath_e3_matlab = mxCreateDoubleMatrix(1,recordinggeom->numelements, mxREAL);
+    memcpy(mxGetPr(cath_e3_matlab), c_ele_3, recordinggeom->numelements*sizeof(double));
+    engPutVariable(ep, "c_ele_3",cath_e3_matlab);
+
+
+
+
+    // pass elements of atria
+    double a_ele_1[curgeom->numelements],a_ele_2[curgeom->numelements],a_ele_3[curgeom->numelements];
+    for (int k=0; k< curgeom->numelements; k++)
+    {
+        a_ele_1[k] = atriaelement[k][0]+1;
+        a_ele_2[k] = atriaelement[k][1]+1;
+        a_ele_3[k] = atriaelement[k][2]+1;
+
+        // std::cout<<"a_ele_1 "<<a_ele_1[k]<<std::endl;
+
+    }
+
+    mxArray *atria_e1_matlab = mxCreateDoubleMatrix(1,curgeom->numelements, mxREAL);
+    memcpy(mxGetPr(atria_e1_matlab), a_ele_1, curgeom->numelements*sizeof(double));
+    engPutVariable(ep, "a_ele_1",atria_e1_matlab);
+
+    mxArray *atria_e2_matlab = mxCreateDoubleMatrix(1,curgeom->numelements, mxREAL);
+    memcpy(mxGetPr(atria_e2_matlab), a_ele_2, curgeom->numelements*sizeof(double));
+    engPutVariable(ep, "a_ele_2",atria_e2_matlab);
+
+    mxArray *atria_e3_matlab = mxCreateDoubleMatrix(1,curgeom->numelements, mxREAL);
+    memcpy(mxGetPr(atria_e3_matlab), a_ele_3, curgeom->numelements*sizeof(double));
+    engPutVariable(ep, "a_ele_3",atria_e3_matlab);
+
+
+
+
+    engEvalString(ep, "addpath(genpath('/hpc_ntot/smen974/Map3d/MFS_Functions'))");
+    engEvalString(ep, "mfsEGM=solve_MFS(c_x,c_y,c_z,c_ele_1,c_ele_2,c_ele_3,a_x,a_y,a_z,a_ele_1,a_ele_2,a_ele_3, catheter_potential)");
+
+    mxArray *mfsEGM_matlab = engGetVariable(ep, "mfsEGM");
+    double *mfsEGM = mxGetPr(mfsEGM_matlab);
+
+
+    for (int i = 0; i <atria_num; i++)
+    {
+        cursurf->MFSvals[cursurf->framenum][i]=mfsEGM[i];
+    }
+}
+
+
+
+
+
 void GeomWindow::CalculateForwardValue(Mesh_Info * curmesh, Mesh_Info * sourcemesh)
 {
     int length1 = 0, loop1 = 0, length2 =0, loop2=0, loop_idx=0;
@@ -691,7 +882,8 @@ void GeomWindow::CalculateForwardValue(Mesh_Info * curmesh, Mesh_Info * sourceme
                 {
                     cursurf->forwardvals[cursurf->framenum][loop1]= sourcesurf->datacloudvals[sourcesurf->framenum][loop_idx];
                     nearest_index[loop1][0]=loop_idx;
-                    cout<<"nearest_index "<<loop_idx<<"  loop1   "<<loop1<<std::endl;
+                    //                    cout<<"index "<<loop1<<"frame "<< cursurf->framenum<<" forward values   "<<cursurf->forwardvals[cursurf->framenum][loop1]<<std::endl;
+                    //                    cout<<loop_idx <<std::endl;
                 }
             }
         }
@@ -818,8 +1010,6 @@ void DrawSurf(Mesh_Info * curmesh)
     modelpts = curgeom->points[curgeom->geom_index];
     ptnormals = curgeom->ptnormals;
     fcnormals = curgeom->fcnormals;
-
-
 
     if (cursurf) {
         curframe = cursurf->framenum;
@@ -1905,6 +2095,7 @@ void GeomWindow::DrawNodes(Mesh_Info * curmesh)
                     glEnable(GL_PROGRAM_POINT_SIZE_EXT);
                     glPointSize(10);
                     glBegin(GL_POINTS);
+                    glColor3f(curmesh->mark_ts_color[2], curmesh->mark_ts_color[2], curmesh->mark_ts_color[2]);
                     glVertex3f(modelpts[loop][0], modelpts[loop][1],modelpts[loop][2]);
 
                     for (int j = 0; j <= curmesh->pickstacktop; j++)
@@ -1955,9 +2146,9 @@ void GeomWindow::DrawNodes(Mesh_Info * curmesh)
 
             if (plot_nearest_electrode!=1)
             {
-            glTranslatef(modelpts[loop][0], modelpts[loop][1], modelpts[loop][2]);
-            glMultMatrixf((float *)mNowI);
-            glTranslatef(-modelpts[loop][0], -modelpts[loop][1], -modelpts[loop][2]);
+                glTranslatef(modelpts[loop][0], modelpts[loop][1], modelpts[loop][2]);
+                glMultMatrixf((float *)mNowI);
+                glTranslatef(-modelpts[loop][0], -modelpts[loop][1], -modelpts[loop][2]);
             }
 
 
@@ -2018,11 +2209,11 @@ void GeomWindow::DrawNodes(Mesh_Info * curmesh)
                     {
                         if (loop==curmesh->pickstack[i]->node){
                             renderString3f(pos[0], pos[1], pos[2], (int)small_font,QString::number(i+1, 'g', 2), scale);
-                         if (plot_nearest_electrode==1)
-                           {
-                            renderString3f(recording_all_pts[curmesh->pickstack[i]->nearestIdx][0], recording_all_pts[curmesh->pickstack[i]->nearestIdx][1],recording_all_pts[curmesh->pickstack[i]->nearestIdx][2], (int)small_font,
-                                    QString::number(i+1, 'g', 2), scale);
-                           }
+                            if (plot_nearest_electrode==1)
+                            {
+                                renderString3f(recording_all_pts[curmesh->pickstack[i]->nearestIdx][0], recording_all_pts[curmesh->pickstack[i]->nearestIdx][1],recording_all_pts[curmesh->pickstack[i]->nearestIdx][2], (int)small_font,
+                                        QString::number(i+1, 'g', 2), scale);
+                            }
                         }
                     }
 
@@ -2337,3 +2528,5 @@ void GeomWindow::DrawBGImage()
     glClear(GL_DEPTH_BUFFER_BIT);
 
 }
+
+

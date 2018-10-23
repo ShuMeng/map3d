@@ -599,8 +599,6 @@ void PickWindow::keyPressEvent(QKeyEvent* event)
 
 void PickWindow::DrawNode()
 {
-
-
     int loop;
     float a, b;
     float d;
@@ -641,6 +639,15 @@ void PickWindow::DrawNode()
                 min = data->inversevals[loop][pick->node];
             if ((data->inversevals[loop][pick->node] > max)&&(data->potvals[loop][pick->node] < data->inversevals[loop][pick->node]))
                 max = data->inversevals[loop][pick->node];
+
+
+            if ((data->forwardvals[loop][pick->node] < min)&&(data->potvals[loop][pick->node] > data->forwardvals[loop][pick->node]))
+                min = data->forwardvals[loop][pick->node];
+            if ((data->forwardvals[loop][pick->node] > max)&&(data->potvals[loop][pick->node] < data->forwardvals[loop][pick->node]))
+                max = data->forwardvals[loop][pick->node];
+
+
+
         }
     }
     else {
@@ -684,7 +691,7 @@ void PickWindow::DrawNode()
         toRender = "";
 
         if (data) {
-            toRender = "Pot Value: " + QString::number(data->potvals[data->framenum][pick->node], 'g', 3);
+            toRender = "Pot(G) Value: " + QString::number(data->potvals[data->framenum][pick->node], 'g', 3);
         }
         else {
             toRender = "Pot Value: ---";
@@ -695,7 +702,7 @@ void PickWindow::DrawNode()
         toRender = "";
 
         if (data->inversevals[data->framenum][pick->node]!=0){
-            toRender = "Inverse Value: " + QString::number(data->inversevals[data->framenum][pick->node], 'g', 3);
+            toRender = "Inverse(R) Value: " + QString::number(data->inversevals[data->framenum][pick->node], 'g', 3);
         }
 
         pos[0] = width() - getFontWidth(mesh->gpriv->med_font, toRender) - 2;
@@ -711,7 +718,7 @@ void PickWindow::DrawNode()
             if (pick->node==mesh->pickstack[i]->node){
                 toRender = "Pick# " + QString::number(i + 1);
 
-                 renderString3f(pos[0], pos[1], pos[2], mesh->gpriv->med_font, toRender);
+                renderString3f(pos[0], pos[1], pos[2], mesh->gpriv->med_font, toRender);
             }
         }
 
@@ -805,18 +812,13 @@ void PickWindow::DrawNode()
                 }
                 else {
 
-                    if (mesh->geom->surfnum==1){
-                        glColor3f(graphcolor[0], graphcolor[1], graphcolor[0]);
-                        glVertex3f(left * width() + d * counter, data->potvals[loop][pick->node] * a + b, 0);
-                    }
-                    else{
-                        glColor3f(graphcolor[0], graphcolor[1], graphcolor[0]);
-                        glVertex3f(left * width() + d * counter, data->potvals[loop][pick->node] * a + b, 0);
-                    }
+                    glColor3f(graphcolor[0], graphcolor[1], graphcolor[0]);
+                    glVertex3f(left * width() + d * counter, data->potvals[loop][pick->node] * a + b, 0);
                 }
             }
 
             glEnd();
+
             glBegin(GL_LINE_STRIP);
             // draw inversevals
             for (int counter = 0, loop = leftFrame; loop <= rightFrame; loop++, counter++) {
@@ -829,21 +831,41 @@ void PickWindow::DrawNode()
                 }
                 else {
 
-                    if ((QString::number(mesh->geom->surfnum)=="1")&&(data->inversevals[loop][pick->node]!=0))
+                    if (data->inversevals[loop][pick->node]!=0)
                     {
-                        glColor3f(graphcolor[0], graphcolor[0], graphcolor[0]);
+                        glColor3f(graphcolor[5], graphcolor[0], graphcolor[0]);
                         glVertex3f(left * width() + d * counter, data->inversevals[loop][pick->node] * a + b, 0);
                     }
-                    else{
-                        if (data->inversevals[loop][pick->node]!=0){
-                            glColor3f(graphcolor[5], graphcolor[0], graphcolor[0]);
-                            glVertex3f(left * width() + d * counter, data->inversevals[loop][pick->node] * a + b, 0);
-                        }
-                    }
+
                 }
             }
 
             glEnd();
+
+            glBegin(GL_LINE_STRIP);
+            // draw forwardvals
+            for (int counter = 0, loop = leftFrame; loop <= rightFrame; loop++, counter++) {
+                // draw to the next frame if it exists
+                if (loop >= data->numframes)
+                    break;
+                if (rms) {
+                    glColor3f(graphcolor[0], graphcolor[1], graphcolor[0]);
+                    glVertex3f(left * width() + d * counter, data->rmspotvals[loop] * a + b, 0);
+                }
+                else {
+
+                   // if (data->forwardvals[loop][pick->node]!=data->forwardvals[0][pick->node])
+                    {
+                        glColor3f(graphcolor[5], graphcolor[5], graphcolor[0]);
+                        glVertex3f(left * width() + d * counter, data->forwardvals[loop][pick->node] * a + b, 0);
+                         std::cout<<loop  <<"forwardvals[loop][pick->node]= "<<data->forwardvals[loop][pick->node]<<std::endl;
+                    }
+
+                }
+            }
+
+            glEnd();
+
             glBegin(GL_LINE_STRIP);
 
             for (int counter = 0, loop = leftFrame; loop <= rightFrame; loop++, counter++) {
@@ -856,10 +878,10 @@ void PickWindow::DrawNode()
                 }
                 else {
 
-                    if ((mesh->geom->surfnum>1)&&(!shownearestrecording)){
+                    if ((mesh->geom->surfnum>1)&&(!shownearestrecording)&&(data->nearestrecordingvals[loop][pick->node]!=0))
+                    {
                         glColor3f(graphcolor[0], graphcolor[8], graphcolor[3]);
                         glVertex3f(left * width() + d * counter, data->nearestrecordingvals[loop][pick->node] * a + b, 0);
-
                     }
                 }
             }

@@ -4,8 +4,7 @@ TARGET = map3d
 
 QT += opengl
 
-#INCLUDEPATH += ../flann-1.8.4-src/src/cpp
-#INCLUDEPATH += ../boost_1_68_0
+
 INCLUDEPATH += ../boost_1_61_0
 INCLUDEPATH += ../thirdparty/cutil
 INCLUDEPATH += ../thirdparty/fi
@@ -13,12 +12,22 @@ INCLUDEPATH += ../thirdparty/fids
 INCLUDEPATH += ../thirdparty/gfilelib
 INCLUDEPATH += ../thirdparty/MatlabIO
 INCLUDEPATH += $$QMAKE_INCDIR_QT/../src/3rdparty/zlib
-#INCLUDEPATH +=../boost_1_68_0/Build/lib
+
+INCLUDEPATH += /home/apps/R2018a/extern/include/
+
 
 CONFIG += console link_prl
 
 include (../options.pri)
-#LIBS += -L../boost_1_68_0/Build/lib/
+
+
+
+LIBS += -L"/home/apps/R2018a/bin/glnxa64" -leng -lmat -lmex -lmx -Wl,-rpath=/home/apps/R2018a/bin/glnxa64
+
+
+#LIBS += -L"/hpc_ntot/smen974/Map3d/map3d-master/R2018a/bin/glnxa64" -leng -lmat -lmex -lmx -Wl,-rpath=/hpc_ntot/smen974/Map3d/map3d-master/R2018a/bin/glnxa64
+
+
 
 LIBS += -L../boost_1_61_0/Build/lib/
 
@@ -144,3 +153,5 @@ SOURCES += Ball.cc \
     ActivationLegendWindow.cc \
 
            
+
+
