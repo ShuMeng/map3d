@@ -54,6 +54,9 @@ using std::set;
 
 #include <iostream>
 
+#include <fstream>
+
+
 #include <vector>
 #include <cmath>
 #include <tuple>
@@ -159,6 +162,9 @@ void GeomWindow::paintGL()
         curgeom = curmesh->geom;
 
         if (curgeom->surfnum==unlock_electrode_surfnum[curgeom->surfnum-1]){
+
+
+
             curmesh->mark_all_sphere=1;
             curmesh->mark_all_sphere_value=1;
             curmesh->mark_all_size=4;
@@ -173,6 +179,9 @@ void GeomWindow::paintGL()
 
 
         if (curgeom->surfnum==unlock_forward_surfnum[curgeom->surfnum-1]){
+
+
+
             curmesh->mark_all_sphere=1;
             curmesh->mark_all_sphere_value=1;
             curmesh->mark_all_size=4;
@@ -189,6 +198,7 @@ void GeomWindow::paintGL()
                 if ((sourcegeom->numdatacloud!=0)&&(curmesh->lock_forward!=1))
                 {
                     CalculateForwardValue(curmesh,sourcemesh);
+
                 }
             }
 
@@ -570,7 +580,7 @@ void GeomWindow::CalculateMFSValue(Mesh_Info * recordingmesh, Mesh_Info * curmes
     int catheter_num = 0, atria_num =0, loop1 = 0,loop2 = 0;
 
 
-   // float **modelpts,**atriapts;
+    // float **modelpts,**atriapts;
     long **catheterelement, **atriaelement;
 
 
@@ -579,7 +589,7 @@ void GeomWindow::CalculateMFSValue(Mesh_Info * recordingmesh, Mesh_Info * curmes
     recordinggeom = recordingmesh->geom;
     recordingsurf = recordingmesh->data;
     catheter_num = recordinggeom->numpts;
-   // modelpts = recordinggeom->points[recordinggeom->geom_index];
+    // modelpts = recordinggeom->points[recordinggeom->geom_index];
     catheterelement = recordinggeom->elements;
 
 
@@ -588,115 +598,112 @@ void GeomWindow::CalculateMFSValue(Mesh_Info * recordingmesh, Mesh_Info * curmes
     curgeom = curmesh->geom;
     cursurf = curmesh->data;
     atria_num = curgeom->numpts;
-   // atriapts = curgeom->points[curgeom->geom_index];
+    // atriapts = curgeom->points[curgeom->geom_index];
     atriaelement = curgeom->elements;
 
-
-
-
     // this part is to rotate the catheter. if map3d_info.lockrotate==LOCK_OFF, only apply transform matrix to catheter
-        // if map3d_info.lockrotate==LOCK_FULL, apply both transform matrix to catheter and atrium, corresponding matrix is different.
-        float** pts = recordinggeom->points[recordinggeom->geom_index];
-        float** geom_temp_catheter_pts=pts;
-        float **rotated_catheter_pts = 0;
-        rotated_catheter_pts= Alloc_fmatrix(recordinggeom->numpts, 3);
+    // if map3d_info.lockrotate==LOCK_FULL, apply both transform matrix to catheter and atrium, corresponding matrix is different.
+    float** pts = recordinggeom->points[recordinggeom->geom_index];
+    float** geom_temp_catheter_pts=pts;
+    float **rotated_catheter_pts = 0;
+    rotated_catheter_pts= Alloc_fmatrix(recordinggeom->numpts, 3);
 
-        GeomWindow* priv_catheter = recordingmesh->gpriv;
-        HMatrix mNow_catheter /*, original */ ;  // arcball rotation matrices
-        Transforms *tran_catheter = recordingmesh->tran;
-        //translation matrix in column-major
-        float centerM_catheter[4][4] = {{1,0,0,0},{0,1,0,0},{0,0,1,0},
-                                       {-priv_catheter->xcenter,-priv_catheter->ycenter,-priv_catheter->zcenter,1}};
-        float invCenterM_catheter[4][4] = {{1,0,0,0},{0,1,0,0},{0,0,1,0},
-                                          {priv_catheter->xcenter,priv_catheter->ycenter,priv_catheter->zcenter,1}};
-        float translateM_catheter[4][4] = { {1, 0, 0, 0}, {0, 1, 0, 0}, {0, 0, 1, 0},
-                                           {tran_catheter->tx, tran_catheter->ty, tran_catheter->tz, 1}
-                                         };
-        float temp_catheter[16];
-        float product_catheter[16];
+    GeomWindow* priv_catheter = recordingmesh->gpriv;
+    HMatrix mNow_catheter /*, original */ ;  // arcball rotation matrices
+    Transforms *tran_catheter = recordingmesh->tran;
+    //translation matrix in column-major
+    float centerM_catheter[4][4] = {{1,0,0,0},{0,1,0,0},{0,0,1,0},
+                                    {-priv_catheter->xcenter,-priv_catheter->ycenter,-priv_catheter->zcenter,1}};
+    float invCenterM_catheter[4][4] = {{1,0,0,0},{0,1,0,0},{0,0,1,0},
+                                       {priv_catheter->xcenter,priv_catheter->ycenter,priv_catheter->zcenter,1}};
+    float translateM_catheter[4][4] = { {1, 0, 0, 0}, {0, 1, 0, 0}, {0, 0, 1, 0},
+                                        {tran_catheter->tx, tran_catheter->ty, tran_catheter->tz, 1}
+                                      };
+    float temp_catheter[16];
+    float product_catheter[16];
 
-        //rotation matrix
-        Ball_Value(&tran_catheter->rotate, mNow_catheter);
-        // apply translation
-        // translate recordingmesh's center to origin
-        MultMatrix16x16((float *)translateM_catheter, (float *)invCenterM_catheter, (float*)product_catheter);
-        // rotate
-        MultMatrix16x16((float *)product_catheter, (float *)mNow_catheter, (float*)temp_catheter);
-        // revert recordingmesh translation to origin
-        MultMatrix16x16((float*)temp_catheter, (float *) centerM_catheter, (float*)product_catheter);
-
-
-
-        for (loop1 = 0; loop1 < catheter_num; loop1++)
-        {
-
-            float rhs_catheter[4];
-            float result_catheter[4];
-            rhs_catheter[0] = pts[loop1][0];
-            rhs_catheter[1] = pts[loop1][1];
-            rhs_catheter[2] = pts[loop1][2];
-            rhs_catheter[3] = 1;
-
-            MultMatrix16x4(product_catheter, rhs_catheter, result_catheter);
-
-            rotated_catheter_pts[loop1][0] = result_catheter[0];
-            rotated_catheter_pts[loop1][1] = result_catheter[1];
-            rotated_catheter_pts[loop1][2] = result_catheter[2];
-        }
-
-        geom_temp_catheter_pts=rotated_catheter_pts;
-
-        //this part is to rotate the source surface (atrium).transform matrix is not applied if map3d_info.lockrotate==LOCK_OFF
-
-        float** pts_atria = curgeom->points[curgeom->geom_index];
-        float** geom_temp_atria_pts=pts_atria;
-        float **rotated_atria_pts = 0;
-        rotated_atria_pts= Alloc_fmatrix(curgeom->numpts, 3);
+    //rotation matrix
+    Ball_Value(&tran_catheter->rotate, mNow_catheter);
+    // apply translation
+    // translate recordingmesh's center to origin
+    MultMatrix16x16((float *)translateM_catheter, (float *)invCenterM_catheter, (float*)product_catheter);
+    // rotate
+    MultMatrix16x16((float *)product_catheter, (float *)mNow_catheter, (float*)temp_catheter);
+    // revert recordingmesh translation to origin
+    MultMatrix16x16((float*)temp_catheter, (float *) centerM_catheter, (float*)product_catheter);
 
 
-        GeomWindow* priv_atria = curmesh->gpriv;
-        HMatrix mNow_atria /*, original */ ;  // arcball rotation matrices
-        Transforms *tran_atria = curmesh->tran;
-        //translation matrix in column-major
-        float centerM_atria[4][4] = {{1,0,0,0},{0,1,0,0},{0,0,1,0},
-                                      {-priv_atria->xcenter,-priv_atria->ycenter,-priv_atria->zcenter,1}};
-        float invCenterM_atria[4][4] = {{1,0,0,0},{0,1,0,0},{0,0,1,0},
-                                         {priv_atria->xcenter,priv_atria->ycenter,priv_atria->zcenter,1}};
-        float translateM_atria[4][4] = { {1, 0, 0, 0}, {0, 1, 0, 0}, {0, 0, 1, 0},
-                                          {tran_atria->tx, tran_atria->ty, tran_atria->tz, 1}
-                                        };
-        float temp_atria[16];
-        float product_atria[16];
 
-        //rotation matrix
-        Ball_Value(&tran_atria->rotate, mNow_atria);
-        // apply translation
-        // translate curmesh's center to origin
-        MultMatrix16x16((float *)translateM_atria, (float *)invCenterM_atria, (float*)product_atria);
-        // rotate
-        MultMatrix16x16((float *)product_atria, (float *)mNow_atria, (float*)temp_atria);
-        // revert curmesh translation to origin
-        MultMatrix16x16((float*)temp_atria, (float *) centerM_atria, (float*)product_atria);
+    for (loop1 = 0; loop1 < catheter_num; loop1++)
+    {
+
+        float rhs_catheter[4];
+        float result_catheter[4];
+        rhs_catheter[0] = pts[loop1][0];
+        rhs_catheter[1] = pts[loop1][1];
+        rhs_catheter[2] = pts[loop1][2];
+        rhs_catheter[3] = 1;
+
+        MultMatrix16x4(product_catheter, rhs_catheter, result_catheter);
+
+        rotated_catheter_pts[loop1][0] = result_catheter[0];
+        rotated_catheter_pts[loop1][1] = result_catheter[1];
+        rotated_catheter_pts[loop1][2] = result_catheter[2];
+    }
+
+    geom_temp_catheter_pts=rotated_catheter_pts;
+
+    //this part is to rotate the source surface (atrium).transform matrix is not applied if map3d_info.lockrotate==LOCK_OFF
+
+    float** pts_atria = curgeom->points[curgeom->geom_index];
+    float** geom_temp_atria_pts=pts_atria;
+    float **rotated_atria_pts = 0;
+    rotated_atria_pts= Alloc_fmatrix(curgeom->numpts, 3);
 
 
-        for (loop2 = 0; loop2 < atria_num; loop2++)
-        {
+    GeomWindow* priv_atria = curmesh->gpriv;
+    HMatrix mNow_atria /*, original */ ;  // arcball rotation matrices
+    Transforms *tran_atria = curmesh->tran;
+    //translation matrix in column-major
+    float centerM_atria[4][4] = {{1,0,0,0},{0,1,0,0},{0,0,1,0},
+                                 {-priv_atria->xcenter,-priv_atria->ycenter,-priv_atria->zcenter,1}};
+    float invCenterM_atria[4][4] = {{1,0,0,0},{0,1,0,0},{0,0,1,0},
+                                    {priv_atria->xcenter,priv_atria->ycenter,priv_atria->zcenter,1}};
+    float translateM_atria[4][4] = { {1, 0, 0, 0}, {0, 1, 0, 0}, {0, 0, 1, 0},
+                                     {tran_atria->tx, tran_atria->ty, tran_atria->tz, 1}
+                                   };
+    float temp_atria[16];
+    float product_atria[16];
 
-            float rhs_atria[4];
-            float result_atria[4];
-            rhs_atria[0] = pts_atria[loop2][0];
-            rhs_atria[1] = pts_atria[loop2][1];
-            rhs_atria[2] = pts_atria[loop2][2];
-            rhs_atria[3] = 1;
+    //rotation matrix
+    Ball_Value(&tran_atria->rotate, mNow_atria);
+    // apply translation
+    // translate curmesh's center to origin
+    MultMatrix16x16((float *)translateM_atria, (float *)invCenterM_atria, (float*)product_atria);
+    // rotate
+    MultMatrix16x16((float *)product_atria, (float *)mNow_atria, (float*)temp_atria);
+    // revert curmesh translation to origin
+    MultMatrix16x16((float*)temp_atria, (float *) centerM_atria, (float*)product_atria);
 
-            MultMatrix16x4(product_atria, rhs_atria, result_atria);
 
-            rotated_atria_pts[loop2][0] = result_atria[0];
-            rotated_atria_pts[loop2][1] = result_atria[1];
-            rotated_atria_pts[loop2][2] = result_atria[2];
+    for (loop2 = 0; loop2 < atria_num; loop2++)
+    {
 
-        }
-        geom_temp_atria_pts=rotated_atria_pts;
+        float rhs_atria[4];
+        float result_atria[4];
+        rhs_atria[0] = pts_atria[loop2][0];
+        rhs_atria[1] = pts_atria[loop2][1];
+        rhs_atria[2] = pts_atria[loop2][2];
+        rhs_atria[3] = 1;
+
+        MultMatrix16x4(product_atria, rhs_atria, result_atria);
+
+        rotated_atria_pts[loop2][0] = result_atria[0];
+        rotated_atria_pts[loop2][1] = result_atria[1];
+        rotated_atria_pts[loop2][2] = result_atria[2];
+
+    }
+    geom_temp_atria_pts=rotated_atria_pts;
 
 
 
@@ -815,9 +822,12 @@ void GeomWindow::CalculateMFSValue(Mesh_Info * recordingmesh, Mesh_Info * curmes
 
 
 
+//ofstream myfile ("example.txt");
 
 void GeomWindow::CalculateForwardValue(Mesh_Info * curmesh, Mesh_Info * sourcemesh)
 {
+
+
     int length1 = 0, loop1 = 0, length2 =0, loop2=0, loop_idx=0;
 
 
@@ -958,7 +968,6 @@ void GeomWindow::CalculateForwardValue(Mesh_Info * curmesh, Mesh_Info * sourceme
     float **nearest_index = 0;
     nearest_index= Alloc_fmatrix(curgeom->numpts, 1);
 
-
     for (loop1 = 0; loop1 < length1; loop1++)
     {
         point_t point(geom_temp_forward_pts[loop1][0],geom_temp_forward_pts[loop1][1], geom_temp_forward_pts[loop1][2]);
@@ -986,13 +995,20 @@ void GeomWindow::CalculateForwardValue(Mesh_Info * curmesh, Mesh_Info * sourceme
                 {
                     cursurf->forwardvals[cursurf->framenum][loop1]= sourcesurf->datacloudvals[sourcesurf->framenum][loop_idx];
                     nearest_index[loop1][0]=loop_idx;
-                    //                    cout<<"index "<<loop1<<"frame "<< cursurf->framenum<<" forward values   "<<cursurf->forwardvals[cursurf->framenum][loop1]<<std::endl;
+                    // cout<<"index "<<loop1<<"frame "<< cursurf->framenum<<" forward values   "<<cursurf->forwardvals[cursurf->framenum][loop1]<<std::endl;
                     //                    cout<<loop_idx <<std::endl;
+
+//                    myfile << cursurf->forwardvals[cursurf->framenum][loop1] << " " ;
+//                    myfile << "\n";
+
                 }
             }
         }
 
     }
+
+   // myfile << "one frame loop is ending \n";
+
 }
 
 

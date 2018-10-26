@@ -858,7 +858,7 @@ void PickWindow::DrawNode()
                     {
                         glColor3f(graphcolor[5], graphcolor[5], graphcolor[0]);
                         glVertex3f(left * width() + d * counter, data->forwardvals[loop][pick->node] * a + b, 0);
-                         std::cout<<loop  <<"forwardvals[loop][pick->node]= "<<data->forwardvals[loop][pick->node]<<std::endl;
+                         //std::cout<<loop  <<"forwardvals[loop][pick->node]= "<<data->forwardvals[loop][pick->node]<<std::endl;
                     }
 
                 }

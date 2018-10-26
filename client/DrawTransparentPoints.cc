@@ -83,8 +83,8 @@ DrawTransparentPoints::DrawTransparentPoints()
 
         origPointsOnlyFix << origPointsOnly;
         origFixedTranparent << origtransparent;
-        origForward << origDatacloudIni;
-        origDatacloud << origForwardIni;
+        origForward << origForwardIni;
+        origDatacloud << origDatacloudIni;
         origMFS << origMFSIni;
 
         meshes << mesh;
@@ -190,21 +190,22 @@ void DrawTransparentPoints::Transp_Points_Callback()
                 mesh->data->user_forward = true;
                 unlock_forward_surfnum[row]=row+1;
 
-                int length = meshes.size();
 
-                if ((length>1) && (row+1<length))
-                {
-                    Mesh_Info *sourcemesh = 0;
-                    sourcemesh=meshes[row+1];
-                    Map3d_Geom *sourcegeom = 0;
-                    sourcegeom = sourcemesh->geom;
+//                int length = meshes.size();
 
-                    //                    if (sourcegeom->numdatacloud==0)
+//                if ((length>1) && (row+1<length))
+//                {
+//                    Mesh_Info *sourcemesh = 0;
+//                    sourcemesh=meshes[row+1];
+//                    Map3d_Geom *sourcegeom = 0;
+//                    sourcegeom = sourcemesh->geom;
 
-                    //                    {
-                    //                        QMessageBox::warning(this,QString("Warning"),QString("Provide values for internal datacloud"));
-                    //                    }
-                }
+//                    //                    if (sourcegeom->numdatacloud==0)
+
+//                    //                    {
+//                    //                        QMessageBox::warning(this,QString("Warning"),QString("Provide values for internal datacloud"));
+//                    //                    }
+//                }
 
             }
             else {
@@ -231,14 +232,9 @@ void DrawTransparentPoints::Transp_Points_Callback()
 
             }
             else {
-                mesh->data->user_forward = false;
-                unlock_forward_surfnum[row]=0;
+                mesh->data->user_MFS = false;
+                unlock_MFS_surfnum[row]=0;
             }
-
-
-
-
-
         }
 
         Broadcast(MAP3D_UPDATE);
