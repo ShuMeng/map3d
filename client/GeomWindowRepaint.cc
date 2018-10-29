@@ -55,6 +55,7 @@ using std::set;
 #include <iostream>
 
 #include <fstream>
+#include <sstream>
 
 
 #include <vector>
@@ -712,7 +713,13 @@ void GeomWindow::CalculateMFSValue(Mesh_Info * recordingmesh, Mesh_Info * curmes
 
     for (int i=0; i< catheter_num; i++)
     {
-        pot_temp[i] =recordingsurf->potvals[recordingsurf->framenum][i];
+
+        if (recordingsurf->forwardvals[recordingsurf->framenum][i]==0)
+        {pot_temp[i] =recordingsurf->potvals[recordingsurf->framenum][i];}
+        else
+        {pot_temp[i] =recordingsurf->forwardvals[recordingsurf->framenum][i];}
+
+
         cath_x[i] =  geom_temp_catheter_pts[i][0];
         cath_y[i] =  geom_temp_catheter_pts[i][1];
         cath_z[i] =  geom_temp_catheter_pts[i][2];
@@ -822,14 +829,14 @@ void GeomWindow::CalculateMFSValue(Mesh_Info * recordingmesh, Mesh_Info * curmes
 
 
 
-//ofstream myfile ("example.txt");
+
 
 void GeomWindow::CalculateForwardValue(Mesh_Info * curmesh, Mesh_Info * sourcemesh)
 {
 
 
-    int length1 = 0, loop1 = 0, length2 =0, loop2=0, loop_idx=0;
 
+    int length1 = 0, loop1 = 0, length2 =0, loop2=0, loop_idx=0;
 
     Map3d_Geom *curgeom = 0;
     Surf_Data *cursurf = 0;
@@ -968,6 +975,17 @@ void GeomWindow::CalculateForwardValue(Mesh_Info * curmesh, Mesh_Info * sourceme
     float **nearest_index = 0;
     nearest_index= Alloc_fmatrix(curgeom->numpts, 1);
 
+
+
+    //        string filename;
+    //        ofstream files;
+    //        stringstream a;
+    //        a << cursurf->framenum;
+    //        filename = "forward_64_" + a.str();
+    //        filename += ".txt";
+    //        files.open(filename.c_str(), ios::out);
+
+
     for (loop1 = 0; loop1 < length1; loop1++)
     {
         point_t point(geom_temp_forward_pts[loop1][0],geom_temp_forward_pts[loop1][1], geom_temp_forward_pts[loop1][2]);
@@ -998,16 +1016,13 @@ void GeomWindow::CalculateForwardValue(Mesh_Info * curmesh, Mesh_Info * sourceme
                     // cout<<"index "<<loop1<<"frame "<< cursurf->framenum<<" forward values   "<<cursurf->forwardvals[cursurf->framenum][loop1]<<std::endl;
                     //                    cout<<loop_idx <<std::endl;
 
-//                    myfile << cursurf->forwardvals[cursurf->framenum][loop1] << " " ;
-//                    myfile << "\n";
-
+                    //                    files << cursurf->forwardvals[cursurf->framenum][loop1] << " " ;
+                    //                    files << "\n";
                 }
             }
         }
 
     }
-
-   // myfile << "one frame loop is ending \n";
 
 }
 
