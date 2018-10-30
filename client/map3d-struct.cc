@@ -141,6 +141,7 @@ void Init_Surf_Input(Surf_Input * s)
 
   s->transparent = -1;//Shu Meng
   s->lock_forward = -1;
+  s->toggle_electrode =-1;
 
   s->negcontdashed = -1;
   s->drawcont = -1;

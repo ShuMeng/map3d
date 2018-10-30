@@ -85,7 +85,7 @@ ActivationMapWindow *actipriv;   /* activation window where mesh is present */
   bool transparent;    /* indicates whether mapping should be transparent or not */
 
    bool lock_forward;
-
+bool toggle_electrode;
 
   LegendWindow *legendwin;      /* the id of this mesh's legend window */
 

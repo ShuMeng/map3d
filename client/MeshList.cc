@@ -40,6 +40,8 @@ Mesh_Info::Mesh_Info()
 
   lock_forward=0;
 
+  toggle_electrode = 0;
+
   legendwin = 0;
 
   getmatrixslicewin =0;

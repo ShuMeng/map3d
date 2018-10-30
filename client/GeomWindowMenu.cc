@@ -172,6 +172,16 @@ void GeomWindow::HandleMenu(int menu_data)
             break;
 
 
+        case toggle_nearest_electro:
+
+        MAP3D_MESH_LOCK_TOGGLE(map3d_info.lockgeneral, toggle_electrode);
+
+        if (lpriv) {
+        lpriv->update();
+        }
+        break;
+
+
         case fid_map_shade_toggle:
             if (mesh->fidMaps.size() == 0)
                 break;
@@ -1309,6 +1319,7 @@ int GeomWindow::OpenMenu(QPoint point)
 
     bool transparent = false;
     bool lock_forward =false;
+    bool toggle_electrode = false;
 
     bool all_node_sphere = false, ext_node_sphere = false, pick_node_sphere = false, lead_node_sphere = false;
     bool all_value = false;
@@ -1330,6 +1341,8 @@ int GeomWindow::OpenMenu(QPoint point)
 
         if (mesh->transparent)transparent =true;
         if (mesh->lock_forward)lock_forward =true;
+        if (mesh->toggle_electrode)toggle_electrode=true;
+
 
         if (mesh->mark_all_sphere) all_node_sphere = true;
         if (mesh->mark_all_sphere_value) all_node_sphere = all_value = true;
@@ -1609,6 +1622,13 @@ int GeomWindow::OpenMenu(QPoint point)
     //
 
     submenu = menu.addMenu("Picking");
+
+    action = submenu->addAction("toggle nearest electrode");
+    action->setData(toggle_nearest_electro); action->setCheckable(true); action->setChecked(toggle_electrode);
+
+
+
+
     action = submenu->addAction("Time signal (new window)");
     action->setData(pick_timesignal_multiple); action->setCheckable(true); action->setChecked(map3d_info.pickmode == 0);
     action = submenu->addAction("Time signal (refresh window)");

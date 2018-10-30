@@ -75,6 +75,8 @@ static const int min_height = 200;
 static const int default_width = 380;
 static const int default_height = 380;
 
+
+
 #include <algorithm>
 #include <QMessageBox>
 using std::find;
@@ -454,14 +456,14 @@ bool GeomWindow::Pick(int meshnum, int x, int y, bool del /*= false*/ )
             Mesh_Info *recordingmesh = 0; // specifically, recordingmesh is catheter, pick->mesh is atrial mesh.
             int nummeshes = meshes.size();
 
-        //    cout<<"nummeshes "<<nummeshes<<std::endl;
+            //    cout<<"nummeshes "<<nummeshes<<std::endl;
 
             if ((nummeshes>1) && (pick->mesh->geom->surfnum >1))
             {
-//                cout<<"pick->mesh->geom->surfnum "<<pick->mesh->geom->surfnum<<std::endl;
-//                cout<<"pick->mesh->geom->surfnum-1 "<<pick->mesh->geom->surfnum-1<<std::endl;
-                plot_nearest_electrode = 1;
                 recordingmesh=meshes[selection[3]-1];
+
+
+                plot_nearest_electrode = 1;
 
                 FindNearestRecording(pick,recordingmesh);
 
@@ -650,9 +652,9 @@ void FindNearestRecording(PickInfo* pick, Mesh_Info* recordingmesh)
             if (nearestpoint == data_points[loop_idx_nearest])
             {
 
-                 pick->nearestIdx = loop_idx_nearest;
+                pick->nearestIdx = loop_idx_nearest;
 
-                 cout<<"pick->nearestIdx "<<pick->nearestIdx<<std::endl;
+                cout<<"pick->nearestIdx "<<pick->nearestIdx<<std::endl;
 
                 for (loop_frame = 0; loop_frame <curmesh->data->numframes; loop_frame++)
                 {

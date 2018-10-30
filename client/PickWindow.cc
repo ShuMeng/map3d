@@ -1039,10 +1039,12 @@ void PickWindow::SetNearestElec(int x)
     switch (x) {
     case 0:
         shownearestrecording = 0;
+
         break;
 
     case 1:
         shownearestrecording = 1;
+
         break;
     }
 }

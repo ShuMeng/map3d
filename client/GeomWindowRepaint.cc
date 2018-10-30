@@ -390,6 +390,9 @@ void GeomWindow::paintGL()
             DrawLockSymbol(2, map3d_info.lockframes == LOCK_FULL);
     }
 
+
+
+
 #if SHOW_OPENGL_ERRORS
     GLenum e = glGetError();
     if (e)
@@ -2237,8 +2240,11 @@ void GeomWindow::DrawNodes(Mesh_Info * curmesh)
 
                     for (int j = 0; j <= curmesh->pickstacktop; j++)
                     {
-                        glColor3f(curmesh->mark_ts_color[0], curmesh->mark_ts_color[2], curmesh->mark_ts_color[0]);
-                        glVertex3f(recording_all_pts[curmesh->pickstack[j]->nearestIdx][0], recording_all_pts[curmesh->pickstack[j]->nearestIdx][1],recording_all_pts[curmesh->pickstack[j]->nearestIdx][2]);
+                        if (curmesh->toggle_electrode==0)
+                        {
+                            glColor3f(curmesh->mark_ts_color[0], curmesh->mark_ts_color[2], curmesh->mark_ts_color[0]);
+                            glVertex3f(recording_all_pts[curmesh->pickstack[j]->nearestIdx][0], recording_all_pts[curmesh->pickstack[j]->nearestIdx][1],recording_all_pts[curmesh->pickstack[j]->nearestIdx][2]);
+                        }
                     }
                     glEnd();
                     glDisable(GL_POINT_SMOOTH);
@@ -2346,7 +2352,8 @@ void GeomWindow::DrawNodes(Mesh_Info * curmesh)
                     {
                         if (loop==curmesh->pickstack[i]->node){
                             renderString3f(pos[0], pos[1], pos[2], (int)small_font,QString::number(i+1, 'g', 2), scale);
-                            if (plot_nearest_electrode==1)
+
+                            if ((plot_nearest_electrode==1)&& (curmesh->toggle_electrode==0))
                             {
                                 renderString3f(recording_all_pts[curmesh->pickstack[i]->nearestIdx][0], recording_all_pts[curmesh->pickstack[i]->nearestIdx][1],recording_all_pts[curmesh->pickstack[i]->nearestIdx][2], (int)small_font,
                                         QString::number(i+1, 'g', 2), scale);

@@ -111,7 +111,9 @@ struct Surf_Input
 
   long transparent;
 
-long lock_forward;
+   long lock_forward;
+
+ long toggle_electrode;
 
   long numconts; /*** number of contours ***/
   Quat rotationQuat;
