@@ -168,6 +168,8 @@ public:
 
     void CalculateMFSValue(Mesh_Info *recordingmesh, Mesh_Info * curmesh);
 
+    void DrawMFS(Mesh_Info * curmesh);
+
 
     // how much to scale the node marks by
     float fontScale();
