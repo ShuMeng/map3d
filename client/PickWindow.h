@@ -46,6 +46,11 @@ public:
   void DrawPlot(int left, int right); // draws ONLY the plot, from [left to right), covering the entire plot space
   void SetStyle(int x);
 
+
+
+  bool MatrixOnlyContainZero(Surf_Data* data,float **matrixvals);
+
+
   void SetNearestElec(int x);
 
   // gets the frame range for specified subseries.  Entire series if subseriesNum < 0

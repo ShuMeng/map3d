@@ -824,10 +824,22 @@ void GeomWindow::CalculateMFSValue(Mesh_Info * recordingmesh, Mesh_Info * curmes
     mxArray *mfsEGM_matlab = engGetVariable(ep, "mfsEGM");
     double *mfsEGM = mxGetPr(mfsEGM_matlab);
 
+//    string filename;
+//    ofstream files;
+//    stringstream a;
+//    a << cursurf->framenum;
+//    filename = "inverse_96_" + a.str();
+//    filename += ".txt";
+//    files.open(filename.c_str(), ios::out);
+
 
     for (int i = 0; i <atria_num; i++)
     {
         cursurf->MFSvals[cursurf->framenum][i]=mfsEGM[i];
+
+
+//        files << cursurf->MFSvals[cursurf->framenum][i] << " " ;
+//        files << "\n";
     }
 }
 

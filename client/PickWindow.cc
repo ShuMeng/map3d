@@ -177,21 +177,21 @@ void PickWindow::Destroy()
             break;
         }
     }
-    for (i = 0; i < map3d_info.numPickwins; i++) {
-        if (map3d_info.pickwins[i] == this) {
-            map3d_info.numPickwins--;
-            for (j = i; j < map3d_info.numPickwins; j++)
-                map3d_info.pickwins[j] = map3d_info.pickwins[j + 1];
-            break;
-        }
-    }
-    if (j != -1) {
-        map3d_info.pickwins[j] = this;
-        DestroyWindow(this);
-    }
-    mesh->gpriv->update();
-    pick = NULL;
-    mesh = NULL;
+//    for (i = 0; i < map3d_info.numPickwins; i++) {
+//        if (map3d_info.pickwins[i] == this) {
+//            map3d_info.numPickwins--;
+//            for (j = i; j < map3d_info.numPickwins; j++)
+//                map3d_info.pickwins[j] = map3d_info.pickwins[j + 1];
+//            break;
+//        }
+//    }
+//    if (j != -1) {
+//        map3d_info.pickwins[j] = this;
+//        DestroyWindow(this);
+//    }
+//    mesh->gpriv->update();
+//    pick = NULL;
+//    mesh = NULL;
 }
 
 void PickWindow::paintGL()
@@ -597,6 +597,24 @@ void PickWindow::keyPressEvent(QKeyEvent* event)
 }
 
 
+bool PickWindow::MatrixOnlyContainZero(Surf_Data* data,float **matrixvals)
+
+{
+    long framenum, leadnum;
+    for (framenum = 0; framenum < data->numframes; framenum++) {
+
+        for (leadnum = 0; leadnum < data->numleads; leadnum++) {
+
+            if(matrixvals[framenum][leadnum] != 0)
+            {
+                return false;
+            }
+        }
+        return true;
+    }
+}
+
+
 void PickWindow::DrawNode()
 {
     int loop;
@@ -629,25 +647,104 @@ void PickWindow::DrawNode()
         }
     }
     else if (data){
-        for (loop = 0; loop <data->numframes; loop++) {
-            if ((data->potvals[loop][pick->node] < min)&&(data->potvals[loop][pick->node] < data->inversevals[loop][pick->node]))
-                min = data->potvals[loop][pick->node];
-            if ((data->potvals[loop][pick->node] > max)&&(data->potvals[loop][pick->node] > data->inversevals[loop][pick->node]))
-                max = data->potvals[loop][pick->node];
 
-            if ((data->inversevals[loop][pick->node] < min)&&(data->potvals[loop][pick->node] > data->inversevals[loop][pick->node]))
-                min = data->inversevals[loop][pick->node];
-            if ((data->inversevals[loop][pick->node] > max)&&(data->potvals[loop][pick->node] < data->inversevals[loop][pick->node]))
-                max = data->inversevals[loop][pick->node];
+        if ( MatrixOnlyContainZero(data,data->potvals)==0)
+
+        {
+            max = map3d_info.global_potmax;
+            min = map3d_info.global_potmin;
+        }
 
 
-            if ((data->forwardvals[loop][pick->node] < min)&&(data->potvals[loop][pick->node] > data->forwardvals[loop][pick->node]))
-                min = data->forwardvals[loop][pick->node];
-            if ((data->forwardvals[loop][pick->node] > max)&&(data->potvals[loop][pick->node] < data->forwardvals[loop][pick->node]))
-                max = data->forwardvals[loop][pick->node];
+        if (( MatrixOnlyContainZero(data,data->forwardvals)==0) && (MatrixOnlyContainZero(data,data->potvals)==1))
+
+        {
+            long framenum, leadnum, numvals;
+
+            float val, minval, maxval;
+            double sum, rmsSum;
+
+            /*** Loop through all the frames.  ***/
+
+            for (framenum = 0; framenum < data->numframes; framenum++) {
+                minval = 1.0e10;
+                maxval = -1.e10;
+
+                /*** Loop through all the nodes in the geometry = values of potential. ***/
+
+                sum = 0.0;
+                rmsSum = 0.0;
+                numvals = 0;//Check for channels later
+                for (leadnum = 0; leadnum < data->numleads; leadnum++) {
+                    val =data->forwardvals[framenum][leadnum];
+                    if (val == UNUSED_DATA)
+                        continue;
+                    numvals++;
+                    sum += val;
+                    rmsSum += val * val;
+                    if (val < minval) {
+                        minval = val;
+                    }
+                    if (val > maxval) {
+                        maxval = val;
+
+                    }
+                }
+
+                for (MeshIterator mi2(0,0); !mi2.isDone(); ++mi2) {
+                    Surf_Data* cursurf = mi2.getMesh()->data;
+                    if (cursurf) {
+                        max = MAX(maxval, max);
+                        min = MIN(minval, min);
+                    }
+                }
+            }
+        }
 
 
+        if (( MatrixOnlyContainZero(data,data->inversevals)==0) && (MatrixOnlyContainZero(data,data->potvals)==1))
 
+        {
+            long framenum, leadnum, numvals;
+
+            float val, minval, maxval;
+            double sum, rmsSum;
+
+            /*** Loop through all the frames.  ***/
+
+            for (framenum = 0; framenum < data->numframes; framenum++) {
+                minval = 1.0e10;
+                maxval = -1.e10;
+
+                /*** Loop through all the nodes in the geometry = values of potential. ***/
+
+                sum = 0.0;
+                rmsSum = 0.0;
+                numvals = 0;//Check for channels later
+                for (leadnum = 0; leadnum < data->numleads; leadnum++) {
+                    val =data->inversevals[framenum][leadnum];
+                    if (val == UNUSED_DATA)
+                        continue;
+                    numvals++;
+                    sum += val;
+                    rmsSum += val * val;
+                    if (val < minval) {
+                        minval = val;
+                    }
+                    if (val > maxval) {
+                        maxval = val;
+
+                    }
+                }
+
+                for (MeshIterator mi2(0,0); !mi2.isDone(); ++mi2) {
+                    Surf_Data* cursurf = mi2.getMesh()->data;
+                    if (cursurf) {
+                        max = MAX(maxval, max);
+                        min = MIN(minval, min);
+                    }
+                }
+            }
         }
     }
     else {
@@ -691,7 +788,7 @@ void PickWindow::DrawNode()
         toRender = "";
 
         if (data) {
-            toRender = "Pot(G) Value: " + QString::number(data->potvals[data->framenum][pick->node], 'g', 3);
+            toRender = "Pot(G) Value: " + QString::number(data->potvals[data->framenum][pick->node], 'g', 2);
         }
         else {
             toRender = "Pot Value: ---";
@@ -702,13 +799,25 @@ void PickWindow::DrawNode()
         toRender = "";
 
         if (data->inversevals[data->framenum][pick->node]!=0){
-            toRender = "Inverse(R) Value: " + QString::number(data->inversevals[data->framenum][pick->node], 'g', 3);
+            toRender = "Inverse(R) Value: " + QString::number(data->inversevals[data->framenum][pick->node], 'g', 2);
         }
 
         pos[0] = width() - getFontWidth(mesh->gpriv->med_font, toRender) - 2;
 
         renderString3f(pos[0], pos[1]-12, pos[2], mesh->gpriv->med_font, toRender);
         toRender = "";
+
+
+        if (data->forwardvals[data->framenum][pick->node]!=0){
+            toRender = "Forward(Y) Value: " + QString::number(data->forwardvals[data->framenum][pick->node], 'g', 2);
+        }
+
+        pos[0] = width() - getFontWidth(mesh->gpriv->med_font, toRender) - 2;
+
+        renderString3f(pos[0], pos[1]-24, pos[2], mesh->gpriv->med_font, toRender);
+        toRender = "";
+
+
 
 
         pos[0] = width()/2 - getFontWidth(mesh->gpriv->med_font, "Time")/2;
@@ -754,11 +863,22 @@ void PickWindow::DrawNode()
         pos[1] = b;
         if (data && data->units != 0) {
             renderString3f(pos[0], pos[1], pos[2], mesh->gpriv->med_font, units_strings[data->units - 1]);
+
         }
         else {
             renderString3f(pos[0], pos[1], pos[2], mesh->gpriv->med_font, "data");
 
         }
+
+
+
+        toRender = QString::number(max, 'g', 2);
+        renderString3f(left * width() + d*(float)data->zerotimeframe, top * height()-5, 0, mesh->gpriv->med_font, toRender);
+
+        toRender = QString::number(min, 'g', 2);
+        renderString3f(left * width() + d*(float)data->zerotimeframe, bottom * height()-5, 0, mesh->gpriv->med_font, toRender);
+
+
 
     }
     glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
@@ -831,7 +951,7 @@ void PickWindow::DrawNode()
                 }
                 else {
 
-                    if (data->inversevals[loop][pick->node]!=0)
+                    if (MatrixOnlyContainZero(data,data->inversevals)==0)
                     {
                         glColor3f(graphcolor[5], graphcolor[0], graphcolor[0]);
                         glVertex3f(left * width() + d * counter, data->inversevals[loop][pick->node] * a + b, 0);
@@ -854,11 +974,11 @@ void PickWindow::DrawNode()
                 }
                 else {
 
-                   // if (data->forwardvals[loop][pick->node]!=data->forwardvals[0][pick->node])
+                    if (MatrixOnlyContainZero(data,data->forwardvals)==0)
                     {
                         glColor3f(graphcolor[5], graphcolor[5], graphcolor[0]);
                         glVertex3f(left * width() + d * counter, data->forwardvals[loop][pick->node] * a + b, 0);
-                         //std::cout<<loop  <<"forwardvals[loop][pick->node]= "<<data->forwardvals[loop][pick->node]<<std::endl;
+                        //std::cout<<loop  <<"forwardvals[loop][pick->node]= "<<data->forwardvals[loop][pick->node]<<std::endl;
                     }
 
                 }

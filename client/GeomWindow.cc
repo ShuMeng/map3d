@@ -347,7 +347,6 @@ bool GeomWindow::Pick(int meshnum, int x, int y, bool del /*= false*/ )
     //pick a node
     else if (map3d_info.pickmode != EDIT_LANDMARK_PICK_MODE) {
 
-        cout<<"enter pick a node 29_08_2018"<<std::endl;
 
         length = curgeom->numpts;
         for (loop2 = 0; loop2 < length; loop2++) {
@@ -597,7 +596,7 @@ void FindNearestRecording(PickInfo* pick, Mesh_Info* recordingmesh)
     curgeom = curmesh->geom;
     cursurf = curmesh->data;
     modelpts = curgeom->points[curgeom->geom_index];
-    std::cout<< "modelpts" <<modelpts[pick->node][0]<<"   "<<modelpts[pick->node][1]<<"     "<<modelpts[pick->node][2]<<std::endl;
+    //std::cout<< "modelpts" <<modelpts[pick->node][0]<<"   "<<modelpts[pick->node][1]<<"     "<<modelpts[pick->node][2]<<std::endl;
 
 
     float **recordingpts=0;
@@ -654,7 +653,7 @@ void FindNearestRecording(PickInfo* pick, Mesh_Info* recordingmesh)
 
                 pick->nearestIdx = loop_idx_nearest;
 
-                cout<<"pick->nearestIdx "<<pick->nearestIdx<<std::endl;
+                //cout<<"pick->nearestIdx "<<pick->nearestIdx<<std::endl;
 
                 for (loop_frame = 0; loop_frame <curmesh->data->numframes; loop_frame++)
                 {
@@ -671,7 +670,7 @@ void FindNearestRecording(PickInfo* pick, Mesh_Info* recordingmesh)
 
 void GeneratePick(PickInfo * pick)
 {
-    cout<<"enter GeneratePick 29_08_2018 "<<pick->node<<std::endl;
+
     Mesh_Info* mesh = pick->mesh;
     PickWindow *ppriv = 0;
 
