@@ -108,6 +108,8 @@ bool user_forward;
 
 bool user_MFS;
 
+bool user_fixmeshsize;
+float user_InDe_parameter;
 
   
   Surf_Data *mastersurf;

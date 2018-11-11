@@ -23,6 +23,13 @@ public slots:
   void Transp_Points_Callback();
   void Activation_Callback();
 
+  void CalculateMFSTransformMatrix(Mesh_Info * recordingmesh, Mesh_Info * curmesh);
+
+  void CalculateActivation(Mesh_Info * curmesh);
+
+  bool checkArray(Surf_Data* data, float *matrixvals);
+
+  void InDeflateMesh(Mesh_Info * curmesh);
 
 
 private:
@@ -33,6 +40,11 @@ private:
   QList<bool> origForward;
   QList<bool> origDatacloud;
   QList<bool> origMFS;
+
+
+  QList<bool> origChangesize;
+  QList<double> origInDeflate;
+
 
   QList<Mesh_Info*> meshes;
 
@@ -45,6 +57,12 @@ private:
   QList<QCheckBox*> fixedMFSBoxes;
 
   QList<QPushButton*> ActivationButton;
+
+  QList<QCheckBox*> fixedSizeBoxes;
+  QList<QDoubleSpinBox*> InDeflateBoxes;
+
+
+
 };
 
 #if 0

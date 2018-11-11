@@ -159,7 +159,7 @@ public:
     void DrawLockSymbol(int which, bool full);
     void DrawAxes(Mesh_Info * curmesh);
     void DrawBGImage();
-
+    bool checkArrayZero(int unlock_MFS_surfnum[]);
 
     void DrawElectrodesOnly(Mesh_Info * curmesh);
     void DrawDatacloudOnly(Mesh_Info * curmesh);

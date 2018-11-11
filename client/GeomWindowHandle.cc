@@ -40,6 +40,7 @@
 #include "MainWindow.h"
 #include "savescreen.h"
 #include "GetMatrixSlice.h"
+#include "DrawTransparentPoints.h"
 
 #include <QKeyEvent>
 #include <QMouseEvent>
@@ -49,7 +50,7 @@
 #include <QApplication>
 #include <QDesktopWidget>
 
-
+extern int unlock_MFS_surfnum[];
 
 #include <iostream>
 
@@ -1061,12 +1062,39 @@ void GeomWindow::mouseReleaseEvent(QMouseEvent * event)
 
     if ((!map3d_info.lockrotate) || matchesModifiers(event->modifiers(), Qt::AltModifier, true) ||
             matchesModifiers(event->modifiers(), Qt::ControlModifier, true))
-        HandleButtonRelease(event, (float)event->x() / (float)width(),
-                            (float)event->y() / (float)height());
+    { HandleButtonRelease(event, (float)event->x() / (float)width(),
+                          (float)event->y() / (float)height());
+
+        if (checkArrayZero(unlock_MFS_surfnum)==0)
+        {
+            int row;
+
+            for (int i=0; i< 30; i++)
+            {
+                if (unlock_MFS_surfnum[i]!=0)
+
+                {
+                    row= unlock_MFS_surfnum[i]-1;
+
+                }
+            }
+
+            Mesh_Info* mesh = meshes[row];
+            DrawTransparentPoints fixedinverse;
+            Mesh_Info *recordingmesh = 0;
+            recordingmesh=meshes[row-1];
+            Map3d_Geom *recordinggeom = 0;
+            recordinggeom = recordingmesh->geom;
+            fixedinverse.CalculateMFSTransformMatrix(recordingmesh,mesh);
+        }
+    }
+
+
     else {
         Broadcast(MAP3D_MOUSE_BUTTON_RELEASE, this, (QEvent *) event);
     }
 }
+
 
 void GeomWindow::mouseMoveEvent(QMouseEvent* event)
 {
@@ -1075,9 +1103,30 @@ void GeomWindow::mouseMoveEvent(QMouseEvent* event)
 
     if ((!map3d_info.lockrotate) || matchesModifiers(event->modifiers(), Qt::AltModifier, true) ||
             matchesModifiers(event->modifiers(), Qt::ControlModifier, true))
-        HandleMouseMotion(event, (float)event->x() / (float)width(), (float)event->y() / (float)height());
+    { HandleMouseMotion(event, (float)event->x() / (float)width(), (float)event->y() / (float)height());
 
 
+
+        if    (checkArrayZero(unlock_MFS_surfnum)==0)
+        {
+            int row;
+            for (int i=0; i< 30; i++)
+            {
+                if (unlock_MFS_surfnum[i]!=0)
+                {
+                    row= unlock_MFS_surfnum[i]-1;
+                }
+
+            }
+
+            Mesh_Info* mesh = meshes[row];
+            Mesh_Info *recordingmesh = 0;
+            recordingmesh=meshes[row-1];
+            Map3d_Geom *recordinggeom = 0;
+            recordinggeom = recordingmesh->geom;
+            CalculateMFSValue(recordingmesh,mesh);
+        }
+    }
     else
         Broadcast(MAP3D_MOUSE_MOTION, this, event);
 
@@ -1086,6 +1135,23 @@ void GeomWindow::mouseMoveEvent(QMouseEvent* event)
         SaveScreen();
     }
 
+}
+
+
+
+bool GeomWindow::checkArrayZero(int unlock_MFS_surfnum[])
+
+{
+    for (int i=0; i< 30; i++)
+    {
+       if (unlock_MFS_surfnum[i]!=0)
+        {
+            return false;
+            //std::cout <<"return false" <<std::endl;
+        }
+    }
+    return true;
+    //std::cout <<"return true" <<std::endl;
 }
 
 void GeomWindow::HandleButtonPress(QMouseEvent * event, float xn, float yn)
@@ -1183,6 +1249,10 @@ void GeomWindow::HandleButtonRelease(QMouseEvent * event, float /*xn*/, float /*
         }
     }
     update();
+
+
+
+
 }
 
 void GeomWindow::HandleMouseMotion(QMouseEvent * event, float xn, float yn)

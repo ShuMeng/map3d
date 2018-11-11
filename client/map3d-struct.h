@@ -22,7 +22,7 @@
 using std::vector;
 
 #define MAX_SURFS 40
-#define MAX_PICKS 30
+#define MAX_PICKS 300
 
 class GeomWindow;
 class LegendWindow;

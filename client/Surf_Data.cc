@@ -97,6 +97,8 @@ Surf_Data::Surf_Data()
     user_forward = 0;
 
     user_MFS = 0;
+    user_fixmeshsize =0;
+    user_InDe_parameter =1.0f;
 
 }
 
@@ -275,7 +277,7 @@ Surf_Data *Surf_Data::AddASurfData(Surf_Data * surfdata, long newsurfnum, long n
 
 
 
- /*** Now allocate some memory for the activation in the surface. ***/
+    /*** Now allocate some memory for the activation in the surface. ***/
 
     if (numleads > 0) {
 
@@ -352,6 +354,7 @@ Surf_Data *Surf_Data::AddASurfData(Surf_Data * surfdata, long newsurfnum, long n
     surfdata[newsurfnum].fids.leadfids = NULL;
     surfdata[newsurfnum].fids.numfidleads = NULL;
     surfdata[newsurfnum].potfilename[0] = '\0';
+    surfdata[newsurfnum].user_InDe_parameter =1.0;
 
 
 
@@ -544,7 +547,7 @@ void Surf_Data::get_minmax(float &min, float &max)
 void Surf_Data::get_activation_minmax(float &min, float &max)
 {
 
-      min= minactivation;
+    min= minactivation;
     max=maxactivation;
 }
 
