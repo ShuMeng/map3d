@@ -43,6 +43,11 @@ public:
   std::vector<float **> points;    /*** Point array for whole geometry, possibly time-dependent ***/
 
   std::vector<float **> datacloud;  /*** datacloud within whole geometry, possibly time-dependent ***/
+
+  std::vector<float **> original_points; /*** original read in points, without any in/deflation ***/
+
+
+
   long numdatacloud;         /*** Number of points within the surface geometry. ***/
 
   int geom_index;

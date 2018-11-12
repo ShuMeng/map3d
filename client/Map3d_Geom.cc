@@ -33,9 +33,15 @@ void Map3d_Geom::init()
   datacloud.clear();
   datacloud.push_back(0);
 
+
   // set up first set of points
   points.clear();
   points.push_back(0);
+
+  original_points.clear();
+  original_points.push_back(0);
+
+
   elements = 0;
   geom_index = 0;
   channels = 0;
@@ -65,8 +71,12 @@ Map3d_Geom::~Map3d_Geom()
 void Map3d_Geom::destroy()
 {
   for (unsigned i = 0; i < points.size(); i++)
-    if (points[i])
+   { if (points[i])
       Free_fmatrix(points[i], numpts);
+
+      if (original_points[i])
+            Free_fmatrix(original_points[i], numpts);
+  }
   if (elements)
     Free_lmatrix(elements, numelements);
   if (channels)
@@ -75,6 +85,7 @@ void Map3d_Geom::destroy()
     free(leadlinks);
   if (leadlinklabels)
     free(leadlinklabels);
+
 
   // have a landmarks destructor called
   if (landmarks) {
@@ -89,6 +100,10 @@ void Map3d_Geom::destroy()
 
   if (ptnormals)
     Free_fmatrix(ptnormals, numpts);
+
+
+
+
   if (fcnormals)
     Free_fmatrix(fcnormals, numelements);
   init();

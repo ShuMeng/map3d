@@ -173,9 +173,7 @@ DrawTransparentPoints::DrawTransparentPoints()
         connect(fixforward, SIGNAL(toggled(bool)), this, SLOT(Transp_Points_Callback()));
         connect(fixMFS, SIGNAL(toggled(bool)), this, SLOT(Transp_Points_Callback()));
         connect(fixedsize, SIGNAL(toggled(bool)), this, SLOT(Transp_Points_Callback()));
-
         connect(InDe, SIGNAL(valueChanged(double)), this, SLOT(Transp_Points_Callback()));
-
         connect(recalbutton, SIGNAL(clicked()), this, SLOT(Recal_MFS_Callback()));
 
     }

@@ -25,12 +25,14 @@ public slots:
 
   void CalculateMFSTransformMatrix(Mesh_Info * recordingmesh, Mesh_Info * curmesh);
 
+
   void CalculateActivation(Mesh_Info * curmesh);
 
   bool checkArray(Surf_Data* data, float *matrixvals);
 
   void InDeflateMesh(Mesh_Info * curmesh);
 
+  void Recal_MFS_Callback();
 
 private:
 

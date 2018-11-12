@@ -1318,12 +1318,15 @@ long ReadMatlabGeomFile(Map3d_Geom* geom, long insurfnum)
 
     matlabarray datcld;
 
+
     if (ma.isstruct()) {
         if (ma.isfieldCI("pts")) pts = ma.getfieldCI(index,"pts");
         if (ma.isfieldCI("pts_mv")) pts_mv = ma.getfieldCI(index,"pts_mv");
         if (ma.isfieldCI("node")) pts = ma.getfieldCI(index,"node");
 
         if (ma.isfieldCI("datcld")) datcld = ma.getfieldCI(index,"datcld");
+
+
 
         if (ma.isfieldCI("fac")) fac = ma.getfieldCI(index,"fac");
         if (ma.isfieldCI("face")) fac = ma.getfieldCI(index,"face");
@@ -1346,7 +1349,8 @@ long ReadMatlabGeomFile(Map3d_Geom* geom, long insurfnum)
             if (cell.isfieldCI("pts_mv")) pts_mv = cell.getfieldCI(0,"pts_mv");
             if (cell.isfieldCI("node")) pts = cell.getfieldCI(0,"node");
 
-            if (cell.isfieldCI("node")) datcld = cell.getfieldCI(0,"datcld");
+            if (cell.isfieldCI("datcld")) datcld = cell.getfieldCI(0,"datcld");
+
 
             if (cell.isfieldCI("fac")) fac = cell.getfieldCI(0,"fac");
             if (cell.isfieldCI("face")) fac = cell.getfieldCI(0,"face");
@@ -1391,6 +1395,9 @@ long ReadMatlabGeomFile(Map3d_Geom* geom, long insurfnum)
             return 0;
         }
     }
+
+
+
 
 
 
@@ -1449,25 +1456,34 @@ long ReadMatlabGeomFile(Map3d_Geom* geom, long insurfnum)
             datacloud [i][2] = elements[i*3+2];
         }
         delete[] elements;
-
-        std::cout<<"test if datacloud is read in  "<< datacloud [26153][0]<<std::endl;
-
     }
 
 
     if (!pts.isempty()) {
         geom->numpts = pts.getnumelements()/3;
         geom->points[geom->geom_index] = Alloc_fmatrix(geom->numpts, 3);
+
+        geom->original_points[geom->geom_index] = Alloc_fmatrix(geom->numpts, 3);
+
         float** points = geom->points[geom->geom_index];
+        float** original_points=geom->original_points[geom->geom_index];
+
         float* elements = new float[geom->numpts*3];
         pts.getnumericarray(elements, geom->numpts*3);
         for (int i = 0; i < geom->numpts; i++) {
             points[i][0] = elements[i*3+0];
             points[i][1] = elements[i*3+1];
             points[i][2] = elements[i*3+2];
+
+            original_points[i][0] = elements[i*3+0];
+            original_points[i][1] = elements[i*3+1];
+            original_points[i][2] = elements[i*3+2];
+
+//            std::cout<<"test 12-10-2018 points "<<  points[i][0]<<std::endl;
+//            std::cout<<"test 12-10-2018 original points "<<  original_points[i][0]<<std::endl;
+
         }
         delete[] elements;
-
     }
     else if (!pts_mv.isempty()) {
         // m is # columns, n is # nodes.  Each group of 3 columns is an x,y,z point
@@ -1496,6 +1512,7 @@ long ReadMatlabGeomFile(Map3d_Geom* geom, long insurfnum)
         printf("Empty or non-existent pts array\n");
         return 0;
     }
+
 
     int pts_per_element = 0;
     matlabarray* element_array = NULL;
