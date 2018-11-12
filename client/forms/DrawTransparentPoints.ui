@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>777</width>
-    <height>194</height>
+    <width>1033</width>
+    <height>277</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -63,6 +63,24 @@ border: 1px solid black;
 }
 
 #MFSinverseLabel{
+padding: 4px;
+border: 1px solid black;
+border-right-width: 1px solid black;
+}
+
+#InDeQuestion{
+padding: 4px;
+border: 1px solid black;
+border-right-width: 1px solid black;
+}
+
+#InflateDeflate{
+padding: 4px;
+border: 1px solid black;
+border-right-width: 1px solid black;
+}
+
+#RecalMFS{
 padding: 4px;
 border: 1px solid black;
 border-right-width: 1px solid black;
@@ -179,6 +197,27 @@ border-right-color: rgb(0, 0, 0);</string>
        <widget class="QLabel" name="DrawForwardLabel">
         <property name="text">
          <string>Draw Forward Solution</string>
+        </property>
+       </widget>
+      </item>
+      <item row="0" column="8">
+       <widget class="QLabel" name="InflateDeflate">
+        <property name="text">
+         <string>In/Deflate </string>
+        </property>
+       </widget>
+      </item>
+      <item row="0" column="7">
+       <widget class="QLabel" name="InDeQuestion">
+        <property name="text">
+         <string>Change size?</string>
+        </property>
+       </widget>
+      </item>
+      <item row="0" column="9">
+       <widget class="QLabel" name="RecalMFS">
+        <property name="text">
+         <string>Recal MFS</string>
         </property>
        </widget>
       </item>
