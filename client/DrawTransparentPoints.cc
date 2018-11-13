@@ -18,6 +18,7 @@
 
 #include "ActivationMapWindow.h"
 #include "CCMapWindow.h"
+#include "RMSEMapWindow.h"
 #include <QPushButton>
 #include <QMessageBox>
 #include <QLabel>
@@ -407,7 +408,7 @@ void DrawTransparentPoints::Activation_Callback()
     }
 
 
-    if ((checkArray1D(data,data->activationvals)==0)||(checkArray1D(data,data->CCvals)==0))
+    if ((checkArray1D(data,data->activationvals)==0)||(checkArray1D(data,data->CCvals)==0)||(checkArray1D(data,data->RMSEvals)==0))
 
     {
         Surf_Data *s=0;
@@ -435,6 +436,17 @@ void DrawTransparentPoints::Activation_Callback()
         //        lpriv2 = new ActivationLegendWindow(actiWidget);
 
 
+        RMSEMapWindow* RMSEwin;
+        RMSEwin = new RMSEMapWindow(actiWidget);
+        RMSEwin->addMesh(mesh);
+        RMSEwin->setWindowFlags(Qt::WindowTransparentForInput);
+
+        //        /* create colormap legend window */
+        //        ActivationLegendWindow *lpriv2 = NULL;
+        //        lpriv2 = new ActivationLegendWindow(actiWidget);
+
+
+
         int width, height;
         width = mesh->lw_xmax - mesh->lw_xmin;
         height = mesh->lw_ymax - mesh->lw_ymin;
@@ -451,13 +463,18 @@ void DrawTransparentPoints::Activation_Callback()
         //        gLayout->addWidget(lpriv2);
         //        gLayout->setStretch(3,1);
 
+
+        gLayout->addWidget(RMSEwin);
+        gLayout->setStretch(3,3);
+
         lpriv->setVisible(true);
         actiwin->show();
+        CCwin->show();
 
         //        lpriv2->setVisible(true);
         //        actiwin2->show();
 
-        actiWidget->setMinimumSize(800,380);
+        actiWidget->setMinimumSize(1000,380);
         actiWidget->show();
 
 
@@ -587,7 +604,7 @@ void DrawTransparentPoints::CalculateCC(Mesh_Info * curmesh)
         }
         float corr = correlationCoefficient(inverse, gold_standard, frame_num);
         CC[i]=corr;
-        std::cout<< "CC value is "<<CC[i]<<std::endl;
+        //std::cout<< "CC value is "<<CC[i]<<std::endl;
         // just for test, define a  CCvals later
         cursurf->CCvals[i] =CC[i];
         // std::cout<< "activationvals value in CC is "<<cursurf->activationvals[i]<<std::endl;

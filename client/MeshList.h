@@ -53,6 +53,7 @@ class LegendWindow;
 class GetMatrixSlice;
 class ActivationMapWindow;
 class CCMapWindow;
+class RMSEMapWindow;
 struct PickInfo;
 using std::vector;
 
@@ -70,7 +71,7 @@ ActivationMapWindow *actipriv;   /* activation window where mesh is present */
 
 CCMapWindow *CCpriv;   /* CC window where mesh is present */
 
-//RMSEMapWindow *RMSEpriv;   /* RMSE window where mesh is present */
+RMSEMapWindow *RMSEpriv;   /* RMSE window where mesh is present */
 
 
 

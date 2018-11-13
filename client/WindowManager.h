@@ -13,7 +13,7 @@ class GetMatrixSlice;
 class ActivationMapWindow;
 class CCMapWindow;
 
-
+class RMSEMapWindow;
 class QEvent;
 
 struct key_data;
@@ -25,6 +25,7 @@ GeomWindow *GetGeomWindow(int index);
 ActivationMapWindow *GetActivationMapWindow(int index);
 
 CCMapWindow *GetCCMapWindow(int index);
+RMSEMapWindow *GetRMSEMapWindow(int index);
 
 
 unsigned numGeomWindows();

@@ -55,7 +55,7 @@ vector < GeomWindow * >GeomWindows;
 vector < ActivationMapWindow*> ActivationMapWindows;
 vector < CCMapWindow*> CCMapWindows;
 
-
+vector < RMSEMapWindow*> RMSEMapWindows;
 
 
 GeomWindow *GetGeomWindow(int index)
@@ -96,7 +96,17 @@ unsigned numCCMapWindows()
 }
 
 
+RMSEMapWindow *GetRMSEMapWindow(int index)
+{
+    if (index < 0 || index >= RMSEMapWindows.size())
+        return NULL;
+    return RMSEMapWindows[index];
+}
 
+unsigned numRMSEMapWindows()
+{
+    return RMSEMapWindows.size();
+}
 
 
 

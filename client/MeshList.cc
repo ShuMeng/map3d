@@ -58,7 +58,7 @@ Mesh_Info::Mesh_Info()
 
   CCpriv=0;
 
-  //RMSEpriv=0;
+  RMSEpriv=0;
 
   drawmesh = RENDER_MESH_NONE;
   drawcont = 1;
