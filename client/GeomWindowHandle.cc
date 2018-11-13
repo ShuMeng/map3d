@@ -1107,25 +1107,25 @@ void GeomWindow::mouseMoveEvent(QMouseEvent* event)
 
 
 
-        if    (checkArrayZero(unlock_MFS_surfnum)==0)
-        {
-            int row;
-            for (int i=0; i< 30; i++)
-            {
-                if (unlock_MFS_surfnum[i]!=0)
-                {
-                    row= unlock_MFS_surfnum[i]-1;
-                }
+//        if    (checkArrayZero(unlock_MFS_surfnum)==0)
+//        {
+//            int row;
+//            for (int i=0; i< 30; i++)
+//            {
+//                if (unlock_MFS_surfnum[i]!=0)
+//                {
+//                    row= unlock_MFS_surfnum[i]-1;
+//                }
 
-            }
+//            }
 
-            Mesh_Info* mesh = meshes[row];
-            Mesh_Info *recordingmesh = 0;
-            recordingmesh=meshes[row-1];
-            Map3d_Geom *recordinggeom = 0;
-            recordinggeom = recordingmesh->geom;
-            CalculateMFSValue(recordingmesh,mesh);
-        }
+//            Mesh_Info* mesh = meshes[row];
+//            Mesh_Info *recordingmesh = 0;
+//            recordingmesh=meshes[row-1];
+//            Map3d_Geom *recordinggeom = 0;
+//            recordinggeom = recordingmesh->geom;
+//            CalculateMFSValue(recordingmesh,mesh);
+//        }
     }
     else
         Broadcast(MAP3D_MOUSE_MOTION, this, event);

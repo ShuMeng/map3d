@@ -51,6 +51,8 @@ static const int min_height = 100;
 static const int default_width = 170;
 static const int default_height = 256;
 
+extern double  maxactivation, minactivation;
+
 ActivationLegendWindow::ActivationLegendWindow(QWidget *parent): Map3dGLWidget(parent, LEGENDWINDOW, "Colormap Legend",120,135)
 {
     // since we can't guarantee the order of initialization, or when the window will be created, we need
@@ -107,11 +109,12 @@ void ActivationLegendWindow::paintGL()
   unsigned char *map = (*(this->map))->map;
   float position[3] = { -1, height() - 20.f, 0 };
   float factor;
-  float minactivation, maxactivation;
+ // double minactivation, maxactivation;
   Surf_Data *cursurf = surf;
 
-// cursurf->get_minmax(minactivation, maxactivation);
-  cursurf->get_activation_minmax(minactivation, maxactivation);
+
+//  std::cout<< "maxactivation in legend window is "<<maxactivation<<std::endl;
+//  std::cout<< "minactivation in legend window is "<<minactivation<<std::endl;
 
 
   // contvals will be all the lines drawn, whether in matchContours mode or not, including the min and max line

@@ -42,7 +42,6 @@ using namespace std;
 #include <sstream>
 
 extern Map3d_Info map3d_info;
-extern int  maxactivation, minactivation;
 
 
 int unlock_transparency_surfnum[30];
@@ -173,9 +172,7 @@ DrawTransparentPoints::DrawTransparentPoints()
         connect(fixforward, SIGNAL(toggled(bool)), this, SLOT(Transp_Points_Callback()));
         connect(fixMFS, SIGNAL(toggled(bool)), this, SLOT(Transp_Points_Callback()));
         connect(fixedsize, SIGNAL(toggled(bool)), this, SLOT(Transp_Points_Callback()));
-
         connect(InDe, SIGNAL(valueChanged(double)), this, SLOT(Transp_Points_Callback()));
-
         connect(recalbutton, SIGNAL(clicked()), this, SLOT(Recal_MFS_Callback()));
 
     }
@@ -255,7 +252,7 @@ void DrawTransparentPoints::Transp_Points_Callback()
 
                     CalculateMFSTransformMatrix(recordingmesh,mesh);
 
-               }
+                }
 
             }
             else {
@@ -276,16 +273,11 @@ void DrawTransparentPoints::Transp_Points_Callback()
                 // only change catheter size.
                 Mesh_Info *sourcemesh = 0;
                 sourcemesh=meshes[row+1];
-               // int length = meshes.size();
+                // int length = meshes.size();
 
 
                 InDeflateMesh(mesh);
 
-//                if (((length>=row+1))&&(length>1)&&(fixedMFSBoxes[row+1]->isChecked()))
-//                {
-
-//                    CalculateMFSTransformMatrix(mesh,sourcemesh);
-//                }
             }
             else {
                 mesh->data->user_fixmeshsize = false;
@@ -301,13 +293,11 @@ void DrawTransparentPoints::Transp_Points_Callback()
 void DrawTransparentPoints::InDeflateMesh(Mesh_Info * curmesh)
 
 {
-
     std::cout<<"enter indeflatemesh  "<<std::endl;
     Map3d_Geom *curgeom = 0;
     Surf_Data *cursurf = 0;
     curgeom = curmesh->geom;
     cursurf = curmesh->data;
-
 
     int  meshpoint_num =0;
     meshpoint_num = curgeom->numpts;
@@ -329,41 +319,27 @@ void DrawTransparentPoints::InDeflateMesh(Mesh_Info * curmesh)
     center_y = (sum_y)/meshpoint_num;
     center_z = (sum_z)/meshpoint_num;
 
-
     std::cout<<"sun_x  "<<sum_x<<"    "<<"center_x   "<<center_x<<std::endl;
-
     std::cout<<"sun_y  "<<sum_y<<"    "<<"center_y   "<<center_y<<std::endl;
-
     std::cout<<"sun_z  "<<sum_z<<"    "<<"center_z   "<<center_z<<std::endl;
-
     std::cout<<"---------------------------------------------------------------------------"<<std::endl;
-
 
     float **InDeflated_pts = 0;
     InDeflated_pts= Alloc_fmatrix(curgeom->numpts, 3);
-
-
-
     for (int j=0; j< meshpoint_num; j++)
     {
         InDeflated_pts[j][0] = pts[j][0]+(curmesh->data->user_InDe_parameter-1)*(pts[j][0]-center_x);
         InDeflated_pts[j][1] = pts[j][1]+(curmesh->data->user_InDe_parameter-1)*(pts[j][1]-center_y);
         InDeflated_pts[j][2] = pts[j][2]+(curmesh->data->user_InDe_parameter-1)*(pts[j][2]-center_z);
-
-
     }
-
-
     curgeom->points[curgeom->geom_index]=InDeflated_pts;
-
-
 }
 
 
 
 
 
-bool DrawTransparentPoints::checkArray(Surf_Data* data, float *matrixvals)
+bool DrawTransparentPoints::checkArray1D(Surf_Data* data, float *matrixvals)
 
 {
     long  leadnum;
@@ -421,12 +397,18 @@ void DrawTransparentPoints::Activation_Callback()
     Surf_Data* data = mesh->data;
 
 
+      CalculateActivation(mesh);
 
 
-    CalculateActivation(mesh);
+
+    // if ((checkArray1D(data,data->activationvals)==0)&&(checkArray1D(data,data->potvals)==0))
+    //{ CalculateCC(mesh);}
+    //   else {
+    //       QMessageBox::warning(this,QString("Warning"),QString("No inverse solution or gold standard values"));
+    //   }
 
 
-    if (checkArray(data,data->activationvals)==0)
+    if (checkArray1D(data,data->activationvals)==0)
 
     {
         ActivationMapWindow* actiwin;
@@ -556,13 +538,85 @@ void DrawTransparentPoints::CalculateActivation(Mesh_Info * curmesh)
     for (int i=0; i< meshpoint_num; i++)
     {
         cursurf->activationvals[i] =activation[i];
+
+        // std::cout<< "activationvals value in Activation is "<<cursurf->activationvals[i]<<std::endl;
     }
 
 }
 
+
+void DrawTransparentPoints::CalculateCC(Mesh_Info * curmesh)
+
+{
+    int  meshpoint_num =0,frame_num=0;
+
+    Map3d_Geom *curgeom = 0;
+    Surf_Data *cursurf = 0;
+    curgeom = curmesh->geom;
+    cursurf = curmesh->data;
+    meshpoint_num = curgeom->numpts;
+    frame_num = curmesh->data->numframes;
+
+
+    double inverse[frame_num],gold_standard[frame_num], CC[meshpoint_num];
+
+    for (int i=0; i< meshpoint_num; i++)
+    {
+        for (int j=0; j< frame_num; j++)
+        {
+            inverse[j]=cursurf->inversevals[j][i];
+            gold_standard[j]=cursurf->potvals[j][i];
+        }
+        float corr = correlationCoefficient(inverse, gold_standard, frame_num);
+        CC[i]=corr;
+        std::cout<< "CC value is "<<CC[i]<<std::endl;
+        // just for test, define a  CCvals later
+        cursurf->activationvals[i] =CC[i];
+        // std::cout<< "activationvals value in CC is "<<cursurf->activationvals[i]<<std::endl;
+    }
+
+
+}
+
+
+void DrawTransparentPoints::CalculateRMSE(Mesh_Info * curmesh)
+
+{
+    int  meshpoint_num =0,frame_num=0;
+
+    Map3d_Geom *curgeom = 0;
+    Surf_Data *cursurf = 0;
+    curgeom = curmesh->geom;
+    cursurf = curmesh->data;
+    meshpoint_num = curgeom->numpts;
+    frame_num = curmesh->data->numframes;
+    double inverse[frame_num],gold_standard[frame_num], RMSE[meshpoint_num];
+    for (int i=0; i< meshpoint_num; i++)
+    {
+        for (int j=0; j< frame_num; j++)
+        {
+            inverse[j]=cursurf->inversevals[j][i];
+            gold_standard[j]=cursurf->potvals[j][i];
+        }
+
+        float rmse = rootmeansquareerror(inverse, gold_standard, frame_num);
+        RMSE[i]=rmse;
+        std::cout<< "RMSE value is "<<RMSE[i]<<std::endl;
+
+        // just for test, define a  CCvals later
+
+        cursurf->activationvals[i] =RMSE[i];
+
+        // std::cout<< "activationvals value in CC is "<<cursurf->activationvals[i]<<std::endl;
+    }
+
+}
+
+
+
 void DrawTransparentPoints::on_applyButton_clicked()
 {
-    Broadcast(MAP3D_UPDATE);
+    // Broadcast(MAP3D_UPDATE);
     close();
 }
 
@@ -825,7 +879,7 @@ void DrawTransparentPoints::CalculateMFSTransformMatrix(Mesh_Info * recordingmes
     double *mfsEGM = mxGetPr(mfsEGM_matlab);
 
     //    ofstream myfile;
-    //    myfile.open ("inverse_LA_as_catheter.txt");
+    //    myfile.open ("inverse_128.txt");
 
     for (int j=0; j< curmesh->data->numframes; j++)
     {
@@ -833,9 +887,9 @@ void DrawTransparentPoints::CalculateMFSTransformMatrix(Mesh_Info * recordingmes
         {
             cursurf->MFSvals[j][i] =mfsEGM[i+j*atria_num];
 
-            //            myfile << cursurf->MFSvals[j][i];
-            //            myfile << "\n";
-            //            //myfile.close();
+            //                        myfile << cursurf->MFSvals[j][i];
+            //                        myfile << "\n";
+            //                        //myfile.close();
 
         }
     }
@@ -843,6 +897,52 @@ void DrawTransparentPoints::CalculateMFSTransformMatrix(Mesh_Info * recordingmes
     std::cout<<"mesh->data->user_InDe_parameter in MFS "<< recordingmesh->data->user_InDe_parameter<<std::endl;
     std::cout<<"/////////////////////////////////////////////////////////////////////////////"<<std::endl;
 
+}
+
+
+
+float DrawTransparentPoints::correlationCoefficient(double X[], double Y[], int n)
+{
+
+    double sum_X = 0, sum_Y = 0, sum_XY = 0;
+    double squareSum_X = 0, squareSum_Y = 0;
+
+    for (int i = 0; i < n; i++)
+    {
+        // sum of elements of array X.
+        sum_X = sum_X + X[i];
+
+        // sum of elements of array Y.
+        sum_Y = sum_Y + Y[i];
+
+        // sum of X[i] * Y[i].
+        sum_XY = sum_XY + X[i] * Y[i];
+
+        // sum of square of array elements.
+        squareSum_X = squareSum_X + X[i] * X[i];
+        squareSum_Y = squareSum_Y + Y[i] * Y[i];
+    }
+
+    // use formula for calculating correlation coefficient.
+    float corr = (float)(n * sum_XY - sum_X * sum_Y)
+            / sqrt((n * squareSum_X - sum_X * sum_X)
+                   * (n * squareSum_Y - sum_Y * sum_Y));
+
+    return corr;
+}
+
+
+float DrawTransparentPoints::rootmeansquareerror(double X[], double Y[], int n)
+{
+
+    double sum_XY = 0;
+    for (int i = 0; i < n; i++)
+    {
+        sum_XY = sum_XY+(X[i] - Y[i])*(X[i] - Y[i]);
+    }
+
+    float rmse =  sqrt(sum_XY/n);
+    return rmse;
 }
 
 

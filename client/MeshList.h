@@ -82,6 +82,9 @@ ActivationMapWindow *actipriv;   /* activation window where mesh is present */
   ColorMap *cmap;               /* the data-to-color map */
   bool invert;                  /* indicates whether mapping should be inverted or not */
 
+
+Transforms *tran_activation; 
+
   bool transparent;    /* indicates whether mapping should be transparent or not */
 
    bool lock_forward;

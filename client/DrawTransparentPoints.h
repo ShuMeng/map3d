@@ -28,11 +28,20 @@ public slots:
 
   void CalculateActivation(Mesh_Info * curmesh);
 
-  bool checkArray(Surf_Data* data, float *matrixvals);
+  bool checkArray1D(Surf_Data* data, float *matrixvals);
 
   void InDeflateMesh(Mesh_Info * curmesh);
 
   void Recal_MFS_Callback();
+
+  void CalculateCC(Mesh_Info * curmesh);
+  void CalculateRMSE(Mesh_Info * curmesh);
+
+
+
+  float correlationCoefficient(double X[], double Y[], int n);
+
+  float rootmeansquareerror(double X[], double Y[], int n);
 
 private:
 

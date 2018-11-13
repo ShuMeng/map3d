@@ -72,7 +72,7 @@ static const int default_height = 380;
 
 GLuint selectbufferActivate[2048];
 
-int  maxactivation, minactivation;
+double  maxactivation, minactivation;
 
 
 ActivationMapWindow::ActivationMapWindow(QWidget *parent) : Map3dGLWidget(parent, ACTIVATIONWINDOW, "Activation Display",min_width, min_height)
@@ -221,54 +221,6 @@ void ActivationMapWindow::paintGL()
 #endif
 }
 
-void ActivationMapWindow::DrawInfo()
-{
-    int nummesh = meshes.size();
-    int surfnum = 0;
-    float position[3] = { -1.f, static_cast<float>(height() - 15.0), 0.f };
-    Mesh_Info *dommesh = 0;
-
-    glMatrixMode(GL_MODELVIEW);
-    glLoadIdentity();
-    glMatrixMode(GL_PROJECTION);
-    glLoadIdentity();
-    gluOrtho2D(0, width(), 0, height());
-    glColor3f(fgcolor[0], fgcolor[1], fgcolor[2]);
-
-    glMatrixMode(GL_MODELVIEW);
-    glPushMatrix();
-    glPopMatrix();
-    if (nummesh == 1 || (dominantsurf != -1 && nummesh > dominantsurf)) {
-        dommesh = nummesh == 1 ? meshes[0] : meshes[dominantsurf];
-        char surfstr[50];
-        if (dommesh->geom->subsurf <= 0)
-            sprintf(surfstr, "Activation map Surface #%d", dommesh->geom->surfnum);
-        else
-            sprintf(surfstr, "Activation map Surface #%d-%d", dommesh->geom->surfnum, dommesh->geom->subsurf);
-        surfnum = dommesh->geom->surfnum;
-        position[0] = (float)width()/2.0 -((float)getFontWidth((int)large_font, surfstr)/2.0);
-        position[1] = height() - getFontHeight((int)large_font);
-
-        renderString3f(position[0], position[1], position[2], (int)large_font, surfstr);
-
-        position[1] -= getFontHeight((int)med_font)*.8 ;
-        if (dommesh->data){
-            char * slash = 0;// FIX shorten_filename(dommesh->data->potfilename);
-            //position[0] = (float)width()/2.0 - ((float)getFontWidth((int)med_font, slash)/2.0);
-            // FIX renderString3f(position[0], position[1], position[2], (int)med_font, "%s@%d", slash, dommesh->data->seriesnum+1);
-        }
-        else{
-            char * slash = 0; // FIX shorten_filename(dommesh->geom->basefilename);
-            //position[0] = (float)width()/2.0 - ((float)getFontWidth((int)med_font, slash)/2.0);
-            // FIX renderString3f(position[0], position[1], position[2], (int)med_font, slash);
-        }
-    }
-    else if (nummesh > 1) {
-        position[0] = (float)width()/2.0 -((float)getFontWidth((int)large_font, "All Surfaces")/2.0);
-        renderString3f(position[0], position[1], position[2], (int)large_font, "All Surfaces");
-    }
-}
-
 void ActivationMapWindow::DrawSurf(Mesh_Info * curmesh)
 {
 
@@ -286,12 +238,19 @@ void ActivationMapWindow::DrawSurf(Mesh_Info * curmesh)
     curgeom = curmesh->geom;
     cursurf = curmesh->data;
 
-    modelpts = curgeom->points[curgeom->geom_index];
+    modelpts = curgeom->original_points[curgeom->geom_index];
     ptnormals = curgeom->ptnormals;
     fcnormals = curgeom->fcnormals;
 
+
+
     maxactivation = *std::max_element(cursurf->activationvals,cursurf->activationvals+curgeom->numpts);
     minactivation = *std::min_element(cursurf->activationvals,cursurf->activationvals+curgeom->numpts);
+
+
+//    std::cout<< "maxactivation in activation window is "<<maxactivation<<std::endl;
+//    std::cout<< "minactivation in activation window is "<<minactivation<<std::endl;
+
 
     unsigned char color[3];
 
@@ -438,6 +397,57 @@ void ActivationMapWindow::DrawSurf(Mesh_Info * curmesh)
 
 
 
+void ActivationMapWindow::DrawInfo()
+{
+//    int nummesh = meshes.size();
+//    int surfnum = 0;
+//    float position[3] = { -1.f, static_cast<float>(height() - 15.0), 0.f };
+//    Mesh_Info *dommesh = 0;
+
+//    glMatrixMode(GL_MODELVIEW);
+//    glLoadIdentity();
+//    glMatrixMode(GL_PROJECTION);
+//    glLoadIdentity();
+//    gluOrtho2D(0, width(), 0, height());
+//    glColor3f(fgcolor[0], fgcolor[1], fgcolor[2]);
+
+//    glMatrixMode(GL_MODELVIEW);
+//    glPushMatrix();
+//    glPopMatrix();
+//    if (nummesh == 1 || (dominantsurf != -1 && nummesh > dominantsurf)) {
+//        dommesh = nummesh == 1 ? meshes[0] : meshes[dominantsurf];
+//        char surfstr[50];
+//        if (dommesh->geom->subsurf <= 0)
+//            sprintf(surfstr, "Activation map Surface #%d", dommesh->geom->surfnum);
+//        else
+//            sprintf(surfstr, "Activation map Surface #%d-%d", dommesh->geom->surfnum, dommesh->geom->subsurf);
+//        surfnum = dommesh->geom->surfnum;
+//        position[0] = (float)width()/2.0 -((float)getFontWidth((int)large_font, surfstr)/2.0);
+//        position[1] = height() - getFontHeight((int)large_font);
+
+//        renderString3f(position[0], position[1], position[2], (int)large_font, surfstr);
+
+//        position[1] -= getFontHeight((int)med_font)*.8 ;
+//        if (dommesh->data){
+//            char * slash = 0;// FIX shorten_filename(dommesh->data->potfilename);
+//            //position[0] = (float)width()/2.0 - ((float)getFontWidth((int)med_font, slash)/2.0);
+//            // FIX renderString3f(position[0], position[1], position[2], (int)med_font, "%s@%d", slash, dommesh->data->seriesnum+1);
+//        }
+//        else{
+//            char * slash = 0; // FIX shorten_filename(dommesh->geom->basefilename);
+//            //position[0] = (float)width()/2.0 - ((float)getFontWidth((int)med_font, slash)/2.0);
+//            // FIX renderString3f(position[0], position[1], position[2], (int)med_font, slash);
+//        }
+//    }
+//    else if (nummesh > 1) {
+//        position[0] = (float)width()/2.0 -((float)getFontWidth((int)large_font, "All Surfaces")/2.0);
+//        renderString3f(position[0], position[1], position[2], (int)large_font, "All Surfaces");
+//    }
+}
+
+
+
+
 
 
 void ActivationMapWindow::addMesh(Mesh_Info *curmesh)
@@ -517,17 +527,17 @@ void ActivationMapWindow::recalcMinMax()
 
 void ActivationMapWindow::mousePressEvent(QMouseEvent * event)
 {
-    setMoveCoordinates(event);
-    int button = mouseButtonOverride(event);
-    if (button == Qt::RightButton){       // right click
+//    setMoveCoordinates(event);
+//    int button = mouseButtonOverride(event);
+//    if (button == Qt::RightButton){       // right click
 
-        int menu_data = OpenMenu(mapToGlobal(event->pos()));
-        if (menu_data >= 0)
-            MenuEvent(menu_data);
-    }
-    else {
-        HandleButtonPress(event, (float)event->x() / (float)width(), (float)event->y() / (float)height());
-    }
+//        int menu_data = OpenMenu(mapToGlobal(event->pos()));
+//        if (menu_data >= 0)
+//            MenuEvent(menu_data);
+//    }
+//    else {
+//        HandleButtonPress(event, (float)event->x() / (float)width(), (float)event->y() / (float)height());
+//    }
 }
 
 
@@ -551,201 +561,204 @@ void ActivationMapWindow::closeEvent(QCloseEvent * event)
 
 void ActivationMapWindow::HandleButtonPress(QMouseEvent * event, float xn, float yn)
 {
-    int button = mouseButtonOverride(event);
-    int newModifiers = button == event->buttons() ? event->modifiers() : Qt::NoModifier;
-    int x = int (width() * xn);
-    int y = int (height() - height() * yn);
+//    int button = mouseButtonOverride(event);
+//    int newModifiers = button == event->buttons() ? event->modifiers() : Qt::NoModifier;
+//    int x = int (width() * xn);
+//    int y = int (height() - height() * yn);
 
-    last_xn = xn;
-    last_yn = yn;
+//    last_xn = xn;
+//    last_yn = yn;
 
-    int length = meshes.size();
-    int loop = 0;
-    Transforms *tran = 0;
-    HVect vNow;
+//    int length = meshes.size();
+//    int loop = 0;
+//    Transforms *tran = 0;
+//    HVect vNow;
 
-    for (loop = 0; loop < length; loop++) {
-        tran = meshes[loop]->tran;
-        // MIDDLE MOUSE DOWN + SHIFT = start rotate clipping planes
-        if (button == Qt::MidButton && matchesModifiers(newModifiers, Qt::ShiftModifier, true)) {
-            if ((clip->back_enabled || clip->front_enabled) &&!clip->lock_with_object) {
-                vNow.x = 2.0f * x / width() - 1;
-                vNow.y = 2.0f * y / height() - 1;
-                Ball_Mouse(&clip->bd, vNow);
-                Ball_BeginDrag(&clip->bd);
-                break;
-            }
-#ifdef ROTATING_LIGHT
-            else {
-                vNow.x = 2.0f * x / width() - 1;
-                vNow.y = 2.0f * y / height() - 1;
-                Ball_Mouse(&light_pos, vNow);
-                Ball_BeginDrag(&light_pos);
-                break;
-            }
-#endif
-        }
-        if (button == Qt::LeftButton) {
-            vNow.x = 2.0f * x / width() - 1.0f;
-            vNow.y = 2.0f * y / height() - 1.0f;
-            Ball_Mouse(&tran->rotate, vNow);
-            Ball_BeginDrag(&tran->rotate);
-            if (clip->lock_with_object) {
-                Ball_Mouse(&clip->bd, vNow);
-                Ball_BeginDrag(&clip->bd);
-            }
-        }
-    }
-    update();
+//    for (loop = 0; loop < length; loop++) {
+//        tran = meshes[loop]->tran;
+//        // MIDDLE MOUSE DOWN + SHIFT = start rotate clipping planes
+//        if (button == Qt::MidButton && matchesModifiers(newModifiers, Qt::ShiftModifier, true)) {
+//            if ((clip->back_enabled || clip->front_enabled) &&!clip->lock_with_object) {
+//                vNow.x = 2.0f * x / width() - 1;
+//                vNow.y = 2.0f * y / height() - 1;
+//                Ball_Mouse(&clip->bd, vNow);
+//                Ball_BeginDrag(&clip->bd);
+//                break;
+//            }
+//#ifdef ROTATING_LIGHT
+//            else {
+//                vNow.x = 2.0f * x / width() - 1;
+//                vNow.y = 2.0f * y / height() - 1;
+//                Ball_Mouse(&light_pos, vNow);
+//                Ball_BeginDrag(&light_pos);
+//                break;
+//            }
+//#endif
+//        }
+//        if (button == Qt::LeftButton) {
+//            vNow.x = 2.0f * x / width() - 1.0f;
+//            vNow.y = 2.0f * y / height() - 1.0f;
+//            Ball_Mouse(&tran->rotate, vNow);
+//            Ball_BeginDrag(&tran->rotate);
+//            if (clip->lock_with_object) {
+//                Ball_Mouse(&clip->bd, vNow);
+//                Ball_BeginDrag(&clip->bd);
+//            }
+//        }
+//    }
+//    update();
 }
 
 
 void ActivationMapWindow::HandleMouseMotion(QMouseEvent * event, float xn, float yn)
 {
-    int button = mouseButtonOverride(event);
-    int newModifiers = button == event->buttons() ? event->modifiers() : Qt::NoModifier;
-    int x = int (width() * xn);
-    int y = int (height() - height() * yn);
+//    int button = mouseButtonOverride(event);
+//    int newModifiers = button == event->buttons() ? event->modifiers() : Qt::NoModifier;
+//    int x = int (width() * xn);
+//    int y = int (height() - height() * yn);
 
-    int length = meshes.size();
-    int loop = 0;
-    Transforms *tran = 0;
-    Mesh_Info *mesh = 0;
+//    int length = meshes.size();
+//    int loop = 0;
+//    Transforms *tran = 0;
+//    Mesh_Info *mesh = 0;
 
-    if (length > 1 && !map3d_info.lockrotate)
-        if (!map3d_info.lockgeneral) {
-            loop = dominantsurf;
-            length = loop + 1;
-        }
-        else {
-            loop = secondarysurf;
-            length = loop + 1;
-        }
+//    if (length > 1 && !map3d_info.lockrotate)
+//        if (!map3d_info.lockgeneral) {
+//            loop = dominantsurf;
+//            length = loop + 1;
+//        }
+//        else {
+//            loop = secondarysurf;
+//            length = loop + 1;
+//        }
 
-    for (; loop < length; loop++) {
-        mesh = meshes[loop];
-        if (map3d_info.selected_group != -1 && mesh->groupid != map3d_info.selected_group)
-            continue;
-        tran = mesh->tran;
+//    for (; loop < length; loop++) {
+//        mesh = meshes[loop];
+//        if (map3d_info.selected_group != -1 && mesh->groupid != map3d_info.selected_group)
+//            continue;
+//        tran = mesh->tran;
 
-        /* CTRL = nothing */
-        if (matchesModifiers(newModifiers, Qt::ControlModifier, true)) {
-            return;
-        }
+//        /* CTRL = nothing */
+//        if (matchesModifiers(newModifiers, Qt::ControlModifier, true)) {
+//            return;
+//        }
 
-        /* MIDDLE MOUSE DOWN + SHIFT = rotate clipping planes */
-        else if (button == Qt::MidButton && matchesModifiers(newModifiers, Qt::ShiftModifier, true)) {
-            if ((clip->back_enabled || clip->front_enabled) &&!clip->lock_with_object) {
-                HVect vNow;
-                vNow.x = 2.0f * x / width() - 1.0f;
-                vNow.y = 2.0f * y / height() - 1.0f;
+//        /* MIDDLE MOUSE DOWN + SHIFT = rotate clipping planes */
+//        else if (button == Qt::MidButton && matchesModifiers(newModifiers, Qt::ShiftModifier, true)) {
+//            if ((clip->back_enabled || clip->front_enabled) &&!clip->lock_with_object) {
+//                HVect vNow;
+//                vNow.x = 2.0f * x / width() - 1.0f;
+//                vNow.y = 2.0f * y / height() - 1.0f;
 
-                Ball_Mouse(&clip->bd, vNow);
-                Ball_Update(&clip->bd, 0);
-                break;
-            }
-            else {
-                HVect vNow;
-                vNow.x = 2.0f * x / width() - 1.0f;
-                vNow.y = 2.0f * y / height() - 1.0f;
+//                Ball_Mouse(&clip->bd, vNow);
+//                Ball_Update(&clip->bd, 0);
+//                break;
+//            }
+//            else {
+//                HVect vNow;
+//                vNow.x = 2.0f * x / width() - 1.0f;
+//                vNow.y = 2.0f * y / height() - 1.0f;
 
-#ifdef ROTATING_LIGHT
-                Ball_Mouse(&light_pos, vNow);
-                Ball_Update(&light_pos, 0);
-#endif
-                break;
-            }
-        }
-        // LEFT MOUSE DOWN + ALT = draw moving window
-        else if (button == Qt::LeftButton && matchesModifiers(newModifiers, Qt::AltModifier, true)) {
-            moveEvent(event);
-        }
-        // MIDDLE MOUSE DOWN + ALT = draw reshaping window
-        else if (button == Qt::MidButton && matchesModifiers(newModifiers, Qt::AltModifier, true)) {
-            sizeEvent(event);
-        }
-        // LEFT MOUSE DOWN + SHIFT = translate
-        else if (button == Qt::LeftButton && matchesModifiers(newModifiers, Qt::ShiftModifier, true)) {
-            tran->tx += l2norm * (xn - last_xn)  * vfov / 29.f;
-            tran->ty += l2norm * (last_yn - yn)  * vfov / 29.f;
+//#ifdef ROTATING_LIGHT
+//                Ball_Mouse(&light_pos, vNow);
+//                Ball_Update(&light_pos, 0);
+//#endif
+//                break;
+//            }
+//        }
+//        // LEFT MOUSE DOWN + ALT = draw moving window
+//        else if (button == Qt::LeftButton && matchesModifiers(newModifiers, Qt::AltModifier, true)) {
+//            moveEvent(event);
+//        }
+//        // MIDDLE MOUSE DOWN + ALT = draw reshaping window
+//        else if (button == Qt::MidButton && matchesModifiers(newModifiers, Qt::AltModifier, true)) {
+//            sizeEvent(event);
+//        }
+//        // LEFT MOUSE DOWN + SHIFT = translate
+//        else if (button == Qt::LeftButton && matchesModifiers(newModifiers, Qt::ShiftModifier, true)) {
+//            tran->tx += l2norm * (xn - last_xn)  * vfov / 29.f;
+//            tran->ty += l2norm * (last_yn - yn)  * vfov / 29.f;
 
-            //set the globalSurf translation
-            mesh->mysurf->parent->SurfList[MAX_SURFS]->translation[0] = tran->tx;
-            mesh->mysurf->parent->SurfList[MAX_SURFS]->translation[1] = tran->ty;
-            mesh->mysurf->parent->SurfList[MAX_SURFS]->translation[2] = tran->tz;
+//            //set the globalSurf translation
+//            mesh->mysurf->parent->SurfList[MAX_SURFS]->translation[0] = tran->tx;
+//            mesh->mysurf->parent->SurfList[MAX_SURFS]->translation[1] = tran->ty;
+//            mesh->mysurf->parent->SurfList[MAX_SURFS]->translation[2] = tran->tz;
 
-        }
-        // LEFT MOUSE DOWN = rotate
-        else if (button == Qt::LeftButton) {
-            HVect vNow;
-            vNow.x = 2.0f * x / width() - 1.0f;
-            vNow.y = 2.0f * y / height() - 1.0f;
+//        }
+//        // LEFT MOUSE DOWN = rotate
+//        else if (button == Qt::LeftButton) {
+//            HVect vNow;
+//            vNow.x = 2.0f * x / width() - 1.0f;
+//            vNow.y = 2.0f * y / height() - 1.0f;
 
-            Ball_Mouse(&tran->rotate, vNow);
-            Ball_Update(&tran->rotate, 0);
+//            Ball_Mouse(&tran->rotate, vNow);
+//            Ball_Update(&tran->rotate, 0);
 
-            //set the globalSurf translation
-            mesh->mysurf->parent->SurfList[MAX_SURFS]->rotationQuat = tran->rotate.qNow;
+//            //set the globalSurf translation
+//            mesh->mysurf->parent->SurfList[MAX_SURFS]->rotationQuat = tran->rotate.qNow;
 
-            if (clip->lock_with_object) {
-                Ball_Mouse(&clip->bd, vNow);
-                Ball_Update(&clip->bd, 0);
-            }
-        }
+//            if (clip->lock_with_object) {
+//                Ball_Mouse(&clip->bd, vNow);
+//                Ball_Update(&clip->bd, 0);
+//            }
+//        }
 
-        /* MIDDLE MOUSE DOWN = zoom (scale) */
-        else if (button == Qt::MidButton) {
-            if (yn < last_yn)
-                vfov -= vfov / 24.0f;
-            else if (yn > last_yn)
-                vfov += vfov / 24.0f;
+//        /* MIDDLE MOUSE DOWN = zoom (scale) */
+//        else if (button == Qt::MidButton) {
+//            if (yn < last_yn)
+//                vfov -= vfov / 24.0f;
+//            else if (yn > last_yn)
+//                vfov += vfov / 24.0f;
 
-            if (vfov > 179)
-                vfov = 179.0f;
-            if (vfov < 0.01)
-                vfov = 0.01f;
-        }
-    }
+//            if (vfov > 179)
+//                vfov = 179.0f;
+//            if (vfov < 0.01)
+//                vfov = 0.01f;
+//        }
+//    }
 
-    last_xn = xn;
-    last_yn = yn;
+//    last_xn = xn;
+//    last_yn = yn;
 
-    update();
+//    update();
 }
 
 void ActivationMapWindow::HandleButtonRelease(QMouseEvent * event, float /*xn*/, float /*yn*/)
 {
-    int button = mouseButtonOverride(event);
-    int newModifiers = button == event->button() ? event->modifiers() : Qt::NoModifier;
+//    int button = mouseButtonOverride(event);
+//    int newModifiers = button == event->button() ? event->modifiers() : Qt::NoModifier;
 
-    int length = meshes.size();
-    int loop = 0;
-    Transforms *tran = 0;
+//    int length = meshes.size();
+//    int loop = 0;
+//    Transforms *tran = 0;
 
-    for (loop = 0; loop < length; loop++) {
-        tran = meshes[loop]->tran;
-        // MIDDLE MOUSE UP + SHIFT = end rotate clipping planes
-        if (button == Qt::MidButton && matchesModifiers(newModifiers, Qt::ShiftModifier, true)) {
-            if ((clip->back_enabled || clip->front_enabled) &&!clip->lock_with_object)
-                Ball_EndDrag(&clip->bd);
-#ifdef ROTATING_LIGHT
-            else
-                Ball_EndDrag(&light_pos);
-#endif
-            break;
-        }
-        // LEFT MOUSE UP = end rotate
-        if (button == Qt::LeftButton) {
-            Ball_EndDrag(&tran->rotate);
-            if (clip->lock_with_object)
-                Ball_EndDrag(&clip->bd);
-        }
-    }
-    update();
+//    for (loop = 0; loop < length; loop++) {
+//        tran = meshes[loop]->tran;
+//        // MIDDLE MOUSE UP + SHIFT = end rotate clipping planes
+//        if (button == Qt::MidButton && matchesModifiers(newModifiers, Qt::ShiftModifier, true)) {
+//            if ((clip->back_enabled || clip->front_enabled) &&!clip->lock_with_object)
+//                Ball_EndDrag(&clip->bd);
+//#ifdef ROTATING_LIGHT
+//            else
+//                Ball_EndDrag(&light_pos);
+//#endif
+//            break;
+//        }
+//        // LEFT MOUSE UP = end rotate
+//        if (button == Qt::LeftButton) {
+//            Ball_EndDrag(&tran->rotate);
+//            if (clip->lock_with_object)
+//                Ball_EndDrag(&clip->bd);
+//        }
+//    }
+//    update();
 }
 
 void ActivationMapWindow::Transform(Mesh_Info * curmesh, float factor, bool compensateForRetinaDisplay)
 {
+    std::cout<<"enter transform in activation window"<<std::endl;
+
+
     HMatrix mNow, cNow;           // arcball rotation matrices
 
     GLdouble front_plane[] = { 0, 0, 1, clip->front };
@@ -776,6 +789,9 @@ void ActivationMapWindow::Transform(Mesh_Info * curmesh, float factor, bool comp
     /* current mousing translation */
     glTranslatef(curmesh->tran->tx, curmesh->tran->ty, curmesh->tran->tz);
 
+    std::cout<<"curmesh->tran #1"<<curmesh->tran->tx<<"     "<<curmesh->tran->ty<<"     "<<curmesh->tran->tz<<"     "<<std::endl;
+
+
     /* finally, move the mesh to in front of the eye */
     glTranslatef(0, 0, l2norm * (factor - 2));
 
@@ -794,6 +810,8 @@ void ActivationMapWindow::Transform(Mesh_Info * curmesh, float factor, bool comp
 
     /* move center of mesh to origin */
     glTranslatef(-xcenter, -ycenter, -zcenter);
+
+
 }
 
 void ActivationMapWindow::DrawBGImage()
@@ -837,23 +855,23 @@ void ActivationMapWindow::DrawBGImage()
 
 int ActivationMapWindow::OpenMenu(QPoint point)
 {
-    int all_node_num = 0;
+//    int all_node_num = 0;
 
-    QMenu menu(this);
+//    QMenu menu(this);
 
-    QMenu* submenu = menu.addMenu("Node Marking");
+//    QMenu* submenu = menu.addMenu("Node Marking");
 
-    QAction* action = submenu->addAction("Node #");
-    action->setData(mark_all_activation_node); action->setCheckable(true); action->setChecked(all_node_num == 1);
+//    QAction* action = submenu->addAction("Node #");
+//    action->setData(mark_all_activation_node); action->setCheckable(true); action->setChecked(all_node_num == 1);
 
-    action = submenu->addAction("activation time");
-    action->setData(mark_all_activation_value); action->setCheckable(true); action->setChecked(all_node_num == 2);
+//    action = submenu->addAction("activation time");
+//    action->setData(mark_all_activation_value); action->setCheckable(true); action->setChecked(all_node_num == 2);
 
-    action = menu.exec(point);
-    if (action)
-        return action->data().toInt();
-    else
-        return -1;
+//    action = menu.exec(point);
+//    if (action)
+//        return action->data().toInt();
+//    else
+//        return -1;
 
 }
 
@@ -913,94 +931,94 @@ void ActivationMapWindow::HandleMenu(int menu_data)
 
 void ActivationMapWindow::DrawNodes(Mesh_Info * curmesh)
 {
-    //  int curframe = 0;
-    int length = 0, loop = 0;
-    float min = 0, max = 0, value = 0;
-    float mNowI[16];
-    float **modelpts = 0;
-    Map3d_Geom *curgeom = 0;
-    Surf_Data *cursurf = 0;
-    HMatrix mNow;
+//    //  int curframe = 0;
+//    int length = 0, loop = 0;
+//    float min = 0, max = 0, value = 0;
+//    float mNowI[16];
+//    float **modelpts = 0;
+//    Map3d_Geom *curgeom = 0;
+//    Surf_Data *cursurf = 0;
+//    HMatrix mNow;
 
-    ColorMap *curmap = 0;
-    curgeom = curmesh->geom;
-    cursurf = curmesh->data;
+//    ColorMap *curmap = 0;
+//    curgeom = curmesh->geom;
+//    cursurf = curmesh->data;
 
-    modelpts = curgeom->points[curgeom->geom_index];
+//    modelpts = curgeom->points[curgeom->geom_index];
 
-    if (cursurf) {
-        curmap = curmesh->cmap;
-    }
+//    if (cursurf) {
+//        curmap = curmesh->cmap;
+//    }
 
-    length = curgeom->numpts;
+//    length = curgeom->numpts;
 
-    /* set the transform for billboarding */
-    Ball_Value(&curmesh->tran->rotate, mNow);
-    TransposeMatrix16((float *)mNow, mNowI);
-    Transform(curmesh, 0.01f, true);
-    glPushMatrix();
+//    /* set the transform for billboarding */
+//    Ball_Value(&curmesh->tran->rotate, mNow);
+//    TransposeMatrix16((float *)mNow, mNowI);
+//    Transform(curmesh, 0.01f, true);
+//    glPushMatrix();
 
-    //if (!cursurf)
-    //return;
-    if (cursurf)
-        cursurf->get_minmax(min, max);
-    unsigned char color[3];
-    float pos[3];
+//    //if (!cursurf)
+//    //return;
+//    if (cursurf)
+//        cursurf->get_minmax(min, max);
+//    unsigned char color[3];
+//    float pos[3];
 
-    if (curmesh->mark_all_activation_number) {
-        //glDepthMask(GL_FALSE);
+//    if (curmesh->mark_all_activation_number) {
+//        //glDepthMask(GL_FALSE);
 
-        for (loop = 0; loop < length; loop++) {
-            if (cursurf) {
-                value = cursurf->potvals[cursurf->framenum][loop];
-                getContColor(value, min, max, curmap, color, curmesh->invert);
-            }
-            glTranslatef(modelpts[loop][0], modelpts[loop][1], modelpts[loop][2]);
-            glMultMatrixf((float *)mNowI);
-            glTranslatef(-modelpts[loop][0], -modelpts[loop][1], -modelpts[loop][2]);
-            pos[0] = modelpts[loop][0];
-            pos[1] = modelpts[loop][1];
-            pos[2] = modelpts[loop][2];
+//        for (loop = 0; loop < length; loop++) {
+//            if (cursurf) {
+//                value = cursurf->potvals[cursurf->framenum][loop];
+//                getContColor(value, min, max, curmap, color, curmesh->invert);
+//            }
+//            glTranslatef(modelpts[loop][0], modelpts[loop][1], modelpts[loop][2]);
+//            glMultMatrixf((float *)mNowI);
+//            glTranslatef(-modelpts[loop][0], -modelpts[loop][1], -modelpts[loop][2]);
+//            pos[0] = modelpts[loop][0];
+//            pos[1] = modelpts[loop][1];
+//            pos[2] = modelpts[loop][2];
 
-            int number = 0;
+//            int number = 0;
 
-            if (curmesh->mark_all_activation_number) {
-                // this is a function of the fov (zoom), the ratio of
-                // mesh's l2norm to the window's l2norm and the window
-                // height to determine whether the numbers will be too
-                // close together or not
+//            if (curmesh->mark_all_activation_number) {
+//                // this is a function of the fov (zoom), the ratio of
+//                // mesh's l2norm to the window's l2norm and the window
+//                // height to determine whether the numbers will be too
+//                // close together or not
 
-                glColor3f(curmesh->mark_all_color[0], curmesh->mark_all_color[1], curmesh->mark_all_color[2]);
-                number = curmesh->mark_all_activation_number;
-            }
+//                glColor3f(curmesh->mark_all_color[0], curmesh->mark_all_color[1], curmesh->mark_all_color[2]);
+//                number = curmesh->mark_all_activation_number;
+//            }
 
-            float scale = fontScale();
-            switch (number) {
-            case 1:
-                renderString3f(pos[0], pos[1], pos[2], (int)small_font, QString::number(loop + 1), scale);
-                break;
+//            float scale = fontScale();
+//            switch (number) {
+//            case 1:
+//                renderString3f(pos[0], pos[1], pos[2], (int)small_font, QString::number(loop + 1), scale);
+//                break;
 
-            case 2:
-                if (cursurf && cursurf->activationvals && cursurf->activationvals[loop] != UNUSED_DATA)
-                    renderString3f(pos[0], pos[1], pos[2], (int)small_font,
-                            QString::number(cursurf->activationvals[loop], 'g', 2), scale);
-                break;
+//            case 2:
+//                if (cursurf && cursurf->activationvals && cursurf->activationvals[loop] != UNUSED_DATA)
+//                    renderString3f(pos[0], pos[1], pos[2], (int)small_font,
+//                            QString::number(cursurf->activationvals[loop], 'g', 2), scale);
+//                break;
 
 
-            }
-            glPopMatrix();
-            glPushMatrix();
-        }
-        glDepthMask(GL_TRUE);
-    }
+//            }
+//            glPopMatrix();
+//            glPushMatrix();
+//        }
+//        glDepthMask(GL_TRUE);
+//    }
 
-    glPopMatrix();
+//    glPopMatrix();
 
-#if SHOW_OPENGL_ERRORS
-    GLenum e = glGetError();
-    if (e)
-        printf("GeomWindow DrawNodes OpenGL Error: %s\n", gluErrorString(e));
-#endif
+//#if SHOW_OPENGL_ERRORS
+//    GLenum e = glGetError();
+//    if (e)
+//        printf("GeomWindow DrawNodes OpenGL Error: %s\n", gluErrorString(e));
+//#endif
 }
 
 float ActivationMapWindow::fontScale()

@@ -92,7 +92,7 @@ extern int unlock_MFS_surfnum[];
 extern float **recording_all_pts;
 extern bool plot_nearest_electrode;
 
-Engine *ep = engOpen(NULL);
+//Engine *ep = engOpen(NULL);
 
 void GeomWindow::paintGL()
 {
@@ -592,268 +592,7 @@ void GeomWindow::DrawForwardOnly(Mesh_Info * curmesh) //show the catheters only 
 
 
 
-void GeomWindow::CalculateMFSValue(Mesh_Info * recordingmesh, Mesh_Info * curmesh)
 
-{
-    engSetVisible(ep, false);
-
-    int catheter_num = 0, atria_num =0, loop1 = 0,loop2 = 0;
-
-
-    // float **modelpts,**atriapts;
-    long **catheterelement, **atriaelement;
-
-
-    Map3d_Geom *recordinggeom = 0;
-    Surf_Data *recordingsurf = 0;
-    recordinggeom = recordingmesh->geom;
-    recordingsurf = recordingmesh->data;
-    catheter_num = recordinggeom->numpts;
-    // modelpts = recordinggeom->points[recordinggeom->geom_index];
-    catheterelement = recordinggeom->elements;
-
-
-    Map3d_Geom *curgeom = 0;
-    Surf_Data *cursurf = 0;
-    curgeom = curmesh->geom;
-    cursurf = curmesh->data;
-    atria_num = curgeom->numpts;
-    // atriapts = curgeom->points[curgeom->geom_index];
-    atriaelement = curgeom->elements;
-
-    // this part is to rotate the catheter. if map3d_info.lockrotate==LOCK_OFF, only apply transform matrix to catheter
-    // if map3d_info.lockrotate==LOCK_FULL, apply both transform matrix to catheter and atrium, corresponding matrix is different.
-    float** pts = recordinggeom->points[recordinggeom->geom_index];
-    float** geom_temp_catheter_pts=pts;
-    float **rotated_catheter_pts = 0;
-    rotated_catheter_pts= Alloc_fmatrix(recordinggeom->numpts, 3);
-
-    GeomWindow* priv_catheter = recordingmesh->gpriv;
-    HMatrix mNow_catheter /*, original */ ;  // arcball rotation matrices
-    Transforms *tran_catheter = recordingmesh->tran;
-    //translation matrix in column-major
-    float centerM_catheter[4][4] = {{1,0,0,0},{0,1,0,0},{0,0,1,0},
-                                    {-priv_catheter->xcenter,-priv_catheter->ycenter,-priv_catheter->zcenter,1}};
-    float invCenterM_catheter[4][4] = {{1,0,0,0},{0,1,0,0},{0,0,1,0},
-                                       {priv_catheter->xcenter,priv_catheter->ycenter,priv_catheter->zcenter,1}};
-    float translateM_catheter[4][4] = { {1, 0, 0, 0}, {0, 1, 0, 0}, {0, 0, 1, 0},
-                                        {tran_catheter->tx, tran_catheter->ty, tran_catheter->tz, 1}
-                                      };
-    float temp_catheter[16];
-    float product_catheter[16];
-
-    //rotation matrix
-    Ball_Value(&tran_catheter->rotate, mNow_catheter);
-    // apply translation
-    // translate recordingmesh's center to origin
-    MultMatrix16x16((float *)translateM_catheter, (float *)invCenterM_catheter, (float*)product_catheter);
-    // rotate
-    MultMatrix16x16((float *)product_catheter, (float *)mNow_catheter, (float*)temp_catheter);
-    // revert recordingmesh translation to origin
-    MultMatrix16x16((float*)temp_catheter, (float *) centerM_catheter, (float*)product_catheter);
-
-
-
-    for (loop1 = 0; loop1 < catheter_num; loop1++)
-    {
-
-        float rhs_catheter[4];
-        float result_catheter[4];
-        rhs_catheter[0] = pts[loop1][0];
-        rhs_catheter[1] = pts[loop1][1];
-        rhs_catheter[2] = pts[loop1][2];
-        rhs_catheter[3] = 1;
-
-        MultMatrix16x4(product_catheter, rhs_catheter, result_catheter);
-
-        rotated_catheter_pts[loop1][0] = result_catheter[0];
-        rotated_catheter_pts[loop1][1] = result_catheter[1];
-        rotated_catheter_pts[loop1][2] = result_catheter[2];
-    }
-
-    geom_temp_catheter_pts=rotated_catheter_pts;
-
-    //this part is to rotate the source surface (atrium).transform matrix is not applied if map3d_info.lockrotate==LOCK_OFF
-
-    float** pts_atria = curgeom->points[curgeom->geom_index];
-    float** geom_temp_atria_pts=pts_atria;
-    float **rotated_atria_pts = 0;
-    rotated_atria_pts= Alloc_fmatrix(curgeom->numpts, 3);
-
-
-    GeomWindow* priv_atria = curmesh->gpriv;
-    HMatrix mNow_atria /*, original */ ;  // arcball rotation matrices
-    Transforms *tran_atria = curmesh->tran;
-    //translation matrix in column-major
-    float centerM_atria[4][4] = {{1,0,0,0},{0,1,0,0},{0,0,1,0},
-                                 {-priv_atria->xcenter,-priv_atria->ycenter,-priv_atria->zcenter,1}};
-    float invCenterM_atria[4][4] = {{1,0,0,0},{0,1,0,0},{0,0,1,0},
-                                    {priv_atria->xcenter,priv_atria->ycenter,priv_atria->zcenter,1}};
-    float translateM_atria[4][4] = { {1, 0, 0, 0}, {0, 1, 0, 0}, {0, 0, 1, 0},
-                                     {tran_atria->tx, tran_atria->ty, tran_atria->tz, 1}
-                                   };
-    float temp_atria[16];
-    float product_atria[16];
-
-    //rotation matrix
-    Ball_Value(&tran_atria->rotate, mNow_atria);
-    // apply translation
-    // translate curmesh's center to origin
-    MultMatrix16x16((float *)translateM_atria, (float *)invCenterM_atria, (float*)product_atria);
-    // rotate
-    MultMatrix16x16((float *)product_atria, (float *)mNow_atria, (float*)temp_atria);
-    // revert curmesh translation to origin
-    MultMatrix16x16((float*)temp_atria, (float *) centerM_atria, (float*)product_atria);
-
-
-    for (loop2 = 0; loop2 < atria_num; loop2++)
-    {
-
-        float rhs_atria[4];
-        float result_atria[4];
-        rhs_atria[0] = pts_atria[loop2][0];
-        rhs_atria[1] = pts_atria[loop2][1];
-        rhs_atria[2] = pts_atria[loop2][2];
-        rhs_atria[3] = 1;
-
-        MultMatrix16x4(product_atria, rhs_atria, result_atria);
-
-        rotated_atria_pts[loop2][0] = result_atria[0];
-        rotated_atria_pts[loop2][1] = result_atria[1];
-        rotated_atria_pts[loop2][2] = result_atria[2];
-
-    }
-    geom_temp_atria_pts=rotated_atria_pts;
-
-
-
-    // pass coordinates of catheters
-    double pot_temp[catheter_num], cath_x[catheter_num],cath_y[catheter_num],cath_z[catheter_num];
-
-    for (int i=0; i< catheter_num; i++)
-    {
-
-        if (recordingsurf->forwardvals[recordingsurf->framenum][i]==0)
-        {pot_temp[i] =recordingsurf->potvals[recordingsurf->framenum][i];}
-        else
-        {pot_temp[i] =recordingsurf->forwardvals[recordingsurf->framenum][i];}
-
-
-        cath_x[i] =  geom_temp_catheter_pts[i][0];
-        cath_y[i] =  geom_temp_catheter_pts[i][1];
-        cath_z[i] =  geom_temp_catheter_pts[i][2];
-    }
-
-    mxArray *catheter_potential_matlab = mxCreateDoubleMatrix(1,catheter_num, mxREAL);
-    memcpy(mxGetPr(catheter_potential_matlab), pot_temp, catheter_num*sizeof(double));
-    engPutVariable(ep, "catheter_potential",catheter_potential_matlab);
-
-    mxArray *cath_x_matlab = mxCreateDoubleMatrix(1,catheter_num, mxREAL);
-    memcpy(mxGetPr(cath_x_matlab), cath_x, catheter_num*sizeof(double));
-    engPutVariable(ep, "c_x",cath_x_matlab);
-
-    mxArray *cath_y_matlab = mxCreateDoubleMatrix(1,catheter_num, mxREAL);
-    memcpy(mxGetPr(cath_y_matlab), cath_y, catheter_num*sizeof(double));
-    engPutVariable(ep, "c_y",cath_y_matlab);
-
-    mxArray *cath_z_matlab = mxCreateDoubleMatrix(1,catheter_num, mxREAL);
-    memcpy(mxGetPr(cath_z_matlab), cath_z, catheter_num*sizeof(double));
-    engPutVariable(ep, "c_z",cath_z_matlab);
-
-    // pass coordinates of atria
-    double atria_x[atria_num],atria_y[atria_num],atria_z[atria_num];
-    for (int i=0; i< atria_num; i++)
-    {
-
-        atria_x[i] =  geom_temp_atria_pts[i][0];
-        atria_y[i] =  geom_temp_atria_pts[i][1];
-        atria_z[i] =  geom_temp_atria_pts[i][2];
-    }
-    mxArray *atria_x_matlab = mxCreateDoubleMatrix(1,atria_num, mxREAL);
-    memcpy(mxGetPr(atria_x_matlab), atria_x, atria_num*sizeof(double));
-    engPutVariable(ep, "a_x",atria_x_matlab);
-
-    mxArray *atria_y_matlab = mxCreateDoubleMatrix(1,atria_num, mxREAL);
-    memcpy(mxGetPr(atria_y_matlab), atria_y, atria_num*sizeof(double));
-    engPutVariable(ep, "a_y",atria_y_matlab);
-
-    mxArray *atria_z_matlab = mxCreateDoubleMatrix(1,atria_num, mxREAL);
-    memcpy(mxGetPr(atria_z_matlab), atria_z, atria_num*sizeof(double));
-    engPutVariable(ep, "a_z",atria_z_matlab);
-
-
-
-    // pass elements of catheters
-    double c_ele_1[recordinggeom->numelements],c_ele_2[recordinggeom->numelements],c_ele_3[recordinggeom->numelements];
-    for (int j=0; j< recordinggeom->numelements; j++)
-    {
-        c_ele_1[j] = catheterelement[j][0]+1;
-        c_ele_2[j] = catheterelement[j][1]+1;
-        c_ele_3[j] = catheterelement[j][2]+1;
-    }
-
-    mxArray *cath_e1_matlab = mxCreateDoubleMatrix(1,recordinggeom->numelements, mxREAL);
-    memcpy(mxGetPr(cath_e1_matlab), c_ele_1, recordinggeom->numelements*sizeof(double));
-    engPutVariable(ep, "c_ele_1",cath_e1_matlab);
-
-    mxArray *cath_e2_matlab = mxCreateDoubleMatrix(1,recordinggeom->numelements, mxREAL);
-    memcpy(mxGetPr(cath_e2_matlab), c_ele_2, recordinggeom->numelements*sizeof(double));
-    engPutVariable(ep, "c_ele_2",cath_e2_matlab);
-
-    mxArray *cath_e3_matlab = mxCreateDoubleMatrix(1,recordinggeom->numelements, mxREAL);
-    memcpy(mxGetPr(cath_e3_matlab), c_ele_3, recordinggeom->numelements*sizeof(double));
-    engPutVariable(ep, "c_ele_3",cath_e3_matlab);
-
-
-
-
-    // pass elements of atria
-    double a_ele_1[curgeom->numelements],a_ele_2[curgeom->numelements],a_ele_3[curgeom->numelements];
-    for (int k=0; k< curgeom->numelements; k++)
-    {
-        a_ele_1[k] = atriaelement[k][0]+1;
-        a_ele_2[k] = atriaelement[k][1]+1;
-        a_ele_3[k] = atriaelement[k][2]+1;
-
-    }
-
-    mxArray *atria_e1_matlab = mxCreateDoubleMatrix(1,curgeom->numelements, mxREAL);
-    memcpy(mxGetPr(atria_e1_matlab), a_ele_1, curgeom->numelements*sizeof(double));
-    engPutVariable(ep, "a_ele_1",atria_e1_matlab);
-
-    mxArray *atria_e2_matlab = mxCreateDoubleMatrix(1,curgeom->numelements, mxREAL);
-    memcpy(mxGetPr(atria_e2_matlab), a_ele_2, curgeom->numelements*sizeof(double));
-    engPutVariable(ep, "a_ele_2",atria_e2_matlab);
-
-    mxArray *atria_e3_matlab = mxCreateDoubleMatrix(1,curgeom->numelements, mxREAL);
-    memcpy(mxGetPr(atria_e3_matlab), a_ele_3, curgeom->numelements*sizeof(double));
-    engPutVariable(ep, "a_ele_3",atria_e3_matlab);
-
-
-    engEvalString(ep, "addpath(genpath('/hpc_ntot/smen974/Map3d/MFS_Functions'))");
-    engEvalString(ep, "mfsEGM=solve_MFS(c_x,c_y,c_z,c_ele_1,c_ele_2,c_ele_3,a_x,a_y,a_z,a_ele_1,a_ele_2,a_ele_3, catheter_potential)");
-
-    mxArray *mfsEGM_matlab = engGetVariable(ep, "mfsEGM");
-    double *mfsEGM = mxGetPr(mfsEGM_matlab);
-
-//    string filename;
-//    ofstream files;
-//    stringstream a;
-//    a << cursurf->framenum;
-//    filename = "inverse_96_" + a.str();
-//    filename += ".txt";
-//    files.open(filename.c_str(), ios::out);
-
-
-    for (int i = 0; i <atria_num; i++)
-    {
-        cursurf->MFSvals[cursurf->framenum][i]=mfsEGM[i];
-
-
-//        files << cursurf->MFSvals[cursurf->framenum][i] << " " ;
-//        files << "\n";
-    }
-}
 
 
 
@@ -2941,5 +2680,269 @@ void GeomWindow::DrawMFS(Mesh_Info * curmesh)
         printf("GeomWindow DrawSurf OpenGL Error: %s\n", gluErrorString(e));
 #endif
 }
+
+
+//void GeomWindow::CalculateMFSValue(Mesh_Info * recordingmesh, Mesh_Info * curmesh)
+
+//{
+//    engSetVisible(ep, false);
+
+//    int catheter_num = 0, atria_num =0, loop1 = 0,loop2 = 0;
+
+
+//    // float **modelpts,**atriapts;
+//    long **catheterelement, **atriaelement;
+
+
+//    Map3d_Geom *recordinggeom = 0;
+//    Surf_Data *recordingsurf = 0;
+//    recordinggeom = recordingmesh->geom;
+//    recordingsurf = recordingmesh->data;
+//    catheter_num = recordinggeom->numpts;
+//    // modelpts = recordinggeom->points[recordinggeom->geom_index];
+//    catheterelement = recordinggeom->elements;
+
+
+//    Map3d_Geom *curgeom = 0;
+//    Surf_Data *cursurf = 0;
+//    curgeom = curmesh->geom;
+//    cursurf = curmesh->data;
+//    atria_num = curgeom->numpts;
+//    // atriapts = curgeom->points[curgeom->geom_index];
+//    atriaelement = curgeom->elements;
+
+//    // this part is to rotate the catheter. if map3d_info.lockrotate==LOCK_OFF, only apply transform matrix to catheter
+//    // if map3d_info.lockrotate==LOCK_FULL, apply both transform matrix to catheter and atrium, corresponding matrix is different.
+//    float** pts = recordinggeom->points[recordinggeom->geom_index];
+//    float** geom_temp_catheter_pts=pts;
+//    float **rotated_catheter_pts = 0;
+//    rotated_catheter_pts= Alloc_fmatrix(recordinggeom->numpts, 3);
+
+//    GeomWindow* priv_catheter = recordingmesh->gpriv;
+//    HMatrix mNow_catheter /*, original */ ;  // arcball rotation matrices
+//    Transforms *tran_catheter = recordingmesh->tran;
+//    //translation matrix in column-major
+//    float centerM_catheter[4][4] = {{1,0,0,0},{0,1,0,0},{0,0,1,0},
+//                                    {-priv_catheter->xcenter,-priv_catheter->ycenter,-priv_catheter->zcenter,1}};
+//    float invCenterM_catheter[4][4] = {{1,0,0,0},{0,1,0,0},{0,0,1,0},
+//                                       {priv_catheter->xcenter,priv_catheter->ycenter,priv_catheter->zcenter,1}};
+//    float translateM_catheter[4][4] = { {1, 0, 0, 0}, {0, 1, 0, 0}, {0, 0, 1, 0},
+//                                        {tran_catheter->tx, tran_catheter->ty, tran_catheter->tz, 1}
+//                                      };
+//    float temp_catheter[16];
+//    float product_catheter[16];
+
+//    //rotation matrix
+//    Ball_Value(&tran_catheter->rotate, mNow_catheter);
+//    // apply translation
+//    // translate recordingmesh's center to origin
+//    MultMatrix16x16((float *)translateM_catheter, (float *)invCenterM_catheter, (float*)product_catheter);
+//    // rotate
+//    MultMatrix16x16((float *)product_catheter, (float *)mNow_catheter, (float*)temp_catheter);
+//    // revert recordingmesh translation to origin
+//    MultMatrix16x16((float*)temp_catheter, (float *) centerM_catheter, (float*)product_catheter);
+
+
+
+//    for (loop1 = 0; loop1 < catheter_num; loop1++)
+//    {
+
+//        float rhs_catheter[4];
+//        float result_catheter[4];
+//        rhs_catheter[0] = pts[loop1][0];
+//        rhs_catheter[1] = pts[loop1][1];
+//        rhs_catheter[2] = pts[loop1][2];
+//        rhs_catheter[3] = 1;
+
+//        MultMatrix16x4(product_catheter, rhs_catheter, result_catheter);
+
+//        rotated_catheter_pts[loop1][0] = result_catheter[0];
+//        rotated_catheter_pts[loop1][1] = result_catheter[1];
+//        rotated_catheter_pts[loop1][2] = result_catheter[2];
+//    }
+
+//    geom_temp_catheter_pts=rotated_catheter_pts;
+
+//    //this part is to rotate the source surface (atrium).transform matrix is not applied if map3d_info.lockrotate==LOCK_OFF
+
+//    float** pts_atria = curgeom->points[curgeom->geom_index];
+//    float** geom_temp_atria_pts=pts_atria;
+//    float **rotated_atria_pts = 0;
+//    rotated_atria_pts= Alloc_fmatrix(curgeom->numpts, 3);
+
+
+//    GeomWindow* priv_atria = curmesh->gpriv;
+//    HMatrix mNow_atria /*, original */ ;  // arcball rotation matrices
+//    Transforms *tran_atria = curmesh->tran;
+//    //translation matrix in column-major
+//    float centerM_atria[4][4] = {{1,0,0,0},{0,1,0,0},{0,0,1,0},
+//                                 {-priv_atria->xcenter,-priv_atria->ycenter,-priv_atria->zcenter,1}};
+//    float invCenterM_atria[4][4] = {{1,0,0,0},{0,1,0,0},{0,0,1,0},
+//                                    {priv_atria->xcenter,priv_atria->ycenter,priv_atria->zcenter,1}};
+//    float translateM_atria[4][4] = { {1, 0, 0, 0}, {0, 1, 0, 0}, {0, 0, 1, 0},
+//                                     {tran_atria->tx, tran_atria->ty, tran_atria->tz, 1}
+//                                   };
+//    float temp_atria[16];
+//    float product_atria[16];
+
+//    //rotation matrix
+//    Ball_Value(&tran_atria->rotate, mNow_atria);
+//    // apply translation
+//    // translate curmesh's center to origin
+//    MultMatrix16x16((float *)translateM_atria, (float *)invCenterM_atria, (float*)product_atria);
+//    // rotate
+//    MultMatrix16x16((float *)product_atria, (float *)mNow_atria, (float*)temp_atria);
+//    // revert curmesh translation to origin
+//    MultMatrix16x16((float*)temp_atria, (float *) centerM_atria, (float*)product_atria);
+
+
+//    for (loop2 = 0; loop2 < atria_num; loop2++)
+//    {
+
+//        float rhs_atria[4];
+//        float result_atria[4];
+//        rhs_atria[0] = pts_atria[loop2][0];
+//        rhs_atria[1] = pts_atria[loop2][1];
+//        rhs_atria[2] = pts_atria[loop2][2];
+//        rhs_atria[3] = 1;
+
+//        MultMatrix16x4(product_atria, rhs_atria, result_atria);
+
+//        rotated_atria_pts[loop2][0] = result_atria[0];
+//        rotated_atria_pts[loop2][1] = result_atria[1];
+//        rotated_atria_pts[loop2][2] = result_atria[2];
+
+//    }
+//    geom_temp_atria_pts=rotated_atria_pts;
+
+
+
+//    // pass coordinates of catheters
+//    double pot_temp[catheter_num], cath_x[catheter_num],cath_y[catheter_num],cath_z[catheter_num];
+
+//    for (int i=0; i< catheter_num; i++)
+//    {
+
+//        if (recordingsurf->forwardvals[recordingsurf->framenum][i]==0)
+//        {pot_temp[i] =recordingsurf->potvals[recordingsurf->framenum][i];}
+//        else
+//        {pot_temp[i] =recordingsurf->forwardvals[recordingsurf->framenum][i];}
+
+
+//        cath_x[i] =  geom_temp_catheter_pts[i][0];
+//        cath_y[i] =  geom_temp_catheter_pts[i][1];
+//        cath_z[i] =  geom_temp_catheter_pts[i][2];
+//    }
+
+//    mxArray *catheter_potential_matlab = mxCreateDoubleMatrix(1,catheter_num, mxREAL);
+//    memcpy(mxGetPr(catheter_potential_matlab), pot_temp, catheter_num*sizeof(double));
+//    engPutVariable(ep, "catheter_potential",catheter_potential_matlab);
+
+//    mxArray *cath_x_matlab = mxCreateDoubleMatrix(1,catheter_num, mxREAL);
+//    memcpy(mxGetPr(cath_x_matlab), cath_x, catheter_num*sizeof(double));
+//    engPutVariable(ep, "c_x",cath_x_matlab);
+
+//    mxArray *cath_y_matlab = mxCreateDoubleMatrix(1,catheter_num, mxREAL);
+//    memcpy(mxGetPr(cath_y_matlab), cath_y, catheter_num*sizeof(double));
+//    engPutVariable(ep, "c_y",cath_y_matlab);
+
+//    mxArray *cath_z_matlab = mxCreateDoubleMatrix(1,catheter_num, mxREAL);
+//    memcpy(mxGetPr(cath_z_matlab), cath_z, catheter_num*sizeof(double));
+//    engPutVariable(ep, "c_z",cath_z_matlab);
+
+//    // pass coordinates of atria
+//    double atria_x[atria_num],atria_y[atria_num],atria_z[atria_num];
+//    for (int i=0; i< atria_num; i++)
+//    {
+
+//        atria_x[i] =  geom_temp_atria_pts[i][0];
+//        atria_y[i] =  geom_temp_atria_pts[i][1];
+//        atria_z[i] =  geom_temp_atria_pts[i][2];
+//    }
+//    mxArray *atria_x_matlab = mxCreateDoubleMatrix(1,atria_num, mxREAL);
+//    memcpy(mxGetPr(atria_x_matlab), atria_x, atria_num*sizeof(double));
+//    engPutVariable(ep, "a_x",atria_x_matlab);
+
+//    mxArray *atria_y_matlab = mxCreateDoubleMatrix(1,atria_num, mxREAL);
+//    memcpy(mxGetPr(atria_y_matlab), atria_y, atria_num*sizeof(double));
+//    engPutVariable(ep, "a_y",atria_y_matlab);
+
+//    mxArray *atria_z_matlab = mxCreateDoubleMatrix(1,atria_num, mxREAL);
+//    memcpy(mxGetPr(atria_z_matlab), atria_z, atria_num*sizeof(double));
+//    engPutVariable(ep, "a_z",atria_z_matlab);
+
+
+
+//    // pass elements of catheters
+//    double c_ele_1[recordinggeom->numelements],c_ele_2[recordinggeom->numelements],c_ele_3[recordinggeom->numelements];
+//    for (int j=0; j< recordinggeom->numelements; j++)
+//    {
+//        c_ele_1[j] = catheterelement[j][0]+1;
+//        c_ele_2[j] = catheterelement[j][1]+1;
+//        c_ele_3[j] = catheterelement[j][2]+1;
+//    }
+
+//    mxArray *cath_e1_matlab = mxCreateDoubleMatrix(1,recordinggeom->numelements, mxREAL);
+//    memcpy(mxGetPr(cath_e1_matlab), c_ele_1, recordinggeom->numelements*sizeof(double));
+//    engPutVariable(ep, "c_ele_1",cath_e1_matlab);
+
+//    mxArray *cath_e2_matlab = mxCreateDoubleMatrix(1,recordinggeom->numelements, mxREAL);
+//    memcpy(mxGetPr(cath_e2_matlab), c_ele_2, recordinggeom->numelements*sizeof(double));
+//    engPutVariable(ep, "c_ele_2",cath_e2_matlab);
+
+//    mxArray *cath_e3_matlab = mxCreateDoubleMatrix(1,recordinggeom->numelements, mxREAL);
+//    memcpy(mxGetPr(cath_e3_matlab), c_ele_3, recordinggeom->numelements*sizeof(double));
+//    engPutVariable(ep, "c_ele_3",cath_e3_matlab);
+
+
+
+
+//    // pass elements of atria
+//    double a_ele_1[curgeom->numelements],a_ele_2[curgeom->numelements],a_ele_3[curgeom->numelements];
+//    for (int k=0; k< curgeom->numelements; k++)
+//    {
+//        a_ele_1[k] = atriaelement[k][0]+1;
+//        a_ele_2[k] = atriaelement[k][1]+1;
+//        a_ele_3[k] = atriaelement[k][2]+1;
+
+//    }
+
+//    mxArray *atria_e1_matlab = mxCreateDoubleMatrix(1,curgeom->numelements, mxREAL);
+//    memcpy(mxGetPr(atria_e1_matlab), a_ele_1, curgeom->numelements*sizeof(double));
+//    engPutVariable(ep, "a_ele_1",atria_e1_matlab);
+
+//    mxArray *atria_e2_matlab = mxCreateDoubleMatrix(1,curgeom->numelements, mxREAL);
+//    memcpy(mxGetPr(atria_e2_matlab), a_ele_2, curgeom->numelements*sizeof(double));
+//    engPutVariable(ep, "a_ele_2",atria_e2_matlab);
+
+//    mxArray *atria_e3_matlab = mxCreateDoubleMatrix(1,curgeom->numelements, mxREAL);
+//    memcpy(mxGetPr(atria_e3_matlab), a_ele_3, curgeom->numelements*sizeof(double));
+//    engPutVariable(ep, "a_ele_3",atria_e3_matlab);
+
+
+//    engEvalString(ep, "addpath(genpath('/hpc_ntot/smen974/Map3d/MFS_Functions'))");
+//    engEvalString(ep, "mfsEGM=solve_MFS(c_x,c_y,c_z,c_ele_1,c_ele_2,c_ele_3,a_x,a_y,a_z,a_ele_1,a_ele_2,a_ele_3, catheter_potential)");
+
+//    mxArray *mfsEGM_matlab = engGetVariable(ep, "mfsEGM");
+//    double *mfsEGM = mxGetPr(mfsEGM_matlab);
+
+//    string filename;
+//    ofstream files;
+//    stringstream a;
+//    a << cursurf->framenum;
+//    filename = "inverse_96_" + a.str();
+//    filename += ".txt";
+//    files.open(filename.c_str(), ios::out);
+
+
+//    for (int i = 0; i <atria_num; i++)
+//    {
+//        cursurf->MFSvals[cursurf->framenum][i]=mfsEGM[i];
+
+
+//        files << cursurf->MFSvals[cursurf->framenum][i] << " " ;
+//        files << "\n";
+//    }
+//}
 
 

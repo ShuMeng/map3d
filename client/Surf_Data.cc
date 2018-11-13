@@ -544,7 +544,7 @@ void Surf_Data::get_minmax(float &min, float &max)
 }
 
 
-void Surf_Data::get_activation_minmax(float &min, float &max)
+void Surf_Data::get_activation_minmax(double &min, double &max)
 {
 
     min= minactivation;

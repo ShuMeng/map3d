@@ -118,8 +118,6 @@ public:
     Mesh_List meshes;             /* info for all the meshes in this
                                    window: geom, data, contours, colormaps,... */
 
-
-
     int geomWinId;
 
     float l2norm;                 /* the "fit" info for this window */
@@ -166,7 +164,7 @@ public:
     void DrawForwardOnly(Mesh_Info * curmesh);
     void CalculateForwardValue(Mesh_Info * curmesh, Mesh_Info * sourcemesh);
 
-    void CalculateMFSValue(Mesh_Info *recordingmesh, Mesh_Info * curmesh);
+    //void CalculateMFSValue(Mesh_Info *recordingmesh, Mesh_Info * curmesh);
 
     void DrawMFS(Mesh_Info * curmesh);
 
