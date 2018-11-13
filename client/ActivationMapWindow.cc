@@ -462,7 +462,7 @@ void ActivationMapWindow::addMesh(Mesh_Info *curmesh)
     // been set by the command line).
     if (meshes.size() == 1) {
         vfov = curmesh->mysurf->vfov;
-        clip->bd.qNow = curmesh->tran->rotate.qNow;
+        clip->bd.qNow = curmesh->tran_activation->rotate.qNow;
         Qt_ToMatrix(Qt_Conj(clip->bd.qNow), clip->bd.mNow);
         Ball_EndDrag(&clip->bd);
 
@@ -527,17 +527,17 @@ void ActivationMapWindow::recalcMinMax()
 
 void ActivationMapWindow::mousePressEvent(QMouseEvent * event)
 {
-//    setMoveCoordinates(event);
-//    int button = mouseButtonOverride(event);
-//    if (button == Qt::RightButton){       // right click
+    setMoveCoordinates(event);
+    int button = mouseButtonOverride(event);
+    if (button == Qt::RightButton){       // right click
 
-//        int menu_data = OpenMenu(mapToGlobal(event->pos()));
-//        if (menu_data >= 0)
-//            MenuEvent(menu_data);
-//    }
-//    else {
-//        HandleButtonPress(event, (float)event->x() / (float)width(), (float)event->y() / (float)height());
-//    }
+        int menu_data = OpenMenu(mapToGlobal(event->pos()));
+        if (menu_data >= 0)
+            MenuEvent(menu_data);
+    }
+    else {
+        HandleButtonPress(event, (float)event->x() / (float)width(), (float)event->y() / (float)height());
+    }
 }
 
 
@@ -561,197 +561,197 @@ void ActivationMapWindow::closeEvent(QCloseEvent * event)
 
 void ActivationMapWindow::HandleButtonPress(QMouseEvent * event, float xn, float yn)
 {
-//    int button = mouseButtonOverride(event);
-//    int newModifiers = button == event->buttons() ? event->modifiers() : Qt::NoModifier;
-//    int x = int (width() * xn);
-//    int y = int (height() - height() * yn);
+    int button = mouseButtonOverride(event);
+    int newModifiers = button == event->buttons() ? event->modifiers() : Qt::NoModifier;
+    int x = int (width() * xn);
+    int y = int (height() - height() * yn);
 
-//    last_xn = xn;
-//    last_yn = yn;
+    last_xn = xn;
+    last_yn = yn;
 
-//    int length = meshes.size();
-//    int loop = 0;
-//    Transforms *tran = 0;
-//    HVect vNow;
+    int length = meshes.size();
+    int loop = 0;
+    Transforms *tran = 0;
+    HVect vNow;
 
-//    for (loop = 0; loop < length; loop++) {
-//        tran = meshes[loop]->tran;
-//        // MIDDLE MOUSE DOWN + SHIFT = start rotate clipping planes
-//        if (button == Qt::MidButton && matchesModifiers(newModifiers, Qt::ShiftModifier, true)) {
-//            if ((clip->back_enabled || clip->front_enabled) &&!clip->lock_with_object) {
-//                vNow.x = 2.0f * x / width() - 1;
-//                vNow.y = 2.0f * y / height() - 1;
-//                Ball_Mouse(&clip->bd, vNow);
-//                Ball_BeginDrag(&clip->bd);
-//                break;
-//            }
-//#ifdef ROTATING_LIGHT
-//            else {
-//                vNow.x = 2.0f * x / width() - 1;
-//                vNow.y = 2.0f * y / height() - 1;
-//                Ball_Mouse(&light_pos, vNow);
-//                Ball_BeginDrag(&light_pos);
-//                break;
-//            }
-//#endif
-//        }
-//        if (button == Qt::LeftButton) {
-//            vNow.x = 2.0f * x / width() - 1.0f;
-//            vNow.y = 2.0f * y / height() - 1.0f;
-//            Ball_Mouse(&tran->rotate, vNow);
-//            Ball_BeginDrag(&tran->rotate);
-//            if (clip->lock_with_object) {
-//                Ball_Mouse(&clip->bd, vNow);
-//                Ball_BeginDrag(&clip->bd);
-//            }
-//        }
-//    }
-//    update();
+    for (loop = 0; loop < length; loop++) {
+        tran = meshes[loop]->tran_activation;
+        // MIDDLE MOUSE DOWN + SHIFT = start rotate clipping planes
+        if (button == Qt::MidButton && matchesModifiers(newModifiers, Qt::ShiftModifier, true)) {
+            if ((clip->back_enabled || clip->front_enabled) &&!clip->lock_with_object) {
+                vNow.x = 2.0f * x / width() - 1;
+                vNow.y = 2.0f * y / height() - 1;
+                Ball_Mouse(&clip->bd, vNow);
+                Ball_BeginDrag(&clip->bd);
+                break;
+            }
+#ifdef ROTATING_LIGHT
+            else {
+                vNow.x = 2.0f * x / width() - 1;
+                vNow.y = 2.0f * y / height() - 1;
+                Ball_Mouse(&light_pos, vNow);
+                Ball_BeginDrag(&light_pos);
+                break;
+            }
+#endif
+        }
+        if (button == Qt::LeftButton) {
+            vNow.x = 2.0f * x / width() - 1.0f;
+            vNow.y = 2.0f * y / height() - 1.0f;
+            Ball_Mouse(&tran->rotate, vNow);
+            Ball_BeginDrag(&tran->rotate);
+            if (clip->lock_with_object) {
+                Ball_Mouse(&clip->bd, vNow);
+                Ball_BeginDrag(&clip->bd);
+            }
+        }
+    }
+    update();
 }
 
 
 void ActivationMapWindow::HandleMouseMotion(QMouseEvent * event, float xn, float yn)
 {
-//    int button = mouseButtonOverride(event);
-//    int newModifiers = button == event->buttons() ? event->modifiers() : Qt::NoModifier;
-//    int x = int (width() * xn);
-//    int y = int (height() - height() * yn);
+    int button = mouseButtonOverride(event);
+    int newModifiers = button == event->buttons() ? event->modifiers() : Qt::NoModifier;
+    int x = int (width() * xn);
+    int y = int (height() - height() * yn);
 
-//    int length = meshes.size();
-//    int loop = 0;
-//    Transforms *tran = 0;
-//    Mesh_Info *mesh = 0;
+    int length = meshes.size();
+    int loop = 0;
+    Transforms *tran = 0;
+    Mesh_Info *mesh = 0;
 
-//    if (length > 1 && !map3d_info.lockrotate)
-//        if (!map3d_info.lockgeneral) {
-//            loop = dominantsurf;
-//            length = loop + 1;
-//        }
-//        else {
-//            loop = secondarysurf;
-//            length = loop + 1;
-//        }
+    if (length > 1 && !map3d_info.lockrotate)
+        if (!map3d_info.lockgeneral) {
+            loop = dominantsurf;
+            length = loop + 1;
+        }
+        else {
+            loop = secondarysurf;
+            length = loop + 1;
+        }
 
-//    for (; loop < length; loop++) {
-//        mesh = meshes[loop];
-//        if (map3d_info.selected_group != -1 && mesh->groupid != map3d_info.selected_group)
-//            continue;
-//        tran = mesh->tran;
+    for (; loop < length; loop++) {
+        mesh = meshes[loop];
+        if (map3d_info.selected_group != -1 && mesh->groupid != map3d_info.selected_group)
+            continue;
+        tran = mesh->tran_activation;
 
-//        /* CTRL = nothing */
-//        if (matchesModifiers(newModifiers, Qt::ControlModifier, true)) {
-//            return;
-//        }
+        /* CTRL = nothing */
+        if (matchesModifiers(newModifiers, Qt::ControlModifier, true)) {
+            return;
+        }
 
-//        /* MIDDLE MOUSE DOWN + SHIFT = rotate clipping planes */
-//        else if (button == Qt::MidButton && matchesModifiers(newModifiers, Qt::ShiftModifier, true)) {
-//            if ((clip->back_enabled || clip->front_enabled) &&!clip->lock_with_object) {
-//                HVect vNow;
-//                vNow.x = 2.0f * x / width() - 1.0f;
-//                vNow.y = 2.0f * y / height() - 1.0f;
+        /* MIDDLE MOUSE DOWN + SHIFT = rotate clipping planes */
+        else if (button == Qt::MidButton && matchesModifiers(newModifiers, Qt::ShiftModifier, true)) {
+            if ((clip->back_enabled || clip->front_enabled) &&!clip->lock_with_object) {
+                HVect vNow;
+                vNow.x = 2.0f * x / width() - 1.0f;
+                vNow.y = 2.0f * y / height() - 1.0f;
 
-//                Ball_Mouse(&clip->bd, vNow);
-//                Ball_Update(&clip->bd, 0);
-//                break;
-//            }
-//            else {
-//                HVect vNow;
-//                vNow.x = 2.0f * x / width() - 1.0f;
-//                vNow.y = 2.0f * y / height() - 1.0f;
+                Ball_Mouse(&clip->bd, vNow);
+                Ball_Update(&clip->bd, 0);
+                break;
+            }
+            else {
+                HVect vNow;
+                vNow.x = 2.0f * x / width() - 1.0f;
+                vNow.y = 2.0f * y / height() - 1.0f;
 
-//#ifdef ROTATING_LIGHT
-//                Ball_Mouse(&light_pos, vNow);
-//                Ball_Update(&light_pos, 0);
-//#endif
-//                break;
-//            }
-//        }
-//        // LEFT MOUSE DOWN + ALT = draw moving window
-//        else if (button == Qt::LeftButton && matchesModifiers(newModifiers, Qt::AltModifier, true)) {
-//            moveEvent(event);
-//        }
-//        // MIDDLE MOUSE DOWN + ALT = draw reshaping window
-//        else if (button == Qt::MidButton && matchesModifiers(newModifiers, Qt::AltModifier, true)) {
-//            sizeEvent(event);
-//        }
-//        // LEFT MOUSE DOWN + SHIFT = translate
-//        else if (button == Qt::LeftButton && matchesModifiers(newModifiers, Qt::ShiftModifier, true)) {
-//            tran->tx += l2norm * (xn - last_xn)  * vfov / 29.f;
-//            tran->ty += l2norm * (last_yn - yn)  * vfov / 29.f;
+#ifdef ROTATING_LIGHT
+                Ball_Mouse(&light_pos, vNow);
+                Ball_Update(&light_pos, 0);
+#endif
+                break;
+            }
+        }
+        // LEFT MOUSE DOWN + ALT = draw moving window
+        else if (button == Qt::LeftButton && matchesModifiers(newModifiers, Qt::AltModifier, true)) {
+            moveEvent(event);
+        }
+        // MIDDLE MOUSE DOWN + ALT = draw reshaping window
+        else if (button == Qt::MidButton && matchesModifiers(newModifiers, Qt::AltModifier, true)) {
+            sizeEvent(event);
+        }
+        // LEFT MOUSE DOWN + SHIFT = translate
+        else if (button == Qt::LeftButton && matchesModifiers(newModifiers, Qt::ShiftModifier, true)) {
+            tran->tx += l2norm * (xn - last_xn)  * vfov / 29.f;
+            tran->ty += l2norm * (last_yn - yn)  * vfov / 29.f;
 
-//            //set the globalSurf translation
-//            mesh->mysurf->parent->SurfList[MAX_SURFS]->translation[0] = tran->tx;
-//            mesh->mysurf->parent->SurfList[MAX_SURFS]->translation[1] = tran->ty;
-//            mesh->mysurf->parent->SurfList[MAX_SURFS]->translation[2] = tran->tz;
+            //set the globalSurf translation
+            mesh->mysurf->parent->SurfList[MAX_SURFS]->translation[0] = tran->tx;
+            mesh->mysurf->parent->SurfList[MAX_SURFS]->translation[1] = tran->ty;
+            mesh->mysurf->parent->SurfList[MAX_SURFS]->translation[2] = tran->tz;
 
-//        }
-//        // LEFT MOUSE DOWN = rotate
-//        else if (button == Qt::LeftButton) {
-//            HVect vNow;
-//            vNow.x = 2.0f * x / width() - 1.0f;
-//            vNow.y = 2.0f * y / height() - 1.0f;
+        }
+        // LEFT MOUSE DOWN = rotate
+        else if (button == Qt::LeftButton) {
+            HVect vNow;
+            vNow.x = 2.0f * x / width() - 1.0f;
+            vNow.y = 2.0f * y / height() - 1.0f;
 
-//            Ball_Mouse(&tran->rotate, vNow);
-//            Ball_Update(&tran->rotate, 0);
+            Ball_Mouse(&tran->rotate, vNow);
+            Ball_Update(&tran->rotate, 0);
 
-//            //set the globalSurf translation
-//            mesh->mysurf->parent->SurfList[MAX_SURFS]->rotationQuat = tran->rotate.qNow;
+            //set the globalSurf translation
+            mesh->mysurf->parent->SurfList[MAX_SURFS]->rotationQuat = tran->rotate.qNow;
 
-//            if (clip->lock_with_object) {
-//                Ball_Mouse(&clip->bd, vNow);
-//                Ball_Update(&clip->bd, 0);
-//            }
-//        }
+            if (clip->lock_with_object) {
+                Ball_Mouse(&clip->bd, vNow);
+                Ball_Update(&clip->bd, 0);
+            }
+        }
 
-//        /* MIDDLE MOUSE DOWN = zoom (scale) */
-//        else if (button == Qt::MidButton) {
-//            if (yn < last_yn)
-//                vfov -= vfov / 24.0f;
-//            else if (yn > last_yn)
-//                vfov += vfov / 24.0f;
+        /* MIDDLE MOUSE DOWN = zoom (scale) */
+        else if (button == Qt::MidButton) {
+            if (yn < last_yn)
+                vfov -= vfov / 24.0f;
+            else if (yn > last_yn)
+                vfov += vfov / 24.0f;
 
-//            if (vfov > 179)
-//                vfov = 179.0f;
-//            if (vfov < 0.01)
-//                vfov = 0.01f;
-//        }
-//    }
+            if (vfov > 179)
+                vfov = 179.0f;
+            if (vfov < 0.01)
+                vfov = 0.01f;
+        }
+    }
 
-//    last_xn = xn;
-//    last_yn = yn;
+    last_xn = xn;
+    last_yn = yn;
 
-//    update();
+    update();
 }
 
 void ActivationMapWindow::HandleButtonRelease(QMouseEvent * event, float /*xn*/, float /*yn*/)
 {
-//    int button = mouseButtonOverride(event);
-//    int newModifiers = button == event->button() ? event->modifiers() : Qt::NoModifier;
+    int button = mouseButtonOverride(event);
+    int newModifiers = button == event->button() ? event->modifiers() : Qt::NoModifier;
 
-//    int length = meshes.size();
-//    int loop = 0;
-//    Transforms *tran = 0;
+    int length = meshes.size();
+    int loop = 0;
+    Transforms *tran = 0;
 
-//    for (loop = 0; loop < length; loop++) {
-//        tran = meshes[loop]->tran;
-//        // MIDDLE MOUSE UP + SHIFT = end rotate clipping planes
-//        if (button == Qt::MidButton && matchesModifiers(newModifiers, Qt::ShiftModifier, true)) {
-//            if ((clip->back_enabled || clip->front_enabled) &&!clip->lock_with_object)
-//                Ball_EndDrag(&clip->bd);
-//#ifdef ROTATING_LIGHT
-//            else
-//                Ball_EndDrag(&light_pos);
-//#endif
-//            break;
-//        }
-//        // LEFT MOUSE UP = end rotate
-//        if (button == Qt::LeftButton) {
-//            Ball_EndDrag(&tran->rotate);
-//            if (clip->lock_with_object)
-//                Ball_EndDrag(&clip->bd);
-//        }
-//    }
-//    update();
+    for (loop = 0; loop < length; loop++) {
+        tran = meshes[loop]->tran_activation;
+        // MIDDLE MOUSE UP + SHIFT = end rotate clipping planes
+        if (button == Qt::MidButton && matchesModifiers(newModifiers, Qt::ShiftModifier, true)) {
+            if ((clip->back_enabled || clip->front_enabled) &&!clip->lock_with_object)
+                Ball_EndDrag(&clip->bd);
+#ifdef ROTATING_LIGHT
+            else
+                Ball_EndDrag(&light_pos);
+#endif
+            break;
+        }
+        // LEFT MOUSE UP = end rotate
+        if (button == Qt::LeftButton) {
+            Ball_EndDrag(&tran->rotate);
+            if (clip->lock_with_object)
+                Ball_EndDrag(&clip->bd);
+        }
+    }
+    update();
 }
 
 void ActivationMapWindow::Transform(Mesh_Info * curmesh, float factor, bool compensateForRetinaDisplay)
@@ -783,13 +783,13 @@ void ActivationMapWindow::Transform(Mesh_Info * curmesh, float factor, bool comp
     glLoadIdentity();
 
     /* get the arcall rotation */
-    Ball_Value(&curmesh->tran->rotate, mNow);
+    Ball_Value(&curmesh->tran_activation->rotate, mNow);
     Ball_Value(&clip->bd, cNow);
 
     /* current mousing translation */
-    glTranslatef(curmesh->tran->tx, curmesh->tran->ty, curmesh->tran->tz);
+    glTranslatef(curmesh->tran_activation->tx, curmesh->tran_activation->ty, curmesh->tran_activation->tz);
 
-    std::cout<<"curmesh->tran #1"<<curmesh->tran->tx<<"     "<<curmesh->tran->ty<<"     "<<curmesh->tran->tz<<"     "<<std::endl;
+    std::cout<<"curmesh->tran #1"<<curmesh->tran_activation->tx<<"     "<<curmesh->tran_activation->ty<<"     "<<curmesh->tran_activation->tz<<"     "<<std::endl;
 
 
     /* finally, move the mesh to in front of the eye */
@@ -953,7 +953,7 @@ void ActivationMapWindow::DrawNodes(Mesh_Info * curmesh)
 //    length = curgeom->numpts;
 
 //    /* set the transform for billboarding */
-//    Ball_Value(&curmesh->tran->rotate, mNow);
+//    Ball_Value(&curmesh->tran_activation->rotate, mNow);
 //    TransposeMatrix16((float *)mNow, mNowI);
 //    Transform(curmesh, 0.01f, true);
 //    glPushMatrix();

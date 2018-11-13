@@ -20,6 +20,9 @@ Mesh_Info::Mesh_Info()
 {
   geom = new Map3d_Geom;
   tran = new Transforms;
+  
+  tran_activation = new Transforms;
+  
   data = 0;                     // leave as 0 until it gets used
   cont = 0;
   fidConts.clear();
