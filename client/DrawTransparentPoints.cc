@@ -913,8 +913,8 @@ void DrawTransparentPoints::CalculateMFSTransformMatrix(Mesh_Info * recordingmes
     mxArray *mfsEGM_matlab = engGetVariable(ep_matrix, "mfsEGM");
     double *mfsEGM = mxGetPr(mfsEGM_matlab);
 
-    //    ofstream myfile;
-    //    myfile.open ("inverse_128.txt");
+    ofstream myfile;
+    myfile.open ("inverse_128.txt");
 
     for (int j=0; j< curmesh->data->numframes; j++)
     {
@@ -922,9 +922,9 @@ void DrawTransparentPoints::CalculateMFSTransformMatrix(Mesh_Info * recordingmes
         {
             cursurf->MFSvals[j][i] =mfsEGM[i+j*atria_num];
 
-            //                        myfile << cursurf->MFSvals[j][i];
-            //                        myfile << "\n";
-            //                        //myfile.close();
+            myfile << cursurf->MFSvals[j][i];
+            myfile << "\n";
+            //myfile.close();
 
         }
     }
