@@ -90,7 +90,11 @@ float **nearestrecordingvals;
 
   float *activationvals; 
 
+float *CCvals; 
+float *RMSEvals; 
+
 float **MFSvals;
+
 
   float *meanpotvals;           /* The mean potential over the surface at each time */
   float *rmspotvals;           /* The root mean square potential at each time */

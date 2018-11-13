@@ -103,6 +103,8 @@ HEADERS += GeomWindow.h \
     DrawTransparentPoints.h \
     ActivationMapWindow.h \
     ActivationLegendWindow.h\
+    CCMapWindow.h \
+    RMSEMapWindow.h
 
            
 
@@ -151,6 +153,8 @@ SOURCES += Ball.cc \
     DrawTransparentPoints.cc \
     ActivationMapWindow.cc \
     ActivationLegendWindow.cc \
+    CCMapWindow.cc \
+    RMSEMapWindow.cc
 
            
 

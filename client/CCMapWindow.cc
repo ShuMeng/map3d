@@ -1,3 +1,4 @@
+#include "CCMapWindow.h"
 #include <stddef.h>
 #ifdef _WIN32
 #include <windows.h>
@@ -24,7 +25,6 @@
 #include "Map3d_Geom.h"
 #include "Surf_Data.h"
 #include "WindowManager.h"
-#include "ActivationLegendWindow.h"
 #include "PickWindow.h"
 #include "MainWindow.h"
 #include "ProcessCommandLineOptions.h"
@@ -49,8 +49,6 @@
 #include <QCloseEvent>
 #include <QLayout>
 
-#include "ActivationMapWindow.h"
-
 #include "GenericWindow.h"
 #include "MeshList.h"
 #include "GeomWindowMenu.h"
@@ -62,6 +60,7 @@
 #include "dialogs.h"
 #include <QList>
 
+
 extern Map3d_Info map3d_info;
 extern MainWindow *masterWindow;
 
@@ -70,12 +69,12 @@ static const int min_height = 200;
 static const int default_width = 380;
 static const int default_height = 380;
 
-GLuint selectbufferActivate[2048];
+GLuint selectbufferCC[2048];
 
-double  maxactivation, minactivation;
+double  maxCC, minCC;
 
 
-ActivationMapWindow::ActivationMapWindow(QWidget *parent) : Map3dGLWidget(parent, ACTIVATIONWINDOW, "Activation Display",min_width, min_height)
+CCMapWindow::CCMapWindow(QWidget *parent) : Map3dGLWidget(parent, CCWINDOW, "CC Display",min_width, min_height)
 {
     // things that need to be set before Init happens
     xmin = ymin = zmin = FLT_MAX;
@@ -101,15 +100,15 @@ ActivationMapWindow::ActivationMapWindow(QWidget *parent) : Map3dGLWidget(parent
     l2norm = 0;
 }
 
-ActivationMapWindow* ActivationMapWindow::ActivationMapWindowCreate(int _width, int _height, int _x, int _y)
+CCMapWindow* CCMapWindow::CCMapWindowCreate(int _width, int _height, int _x, int _y)
 {
-    ActivationMapWindow* win = new ActivationMapWindow(masterWindow ? masterWindow->childrenFrame : NULL);
+    CCMapWindow* win = new CCMapWindow(masterWindow ? masterWindow->childrenFrame : NULL);
     win->positionWindow(_width, _height, _x, _y, default_width, default_height);
     win->show();
     return win;
 }
 
-void ActivationMapWindow::initializeGL()
+void CCMapWindow::initializeGL()
 {
     Map3dGLWidget::initializeGL();
     // FIX GeomBuildMenus(this);
@@ -136,12 +135,11 @@ void ActivationMapWindow::initializeGL()
     glDisable(GL_POLYGON_OFFSET_FILL);
     glDisable(GL_POLYGON_OFFSET_LINE);
     glDisable(GL_POLYGON_OFFSET_POINT);
-    glSelectBuffer(2048, selectbufferActivate);
+    glSelectBuffer(2048, selectbufferCC);
     glLineStipple(1, 57795);
 }
 
-
-void ActivationMapWindow::paintGL()
+void CCMapWindow::paintGL()
 {
     int loop = 0;
     int length = meshes.size();
@@ -221,7 +219,8 @@ void ActivationMapWindow::paintGL()
 #endif
 }
 
-void ActivationMapWindow::DrawSurf(Mesh_Info * curmesh)
+
+void CCMapWindow::DrawSurf(Mesh_Info * curmesh)
 {
 
     int length = 0;
@@ -244,12 +243,12 @@ void ActivationMapWindow::DrawSurf(Mesh_Info * curmesh)
 
 
 
-    maxactivation = *std::max_element(cursurf->activationvals,cursurf->activationvals+curgeom->numpts);
-    minactivation = *std::min_element(cursurf->activationvals,cursurf->activationvals+curgeom->numpts);
+    maxCC = *std::max_element(cursurf->CCvals,cursurf->CCvals+curgeom->numpts);
+    minCC = *std::min_element(cursurf->CCvals,cursurf->CCvals+curgeom->numpts);
 
 
-//    std::cout<< "maxactivation in activation window is "<<maxactivation<<std::endl;
-//    std::cout<< "minactivation in activation window is "<<minactivation<<std::endl;
+//    std::cout<< "maxCC in CC window is "<<maxCC<<std::endl;
+//    std::cout<< "minCC in CC window is "<<minCC<<std::endl;
 
 
     unsigned char color[3];
@@ -281,13 +280,13 @@ void ActivationMapWindow::DrawSurf(Mesh_Info * curmesh)
         length = curgeom->numelements;
         glBegin(GL_TRIANGLES);
 
-        float activationval;
+        float CCval;
         for (loop2 = 0; loop2 < length; loop2++) {
             if (curmesh->shadingmodel == SHADE_GOURAUD) {
                 // avoid repeating code 3 times
                 for (loop3 = 0; loop3 < 3; loop3++) {
                     index = curgeom->elements[loop2][loop3];
-                    if (cursurf->activationvals[index] == UNUSED_DATA)
+                    if (cursurf->CCvals[index] == UNUSED_DATA)
                         break;
                 }
                 if (loop3 < 3)
@@ -295,7 +294,7 @@ void ActivationMapWindow::DrawSurf(Mesh_Info * curmesh)
                     continue;
                 for (loop3 = 0; loop3 < 3; loop3++) {
                     index = curgeom->elements[loop2][loop3];
-                    activationval = cursurf->activationvals[index];
+                    CCval = cursurf->CCvals[index];
 
                     if (use_textures)
                     {
@@ -307,7 +306,7 @@ void ActivationMapWindow::DrawSurf(Mesh_Info * curmesh)
                         else
                             UseTexture(map3d_info.jet_texture);
 
-                        glTexCoord1f(getContNormalizedValue(activationval, minactivation, maxactivation, curmesh->invert));
+                        glTexCoord1f(getContNormalizedValue(CCval, minCC, maxCC, curmesh->invert));
                     }
 
 
@@ -319,17 +318,17 @@ void ActivationMapWindow::DrawSurf(Mesh_Info * curmesh)
                 mean = 0;
                 for (loop3 = 0; loop3 < 3; loop3++) {
                     index = curgeom->elements[loop2][loop3];
-                    activationval = cursurf->activationvals[index];
-                    if (activationval == UNUSED_DATA)
+                    CCval = cursurf->CCvals[index];
+                    if (CCval == UNUSED_DATA)
                         break;
-                    mean += activationval;
+                    mean += CCval;
                 }
                 if (loop3 < 3)
                     // we have "UNUSED_DATA" on a node in this triangle, so don't draw here
                     continue;
 
                 mean /= 3;
-                getContColor(mean, minactivation, maxactivation, curmesh->cmap, color, curmesh->invert);
+                getContColor(mean, minCC, maxCC, curmesh->cmap, color, curmesh->invert);
                 glColor4ub(color[0],color[1],color[2],color[3]);
                 glNormal3fv(fcnormals[loop2]);
 
@@ -396,8 +395,7 @@ void ActivationMapWindow::DrawSurf(Mesh_Info * curmesh)
 }
 
 
-
-void ActivationMapWindow::DrawInfo()
+void CCMapWindow::DrawInfo()
 {
     int nummesh = meshes.size();
     int surfnum = 0;
@@ -418,9 +416,9 @@ void ActivationMapWindow::DrawInfo()
         dommesh = nummesh == 1 ? meshes[0] : meshes[dominantsurf];
         char surfstr[50];
         if (dommesh->geom->subsurf <= 0)
-            sprintf(surfstr, "Activation map Surface #%d", dommesh->geom->surfnum);
+            sprintf(surfstr, "CC map Surface #%d", dommesh->geom->surfnum);
         else
-            sprintf(surfstr, "Activation map Surface #%d-%d", dommesh->geom->surfnum, dommesh->geom->subsurf);
+            sprintf(surfstr, "CC map Surface #%d-%d", dommesh->geom->surfnum, dommesh->geom->subsurf);
         surfnum = dommesh->geom->surfnum;
         position[0] = (float)width()/2.0 -((float)getFontWidth((int)large_font, surfstr)/2.0);
         position[1] = height() - getFontHeight((int)large_font);
@@ -445,16 +443,11 @@ void ActivationMapWindow::DrawInfo()
     }
 }
 
-
-
-
-
-
-void ActivationMapWindow::addMesh(Mesh_Info *curmesh)
+void CCMapWindow::addMesh(Mesh_Info *curmesh)
 {
     /* copy from meshes to this window's mesh list */
     meshes.push_back(curmesh);
-    curmesh->actipriv = this;
+    curmesh->CCpriv = this;
     recalcMinMax();
 
     // if this is the first mesh, copy vfov to the window and the
@@ -483,7 +476,8 @@ void ActivationMapWindow::addMesh(Mesh_Info *curmesh)
 
 }
 
-void ActivationMapWindow::recalcMinMax()
+
+void CCMapWindow::recalcMinMax()
 {
     xmin = ymin = zmin = FLT_MAX;
     xmax = ymax = zmax = -FLT_MAX;
@@ -508,7 +502,7 @@ void ActivationMapWindow::recalcMinMax()
     // Set the "fit" for the window.  If -ss is specified, set
     // all windows' fit to the first window's.  If it's the first
     // window, set it only once.
-    ActivationMapWindow* first_geom_window = GetActivationMapWindow(0);
+    CCMapWindow* first_geom_window = GetCCMapWindow(0);
     bool lock_l2norms = map3d_info.same_scale;
     if (!lock_l2norms || (this == first_geom_window && l2norm == 0))
         l2norm = sqrt(xsize * xsize + ysize * ysize + zsize * zsize);
@@ -525,7 +519,8 @@ void ActivationMapWindow::recalcMinMax()
     clip->backmax = -zmin + clip->step;
 }
 
-void ActivationMapWindow::mousePressEvent(QMouseEvent * event)
+
+void CCMapWindow::mousePressEvent(QMouseEvent * event)
 {
     setMoveCoordinates(event);
     int button = mouseButtonOverride(event);
@@ -541,25 +536,24 @@ void ActivationMapWindow::mousePressEvent(QMouseEvent * event)
 }
 
 
-
-void ActivationMapWindow::mouseMoveEvent(QMouseEvent* event)
+void CCMapWindow::mouseMoveEvent(QMouseEvent* event)
 {
     HandleMouseMotion(event, (float)event->x() / (float)width(), (float)event->y() / (float)height());
 }
 
 
-void ActivationMapWindow::mouseReleaseEvent(QMouseEvent * event)
+void CCMapWindow::mouseReleaseEvent(QMouseEvent * event)
 {
     HandleButtonRelease(event, (float)event->x() / (float)width(),(float)event->y() / (float)height());
 }
 
-void ActivationMapWindow::closeEvent(QCloseEvent * event)
+void CCMapWindow::closeEvent(QCloseEvent * event)
 {
     close();
 }
 
 
-void ActivationMapWindow::HandleButtonPress(QMouseEvent * event, float xn, float yn)
+void CCMapWindow::HandleButtonPress(QMouseEvent * event, float xn, float yn)
 {
     int button = mouseButtonOverride(event);
     int newModifiers = button == event->buttons() ? event->modifiers() : Qt::NoModifier;
@@ -610,7 +604,7 @@ void ActivationMapWindow::HandleButtonPress(QMouseEvent * event, float xn, float
 }
 
 
-void ActivationMapWindow::HandleMouseMotion(QMouseEvent * event, float xn, float yn)
+void CCMapWindow::HandleMouseMotion(QMouseEvent * event, float xn, float yn)
 {
     int button = mouseButtonOverride(event);
     int newModifiers = button == event->buttons() ? event->modifiers() : Qt::NoModifier;
@@ -723,7 +717,7 @@ void ActivationMapWindow::HandleMouseMotion(QMouseEvent * event, float xn, float
     update();
 }
 
-void ActivationMapWindow::HandleButtonRelease(QMouseEvent * event, float /*xn*/, float /*yn*/)
+void CCMapWindow::HandleButtonRelease(QMouseEvent * event, float /*xn*/, float /*yn*/)
 {
     int button = mouseButtonOverride(event);
     int newModifiers = button == event->button() ? event->modifiers() : Qt::NoModifier;
@@ -754,9 +748,9 @@ void ActivationMapWindow::HandleButtonRelease(QMouseEvent * event, float /*xn*/,
     update();
 }
 
-void ActivationMapWindow::Transform(Mesh_Info * curmesh, float factor, bool compensateForRetinaDisplay)
+void CCMapWindow::Transform(Mesh_Info * curmesh, float factor, bool compensateForRetinaDisplay)
 {
-    //std::cout<<"enter transform in activation window"<<std::endl;
+   // std::cout<<"enter transform in CC window"<<std::endl;
 
 
     HMatrix mNow, cNow;           // arcball rotation matrices
@@ -789,7 +783,6 @@ void ActivationMapWindow::Transform(Mesh_Info * curmesh, float factor, bool comp
     /* current mousing translation */
     glTranslatef(curmesh->tran_validation->tx, curmesh->tran_validation->ty, curmesh->tran_validation->tz);
 
-
     /* finally, move the mesh to in front of the eye */
     glTranslatef(0, 0, l2norm * (factor - 2));
 
@@ -812,7 +805,7 @@ void ActivationMapWindow::Transform(Mesh_Info * curmesh, float factor, bool comp
 
 }
 
-void ActivationMapWindow::DrawBGImage()
+void CCMapWindow::DrawBGImage()
 {
     if (map3d_info.gi->bgcoords[0] != 0 || map3d_info.gi->bgcoords[3] != 1) {
         // user used a manual orientation - line it up as such
@@ -851,7 +844,7 @@ void ActivationMapWindow::DrawBGImage()
 }
 
 
-int ActivationMapWindow::OpenMenu(QPoint point)
+int CCMapWindow::OpenMenu(QPoint point)
 {
 //    int all_node_num = 0;
 
@@ -860,10 +853,10 @@ int ActivationMapWindow::OpenMenu(QPoint point)
 //    QMenu* submenu = menu.addMenu("Node Marking");
 
 //    QAction* action = submenu->addAction("Node #");
-//    action->setData(mark_all_activation_node); action->setCheckable(true); action->setChecked(all_node_num == 1);
+//    action->setData(mark_all_CC_node); action->setCheckable(true); action->setChecked(all_node_num == 1);
 
-//    action = submenu->addAction("activation time");
-//    action->setData(mark_all_activation_value); action->setCheckable(true); action->setChecked(all_node_num == 2);
+//    action = submenu->addAction("CC time");
+//    action->setData(mark_all_CC_value); action->setCheckable(true); action->setChecked(all_node_num == 2);
 
 //    action = menu.exec(point);
 //    if (action)
@@ -873,61 +866,65 @@ int ActivationMapWindow::OpenMenu(QPoint point)
 
 }
 
-void ActivationMapWindow::MenuEvent(int menu)
+void CCMapWindow::MenuEvent(int menu)
 {
     HandleMenu(menu);
 }
 
-void ActivationMapWindow::HandleMenu(int menu_data)
+void CCMapWindow::HandleMenu(int menu_data)
 {
 
-    int length = meshes.size();
-    int loop = 0;
+//    int length = meshes.size();
+//    int loop = 0;
 
-    Mesh_Info *mesh = 0;
+//    Mesh_Info *mesh = 0;
 
-    if(length > 1 && !map3d_info.lockframes && (menu_data == frame_reset || menu_data == frame_zero)){
-        loop = secondarysurf;
-        length = loop +1;
-    }
-    else if (length > 1 && !map3d_info.lockgeneral) {
-        loop = dominantsurf;
-        length = loop + 1;
-    }
-    for (; loop < length; loop++) {
-        mesh = meshes[loop];
+//    if(length > 1 && !map3d_info.lockframes && (menu_data == frame_reset || menu_data == frame_zero)){
+//        loop = secondarysurf;
+//        length = loop +1;
+//    }
+//    else if (length > 1 && !map3d_info.lockgeneral) {
+//        loop = dominantsurf;
+//        length = loop + 1;
+//    }
+//    for (; loop < length; loop++) {
+//        mesh = meshes[loop];
 
-        //switch for every mesh in the window, based on general lock status
-        switch ((menu_data)) {
+//        //switch for every mesh in the window, based on general lock status
+//        switch ((menu_data)) {
 
-        case mark_all_activation_node:
-            if (mesh->mark_all_activation_number == 1) {
-                // toggle the value
-                mesh->mark_all_activation_number = 0;
-            }
-            else {
-                mesh->mark_all_activation_number = 1;
-                mesh->qshowpnts = 1;
-            }
-            break;
+//        case mark_all_CC_node:
+//            if (mesh->mark_all_CC_number == 1) {
+//                // toggle the value
+//                mesh->mark_all_CC_number = 0;
+//            }
+//            else {
+//                mesh->mark_all_CC_number = 1;
+//                mesh->qshowpnts = 1;
+//            }
+//            break;
 
-        case mark_all_activation_value:
-            if (mesh->mark_all_activation_number == 2) {
-                // toggle the value
-                mesh->mark_all_activation_number = 0;
-            }
-            else {
-                mesh->mark_all_activation_number = 2;
-                mesh->qshowpnts = 1;
-            }
-            break;
-        }
-    }
-    update();
+//        case mark_all_CC_value:
+//            if (mesh->mark_all_CC_number == 2) {
+//                // toggle the value
+//                mesh->mark_all_CC_number = 0;
+//            }
+//            else {
+//                mesh->mark_all_CC_number = 2;
+//                mesh->qshowpnts = 1;
+//            }
+//            break;
+//        }
+//    }
+//    update();
 }
 
+float CCMapWindow::fontScale()
+{
+    return l2norm * vfov / height() / 29;
+}
 
-void ActivationMapWindow::DrawNodes(Mesh_Info * curmesh)
+void CCMapWindow::DrawNodes(Mesh_Info * curmesh)
 {
 //    //  int curframe = 0;
 //    int length = 0, loop = 0;
@@ -963,7 +960,7 @@ void ActivationMapWindow::DrawNodes(Mesh_Info * curmesh)
 //    unsigned char color[3];
 //    float pos[3];
 
-//    if (curmesh->mark_all_activation_number) {
+//    if (curmesh->mark_all_CC_number) {
 //        //glDepthMask(GL_FALSE);
 
 //        for (loop = 0; loop < length; loop++) {
@@ -980,14 +977,14 @@ void ActivationMapWindow::DrawNodes(Mesh_Info * curmesh)
 
 //            int number = 0;
 
-//            if (curmesh->mark_all_activation_number) {
+//            if (curmesh->mark_all_CC_number) {
 //                // this is a function of the fov (zoom), the ratio of
 //                // mesh's l2norm to the window's l2norm and the window
 //                // height to determine whether the numbers will be too
 //                // close together or not
 
 //                glColor3f(curmesh->mark_all_color[0], curmesh->mark_all_color[1], curmesh->mark_all_color[2]);
-//                number = curmesh->mark_all_activation_number;
+//                number = curmesh->mark_all_CC_number;
 //            }
 
 //            float scale = fontScale();
@@ -997,9 +994,9 @@ void ActivationMapWindow::DrawNodes(Mesh_Info * curmesh)
 //                break;
 
 //            case 2:
-//                if (cursurf && cursurf->activationvals && cursurf->activationvals[loop] != UNUSED_DATA)
+//                if (cursurf && cursurf->CCvals && cursurf->CCvals[loop] != UNUSED_DATA)
 //                    renderString3f(pos[0], pos[1], pos[2], (int)small_font,
-//                            QString::number(cursurf->activationvals[loop], 'g', 2), scale);
+//                            QString::number(cursurf->CCvals[loop], 'g', 2), scale);
 //                break;
 
 
@@ -1018,10 +1015,3 @@ void ActivationMapWindow::DrawNodes(Mesh_Info * curmesh)
 //        printf("GeomWindow DrawNodes OpenGL Error: %s\n", gluErrorString(e));
 //#endif
 }
-
-float ActivationMapWindow::fontScale()
-{
-    return l2norm * vfov / height() / 29;
-}
-
-

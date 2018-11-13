@@ -13,6 +13,10 @@
 #define ACTIVATIONWINDOW 6
 
 
+#define CCWINDOW 7
+#define RMSEWINDOW 6
+
+
 #define HORIZ (map3d_info.borderWidth + map3d_info.borderWidth)
 #define VERTICAL (map3d_info.borderWidth + map3d_info.borderWidth + map3d_info.titleHeight)
 

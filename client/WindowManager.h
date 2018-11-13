@@ -11,7 +11,7 @@ class LegendWindow;
 
 class GetMatrixSlice;
 class ActivationMapWindow;
-
+class CCMapWindow;
 
 
 class QEvent;
@@ -23,6 +23,9 @@ struct Global_Input;
 GeomWindow *GetGeomWindow(int index);
 
 ActivationMapWindow *GetActivationMapWindow(int index);
+
+CCMapWindow *GetCCMapWindow(int index);
+
 
 unsigned numGeomWindows();
 Map3dGLWidget *GetWindow(int index);

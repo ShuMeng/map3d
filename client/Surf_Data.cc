@@ -76,6 +76,9 @@ Surf_Data::Surf_Data()
     forwardvals = 0;
     nearestrecordingvals = 0;
     MFSvals = 0;
+    CCvals = 0;
+    RMSEvals = 0;
+
 
     mastersurf = 0;
     meanpotvals = 0;
@@ -128,8 +131,15 @@ Surf_Data::~Surf_Data()
 
 
 
+
+
     if (activationvals)
         free(activationvals);
+
+    if (CCvals)
+        free(CCvals);
+    if (RMSEvals)
+        free(RMSEvals);
 
     if (datacloudvals)
         free(datacloudvals);
@@ -289,6 +299,38 @@ Surf_Data *Surf_Data::AddASurfData(Surf_Data * surfdata, long newsurfnum, long n
     else {
         surfdata[newsurfnum].activationvals = NULL;
     }
+
+
+
+    /*** Now allocate some memory for the CC in the surface. ***/
+
+    if (numleads > 0) {
+
+        if ((surfdata[newsurfnum].CCvals = (float *)calloc((size_t) numleads, sizeof(float))) == NULL) {
+            fprintf(stderr, "*** AddaDataSurf: error getting first memory\n");
+            return (NULL);
+        }
+    }
+    else {
+        surfdata[newsurfnum].CCvals = NULL;
+    }
+
+
+    /*** Now allocate some memory for the RMSE in the surface. ***/
+
+    if (numleads > 0) {
+
+        if ((surfdata[newsurfnum].RMSEvals = (float *)calloc((size_t) numleads, sizeof(float))) == NULL) {
+            fprintf(stderr, "*** AddaDataSurf: error getting first memory\n");
+            return (NULL);
+        }
+    }
+    else {
+        surfdata[newsurfnum].RMSEvals = NULL;
+    }
+
+
+
 
 
     /*** Add some memory for the mean values and reference signal

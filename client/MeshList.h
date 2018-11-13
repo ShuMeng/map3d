@@ -52,6 +52,7 @@ class GeomWindow;
 class LegendWindow;
 class GetMatrixSlice;
 class ActivationMapWindow;
+class CCMapWindow;
 struct PickInfo;
 using std::vector;
 
@@ -66,6 +67,12 @@ public:
 
 
 ActivationMapWindow *actipriv;   /* activation window where mesh is present */
+
+CCMapWindow *CCpriv;   /* CC window where mesh is present */
+
+//RMSEMapWindow *RMSEpriv;   /* RMSE window where mesh is present */
+
+
 
   Surf_Data *data;              /* potential/scalar data */
   Contour_Info *cont;           /* contours lines and bands */
@@ -83,7 +90,7 @@ ActivationMapWindow *actipriv;   /* activation window where mesh is present */
   bool invert;                  /* indicates whether mapping should be inverted or not */
 
 
-Transforms *tran_activation; 
+Transforms *tran_validation; 
 
   bool transparent;    /* indicates whether mapping should be transparent or not */
 

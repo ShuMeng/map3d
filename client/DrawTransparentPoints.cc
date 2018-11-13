@@ -17,6 +17,7 @@
 #include "ActivationLegendWindow.h"
 
 #include "ActivationMapWindow.h"
+#include "CCMapWindow.h"
 #include <QPushButton>
 #include <QMessageBox>
 #include <QLabel>
@@ -397,38 +398,47 @@ void DrawTransparentPoints::Activation_Callback()
     Surf_Data* data = mesh->data;
 
 
-      CalculateActivation(mesh);
+    CalculateActivation(mesh);
+
+    if (( checkArray2D(data,data->inversevals)==0) && (checkArray2D(data,data->potvals)==0))
+    {
+        CalculateCC(mesh);
+        CalculateRMSE(mesh);
+    }
 
 
-
-    // if ((checkArray1D(data,data->activationvals)==0)&&(checkArray1D(data,data->potvals)==0))
-    //{ CalculateCC(mesh);}
-    //   else {
-    //       QMessageBox::warning(this,QString("Warning"),QString("No inverse solution or gold standard values"));
-    //   }
-
-
-    if (checkArray1D(data,data->activationvals)==0)
+    if ((checkArray1D(data,data->activationvals)==0)||(checkArray1D(data,data->CCvals)==0))
 
     {
+        Surf_Data *s=0;
+        s=mesh->data;
+
         ActivationMapWindow* actiwin;
         actiwin = new ActivationMapWindow(actiWidget);
-        //actiwin = ActivationMapWindow::ActivationMapWindowCreate(0,0,0,0);
         actiwin->addMesh(mesh);
         actiwin->setWindowFlags(Qt::WindowTransparentForInput);
 
-
-        Surf_Data *s=0;
-        s=mesh->data;
 
         /* create colormap legend window */
         ActivationLegendWindow *lpriv = NULL;
         lpriv = new ActivationLegendWindow(actiWidget);
 
+
+
+        CCMapWindow* CCwin;
+        CCwin = new CCMapWindow(actiWidget);
+        CCwin->addMesh(mesh);
+        CCwin->setWindowFlags(Qt::WindowTransparentForInput);
+
+        //        /* create colormap legend window */
+        //        ActivationLegendWindow *lpriv2 = NULL;
+        //        lpriv2 = new ActivationLegendWindow(actiWidget);
+
+
         int width, height;
         width = mesh->lw_xmax - mesh->lw_xmin;
         height = mesh->lw_ymax - mesh->lw_ymin;
-        //lpriv = ActivationLegendWindow::ActivationLegendWindowCreate(mesh, width, height, mesh->lw_xmin, mesh->lw_ymin, !mesh->showlegend);
+
 
 
         gLayout->addWidget(actiwin);
@@ -436,10 +446,18 @@ void DrawTransparentPoints::Activation_Callback()
         gLayout->addWidget(lpriv);
         gLayout->setStretch(1,1);
 
+        gLayout->addWidget(CCwin);
+        gLayout->setStretch(2,3);
+        //        gLayout->addWidget(lpriv2);
+        //        gLayout->setStretch(3,1);
+
         lpriv->setVisible(true);
         actiwin->show();
 
-        actiWidget->setMinimumSize(500,380);
+        //        lpriv2->setVisible(true);
+        //        actiwin2->show();
+
+        actiWidget->setMinimumSize(800,380);
         actiWidget->show();
 
 
@@ -571,7 +589,7 @@ void DrawTransparentPoints::CalculateCC(Mesh_Info * curmesh)
         CC[i]=corr;
         std::cout<< "CC value is "<<CC[i]<<std::endl;
         // just for test, define a  CCvals later
-        cursurf->activationvals[i] =CC[i];
+        cursurf->CCvals[i] =CC[i];
         // std::cout<< "activationvals value in CC is "<<cursurf->activationvals[i]<<std::endl;
     }
 
@@ -601,13 +619,13 @@ void DrawTransparentPoints::CalculateRMSE(Mesh_Info * curmesh)
 
         float rmse = rootmeansquareerror(inverse, gold_standard, frame_num);
         RMSE[i]=rmse;
-        std::cout<< "RMSE value is "<<RMSE[i]<<std::endl;
+        // std::cout<< "RMSE value is "<<RMSE[i]<<std::endl;
 
         // just for test, define a  CCvals later
 
-        cursurf->activationvals[i] =RMSE[i];
+        cursurf->RMSEvals[i] =RMSE[i];
 
-        // std::cout<< "activationvals value in CC is "<<cursurf->activationvals[i]<<std::endl;
+
     }
 
 }
@@ -948,6 +966,22 @@ float DrawTransparentPoints::rootmeansquareerror(double X[], double Y[], int n)
 
 
 
+bool DrawTransparentPoints::checkArray2D(Surf_Data* data,float **matrixvals)
+
+{
+    long framenum, leadnum;
+    for (framenum = 0; framenum < data->numframes; framenum++) {
+
+        for (leadnum = 0; leadnum < data->numleads; leadnum++) {
+
+            if(matrixvals[framenum][leadnum] != 0)
+            {
+                return false;
+            }
+        }
+        return true;
+    }
+}
 
 
 

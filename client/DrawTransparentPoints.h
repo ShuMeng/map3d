@@ -29,6 +29,7 @@ public slots:
   void CalculateActivation(Mesh_Info * curmesh);
 
   bool checkArray1D(Surf_Data* data, float *matrixvals);
+  bool checkArray2D(Surf_Data* data,float **matrixvals);
 
   void InDeflateMesh(Mesh_Info * curmesh);
 

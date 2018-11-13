@@ -21,7 +21,7 @@ Mesh_Info::Mesh_Info()
   geom = new Map3d_Geom;
   tran = new Transforms;
   
-  tran_activation = new Transforms;
+  tran_validation = new Transforms;
   
   data = 0;                     // leave as 0 until it gets used
   cont = 0;
@@ -55,6 +55,11 @@ Mesh_Info::Mesh_Info()
   
   gpriv = 0;
   actipriv=0;
+
+  CCpriv=0;
+
+  //RMSEpriv=0;
+
   drawmesh = RENDER_MESH_NONE;
   drawcont = 1;
   drawfids = 1;
