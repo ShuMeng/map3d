@@ -23,7 +23,9 @@
 #include "Surf_Data.h"
 #include "eventdata.h"
 #include "ContourDialog.h"
-
+#include "ActivationMapWindow.h"
+#include "CCMapWindow.h"
+#include "RMSEMapWindow.h"
 
 #include "GetMatrixSlice.h"
 
@@ -208,6 +210,13 @@ void AssociateGeomWindow(GeomWindow * priv)
 {
     priv->geomWinId = GeomWindows.size();
     GeomWindows.push_back(priv);
+}
+
+
+void AssociateActivationWindow(ActivationMapWindow * actipriv)
+{
+    actipriv->ActivationWinId = ActivationMapWindows.size();
+    ActivationMapWindows.push_back(actipriv);
 }
 
 int AssociateWindow(Map3dGLWidget * priv)

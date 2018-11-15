@@ -35,6 +35,8 @@ Mesh_Info* getFirstMesh();
 void AssociateGeomWindow(GeomWindow * priv);
 int AssociateWindow(Map3dGLWidget * priv);
 
+void AssociateActivationWindow(ActivationMapWindow * actipriv);
+
 #ifndef MIN
 #  define MIN(x,y) ((x<y)?x:y)
 #endif

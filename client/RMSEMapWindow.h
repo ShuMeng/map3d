@@ -55,7 +55,7 @@ public:
   Mesh_List meshes;             /* info for all the meshes in this
                                    window: geom, data, contours, colormaps,... */
 
-  int geomWinId;
+  int RMSEWinId;
 
   float l2norm;                 /* the "fit" info for this window */
   float xcenter, ycenter, zcenter;

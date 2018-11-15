@@ -68,12 +68,14 @@ int pickstacktop = -1;
 #define CHAR_SIZE 70
 #define CHAR_BIG CHAR_SIZE * 4
 #define CHAR_MED CHAR_SIZE * 3
-//#define PROJ_SIZE 1000.f
+#define PROJ_SIZE 1000.f
 
 static const int min_width = 100;
 static const int min_height = 100;
 static const int default_width = 328;
 static const int default_height = 144;
+
+GLuint selectbufferPick[2048];
 
 enum pickmenu { axes_color, graph_color, full_screen, graph_width_menu, toggle_subseries_mode, draw_nearest_electrogram};
 
@@ -100,6 +102,10 @@ PickWindow::PickWindow(QWidget* parent, bool rms) : Map3dGLWidget(parent, (rms?R
 //static
 PickWindow* PickWindow::PickWindowCreate(int _width, int _height, int _x, int _y)
 {
+
+    std::cout<<"picking window crash test entering  PickWindowCreate  "<<std::endl;
+
+
     if (map3d_info.numPickwins >= MAX_PICKS) {
         printf("Warning: cannot create more than %d Time Series Windows\n", MAX_PICKS);
         return 0;
@@ -121,6 +127,11 @@ PickWindow::~PickWindow()
 
 void PickWindow::initializeGL()
 {
+
+   std::cout<<"picking window crash test entering  initializeGL  "<<std::endl;
+
+
+   Map3dGLWidget::initializeGL();
     axiscolor[0] = 0;
     axiscolor[1] = 0;
     axiscolor[2] = 0;
@@ -132,7 +143,7 @@ void PickWindow::initializeGL()
     graphcolor[3] = 1.0f;
     graph_width = 2;
 
-    Map3dGLWidget::initializeGL();
+
 
     glMatrixMode(GL_MODELVIEW);
     glLoadIdentity();
@@ -141,23 +152,34 @@ void PickWindow::initializeGL()
     glShadeModel(GL_FLAT);
 
     glDepthMask(GL_FALSE);
+    glSelectBuffer(2048, selectbufferPick);
 
-    if (mesh && mesh->gpriv) {
-        GeomWindow* geom = (GeomWindow *) mesh->gpriv;
-        bgcolor[0] = geom->bgcolor[0];
-        bgcolor[1] = geom->bgcolor[1];
-        bgcolor[2] = geom->bgcolor[2];
-        bgcolor[3] = geom->bgcolor[3];
+//    if (mesh && mesh->gpriv) {
 
-        fgcolor[0] = geom->fgcolor[0];
-        fgcolor[1] = geom->fgcolor[1];
-        fgcolor[2] = geom->fgcolor[2];
-        fgcolor[3] = geom->fgcolor[3];
-    }
-    else {
-        bgcolor[0] = bgcolor[1] = bgcolor[2] = bgcolor[3] = 0;
-        fgcolor[0] = fgcolor[1] = fgcolor[2] = fgcolor[3] = 1;
-    }
+//        std::cout<<"picking window crash test entering  initializeGL  if (mesh && mesh->gpriv)   "<<std::endl;
+
+//        GeomWindow* geom = (GeomWindow *) mesh->gpriv;
+//        bgcolor[0] = geom->bgcolor[0];
+//        bgcolor[1] = geom->bgcolor[1];
+//        bgcolor[2] = geom->bgcolor[2];
+//        bgcolor[3] = geom->bgcolor[3];
+
+//        fgcolor[0] = geom->fgcolor[0];
+//        fgcolor[1] = geom->fgcolor[1];
+//        fgcolor[2] = geom->fgcolor[2];
+//        fgcolor[3] = geom->fgcolor[3];
+
+//        bgcolor[0] = bgcolor[1] = bgcolor[2] = bgcolor[3] = 1;
+//        fgcolor[0] = fgcolor[1] = fgcolor[2] = fgcolor[3] = 0;
+
+//    }
+//    else {
+
+//        std::cout<<"picking window crash test entering  initializeGL  else   "<<std::endl;
+
+        bgcolor[0] = bgcolor[1] = bgcolor[2] = bgcolor[3] = 1;
+        fgcolor[0] = fgcolor[1] = fgcolor[2] = fgcolor[3] = 0;
+   // }
 
 
 }
@@ -177,25 +199,26 @@ void PickWindow::Destroy()
             break;
         }
     }
-//    for (i = 0; i < map3d_info.numPickwins; i++) {
-//        if (map3d_info.pickwins[i] == this) {
-//            map3d_info.numPickwins--;
-//            for (j = i; j < map3d_info.numPickwins; j++)
-//                map3d_info.pickwins[j] = map3d_info.pickwins[j + 1];
-//            break;
-//        }
-//    }
-//    if (j != -1) {
-//        map3d_info.pickwins[j] = this;
-//        DestroyWindow(this);
-//    }
-//    mesh->gpriv->update();
-//    pick = NULL;
-//    mesh = NULL;
+    //    for (i = 0; i < map3d_info.numPickwins; i++) {
+    //        if (map3d_info.pickwins[i] == this) {
+    //            map3d_info.numPickwins--;
+    //            for (j = i; j < map3d_info.numPickwins; j++)
+    //                map3d_info.pickwins[j] = map3d_info.pickwins[j + 1];
+    //            break;
+    //        }
+    //    }
+    //    if (j != -1) {
+    //        map3d_info.pickwins[j] = this;
+    //        DestroyWindow(this);
+    //    }
+    //    mesh->gpriv->update();
+    //    pick = NULL;
+    //    mesh = NULL;
 }
 
 void PickWindow::paintGL()
 {
+
     if (mesh == NULL)
         return;
     if (!rms && pick == NULL)
@@ -219,6 +242,8 @@ void PickWindow::paintGL()
 
 void PickWindow::enterEvent(QEvent*)
 {
+    std::cout<<"picking window crash test entering enterEvent   "<<std::endl;
+
     if (rms) return;
     mesh->curpicknode = pick->node;
     mesh->gpriv->update();
@@ -226,6 +251,9 @@ void PickWindow::enterEvent(QEvent*)
 
 void PickWindow::leaveEvent(QEvent*)
 {
+
+    std::cout<<"picking window crash test entering leaveEvent    "<<std::endl;
+
     if (rms) return;
     mesh->curpicknode = -1;
     mesh->gpriv->update();
@@ -233,6 +261,9 @@ void PickWindow::leaveEvent(QEvent*)
 
 void PickWindow::mouseReleaseEvent(QMouseEvent* event)
 {
+
+    std::cout<<"picking window crash test entering mouseReleaseEvent    "<<std::endl;
+
     if (rms)
     {
         RMSButtonRelease(event);
@@ -270,6 +301,8 @@ void PickWindow::mouseReleaseEvent(QMouseEvent* event)
 // in here we hack the original values of event->x and event->y
 void PickWindow::mousePressEvent(QMouseEvent* event)
 {
+    std::cout<<"picking window crash test entering mousePressEvent    "<<std::endl;
+
     if (rms)
     {
         RMSButtonPress(event);
@@ -345,6 +378,9 @@ void PickWindow::RMSButtonRelease(QMouseEvent * event)
 
 void PickWindow::RMSButtonPress(QMouseEvent * event)
 {
+
+    std::cout<<"picking window crash test entering RMSButtonEvent    "<<std::endl;
+
     state = 1;
 
     if(!mesh)
@@ -396,6 +432,7 @@ void PickWindow::RMSButtonPress(QMouseEvent * event)
 
 void PickWindow::mouseMoveEvent(QMouseEvent* event)
 {
+    std::cout<<"picking window crash test entering mouseMoveEvent    "<<std::endl;
 
     play_timer->stop();
 
@@ -500,6 +537,9 @@ void PickWindow::mouseMoveEvent(QMouseEvent* event)
 
 void PickWindow::RMSMotion(QMouseEvent* event)
 {
+
+    std::cout<<"picking window crash test entering RMSMotion   "<<std::endl;
+
     if(!mesh)
         return;
 
@@ -566,6 +606,8 @@ void PickWindow::RMSMotion(QMouseEvent* event)
 
 void PickWindow::keyReleaseEvent(QKeyEvent* event)
 {
+    std::cout<<"picking window crash test entering keyReleaseEvent    "<<std::endl;
+
     if (rms) return;
     GeomWindow *gpriv = mesh->gpriv;
     if (event->key() == Qt::Key_Left || event->key() == Qt::Key_Right) {
@@ -575,6 +617,9 @@ void PickWindow::keyReleaseEvent(QKeyEvent* event)
 
 void PickWindow::keyPressEvent(QKeyEvent* event)
 {
+
+    std::cout<<"picking window crash test entering keyPressEvent    "<<std::endl;
+
     if (rms) return;
 
     int key = event->key();
@@ -617,6 +662,10 @@ bool PickWindow::MatrixOnlyContainZero(Surf_Data* data,float **matrixvals)
 
 void PickWindow::DrawNode()
 {
+
+
+    std::cout<<"picking window crash test entering DrawNode   "<<std::endl;
+
     int loop;
     float a, b;
     float d;
@@ -871,7 +920,6 @@ void PickWindow::DrawNode()
         }
 
 
-
         toRender = QString::number(max, 'g', 2);
         renderString3f(left * width() + d*(float)data->zerotimeframe, top * height()-5, 0, mesh->gpriv->med_font, toRender);
 
@@ -905,6 +953,10 @@ void PickWindow::DrawNode()
     }
     /* draw time signal */
     if (data) {
+
+
+        std::cout<<"picking window crash test if(data)   "<<std::endl;
+
 
         // this is a lambda because of all the dumb little variables we need
         auto DrawPlot = [=](int leftFrame, int rightFrame)
@@ -945,20 +997,12 @@ void PickWindow::DrawNode()
                 // draw to the next frame if it exists
                 if (loop >= data->numframes)
                     break;
-                if (rms) {
-                    glColor3f(graphcolor[0], graphcolor[1], graphcolor[0]);
-                    glVertex3f(left * width() + d * counter, data->rmspotvals[loop] * a + b, 0);
+                if (MatrixOnlyContainZero(data,data->inversevals)==0)
+                {
+                    glColor3f(graphcolor[5], graphcolor[0], graphcolor[0]);
+                    glVertex3f(left * width() + d * counter, data->inversevals[loop][pick->node] * a + b, 0);
                 }
-                else {
-
-                    if (MatrixOnlyContainZero(data,data->inversevals)==0)
-                    {
-                        glColor3f(graphcolor[5], graphcolor[0], graphcolor[0]);
-                        glVertex3f(left * width() + d * counter, data->inversevals[loop][pick->node] * a + b, 0);
-                    }
-
-                }
-            }
+             }
 
             glEnd();
 
@@ -968,19 +1012,12 @@ void PickWindow::DrawNode()
                 // draw to the next frame if it exists
                 if (loop >= data->numframes)
                     break;
-                if (rms) {
-                    glColor3f(graphcolor[0], graphcolor[1], graphcolor[0]);
-                    glVertex3f(left * width() + d * counter, data->rmspotvals[loop] * a + b, 0);
-                }
-                else {
 
-                    if (MatrixOnlyContainZero(data,data->forwardvals)==0)
-                    {
-                        glColor3f(graphcolor[5], graphcolor[5], graphcolor[0]);
-                        glVertex3f(left * width() + d * counter, data->forwardvals[loop][pick->node] * a + b, 0);
-                        //std::cout<<loop  <<"forwardvals[loop][pick->node]= "<<data->forwardvals[loop][pick->node]<<std::endl;
-                    }
-
+                if (MatrixOnlyContainZero(data,data->forwardvals)==0)
+                {
+                    glColor3f(graphcolor[5], graphcolor[5], graphcolor[0]);
+                    glVertex3f(left * width() + d * counter, data->forwardvals[loop][pick->node] * a + b, 0);
+                    //std::cout<<loop  <<"forwardvals[loop][pick->node]= "<<data->forwardvals[loop][pick->node]<<std::endl;
                 }
             }
 
@@ -992,18 +1029,13 @@ void PickWindow::DrawNode()
                 // draw to the next frame if it exists
                 if (loop >= data->numframes)
                     break;
-                if (rms) {
-                    glColor3f(graphcolor[0], graphcolor[1], graphcolor[0]);
-                    glVertex3f(left * width() + d * counter, data->rmspotvals[loop] * a + b, 0);
-                }
-                else {
 
-                    if ((mesh->geom->surfnum>1)&&(!shownearestrecording)&&(data->nearestrecordingvals[loop][pick->node]!=0))
-                    {
-                        glColor3f(graphcolor[0], graphcolor[8], graphcolor[3]);
-                        glVertex3f(left * width() + d * counter, data->nearestrecordingvals[loop][pick->node] * a + b, 0);
-                    }
+                if ((mesh->geom->surfnum>1)&&(!shownearestrecording)&&(data->nearestrecordingvals[loop][pick->node]!=0))
+                {
+                    glColor3f(graphcolor[0], graphcolor[8], graphcolor[3]);
+                    glVertex3f(left * width() + d * counter, data->nearestrecordingvals[loop][pick->node] * a + b, 0);
                 }
+
             }
             glEnd();
             glDisable(GL_LINE_SMOOTH);
@@ -1112,6 +1144,9 @@ void PickWindow::DrawNode()
 // the range [left, right) - right is exclusive - as the condition of a for loop
 void PickWindow::getFrameRange(int subseriesNum, int& left, int& right)
 {
+
+    std::cout<<"picking window crash test entering getFrameRange    "<<std::endl;
+
     if (mesh->data == NULL)
     {
         left = right = 0;
@@ -1135,6 +1170,8 @@ void PickWindow::getFrameRange(int subseriesNum, int& left, int& right)
 
 void PickWindow::SetStyle(int x)
 {
+    std::cout<<"picking window crash test entering SetStyle    "<<std::endl;
+
     switch (x) {
     case 0:                      //full size
         showinfotext = 0;
@@ -1156,6 +1193,8 @@ void PickWindow::SetStyle(int x)
 
 void PickWindow::SetNearestElec(int x)
 {
+
+    std::cout<<"picking window crash test entering SetNearestElec    "<<std::endl;
     switch (x) {
     case 0:
         shownearestrecording = 0;
@@ -1173,6 +1212,9 @@ void PickWindow::SetNearestElec(int x)
 
 int PickWindow::OpenMenu(QPoint point)
 {
+    std::cout<<"picking window crash test entering OpenMenu   "<<std::endl;
+
+
     QMenu menu(this);
     menu.addAction("Axes Color")->setData(axes_color);
     menu.addAction("Graph Color")->setData(graph_color);
@@ -1197,6 +1239,9 @@ int PickWindow::OpenMenu(QPoint point)
 
 void PickWindow::MenuEvent(int menu_data)
 {
+
+    std::cout<<"picking window crash test entering MenuEvent   "<<std::endl;
+
     switch (menu_data) {
     case axes_color:
         PickColor(axiscolor);

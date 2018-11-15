@@ -38,6 +38,8 @@ public slots:
   void CalculateCC(Mesh_Info * curmesh);
   void CalculateRMSE(Mesh_Info * curmesh);
 
+  void normalize1D(Surf_Data* data,float *matrixvals);
+
 
 
   float correlationCoefficient(double X[], double Y[], int n);

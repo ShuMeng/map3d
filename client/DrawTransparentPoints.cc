@@ -52,6 +52,8 @@ int unlock_datacloud_surfnum[30];
 int unlock_forward_surfnum[30];
 int unlock_MFS_surfnum[30];
 
+
+
 const char* MeshProperty_trans_Points = "MeshProperty_trans_Points";
 
 Engine *ep_matrix = engOpen(NULL);
@@ -382,6 +384,7 @@ void DrawTransparentPoints::Recal_MFS_Callback()
 
 
 
+
 void DrawTransparentPoints::Activation_Callback()
 
 {
@@ -398,19 +401,24 @@ void DrawTransparentPoints::Activation_Callback()
     Mesh_Info* mesh = meshes[row];
     Surf_Data* data = mesh->data;
 
+    if (( checkArray2D(data,data->inversevals)==0) || (checkArray2D(data,data->potvals)==0)|| (checkArray2D(data,data->forwardvals)==0))
+    {
+        CalculateActivation(mesh);
+    }
 
-    CalculateActivation(mesh);
 
     if (( checkArray2D(data,data->inversevals)==0) && (checkArray2D(data,data->potvals)==0))
     {
         CalculateCC(mesh);
         CalculateRMSE(mesh);
+        normalize1D(data,data->RMSEvals);
     }
 
 
     if ((checkArray1D(data,data->activationvals)==0)||(checkArray1D(data,data->CCvals)==0)||(checkArray1D(data,data->RMSEvals)==0))
 
     {
+
         Surf_Data *s=0;
         s=mesh->data;
 
@@ -424,57 +432,46 @@ void DrawTransparentPoints::Activation_Callback()
         ActivationLegendWindow *lpriv = NULL;
         lpriv = new ActivationLegendWindow(actiWidget);
 
-
-
-        CCMapWindow* CCwin;
-        CCwin = new CCMapWindow(actiWidget);
-        CCwin->addMesh(mesh);
-        CCwin->setWindowFlags(Qt::WindowTransparentForInput);
-
-        //        /* create colormap legend window */
-        //        ActivationLegendWindow *lpriv2 = NULL;
-        //        lpriv2 = new ActivationLegendWindow(actiWidget);
-
-
-        RMSEMapWindow* RMSEwin;
-        RMSEwin = new RMSEMapWindow(actiWidget);
-        RMSEwin->addMesh(mesh);
-        RMSEwin->setWindowFlags(Qt::WindowTransparentForInput);
-
-        //        /* create colormap legend window */
-        //        ActivationLegendWindow *lpriv2 = NULL;
-        //        lpriv2 = new ActivationLegendWindow(actiWidget);
-
-
-
         int width, height;
         width = mesh->lw_xmax - mesh->lw_xmin;
         height = mesh->lw_ymax - mesh->lw_ymin;
 
 
-
-        gLayout->addWidget(actiwin);
-        gLayout->setStretch(0,3);
         gLayout->addWidget(lpriv);
-        gLayout->setStretch(1,1);
-
-        gLayout->addWidget(CCwin);
-        gLayout->setStretch(2,3);
-        //        gLayout->addWidget(lpriv2);
-        //        gLayout->setStretch(3,1);
+        gLayout->setStretch(0,1);
+        gLayout->addWidget(actiwin);
+        gLayout->setStretch(1,3);
 
 
-        gLayout->addWidget(RMSEwin);
-        gLayout->setStretch(3,3);
+        if ((checkArray1D(data,data->CCvals)==0)&&(checkArray1D(data,data->RMSEvals)==0))
+        {
+            CCMapWindow* CCwin;
+            CCwin = new CCMapWindow(actiWidget);
+            CCwin->addMesh(mesh);
+            CCwin->setWindowFlags(Qt::WindowTransparentForInput);
+
+            RMSEMapWindow* RMSEwin;
+            RMSEwin = new RMSEMapWindow(actiWidget);
+            RMSEwin->addMesh(mesh);
+            RMSEwin->setWindowFlags(Qt::WindowTransparentForInput);
+
+            gLayout->addWidget(CCwin);
+            gLayout->setStretch(2,3);
+            gLayout->addWidget(RMSEwin);
+            gLayout->setStretch(3,3);
+
+            actiWidget->setMinimumSize(1000,380);
+        }
+        else
+        {
+            actiWidget->setMinimumSize(500,380);
+        }
+
+
 
         lpriv->setVisible(true);
         actiwin->show();
-        CCwin->show();
 
-        //        lpriv2->setVisible(true);
-        //        actiwin2->show();
-
-        actiWidget->setMinimumSize(1000,380);
         actiWidget->show();
 
 
@@ -503,7 +500,7 @@ void DrawTransparentPoints::Activation_Callback()
 
     else {
 
-        QMessageBox::warning(this,QString("Warning"),QString("No Activation times for this surface!"));
+        QMessageBox::warning(this,QString("Warning"),QString("No enough input values for this surface!"));
     }
 }
 
@@ -540,10 +537,13 @@ void DrawTransparentPoints::CalculateActivation(Mesh_Info * curmesh)
     {
         for (int j=0; j< curmesh->data->numframes; j++)
 
-            if (cursurf->inversevals[cursurf->framenum][i]==0)
-            {pot_temp[i][j] =cursurf->potvals[j][i];}
-            else
+            if (checkArray2D(curmesh->data,curmesh->data->inversevals)==0)
             {pot_temp[i][j] =cursurf->inversevals[j][i];}
+            else if (checkArray2D(curmesh->data,curmesh->data->potvals)==0)
+            {pot_temp[i][j] =cursurf->potvals[j][i];}
+            else if(checkArray2D(curmesh->data,curmesh->data->forwardvals)==0)
+            {pot_temp[i][j] =cursurf->forwardvals[j][i];}
+
     }
 
 
@@ -641,9 +641,9 @@ void DrawTransparentPoints::CalculateRMSE(Mesh_Info * curmesh)
         // just for test, define a  CCvals later
 
         cursurf->RMSEvals[i] =RMSE[i];
-
-
     }
+
+
 
 }
 
@@ -913,8 +913,20 @@ void DrawTransparentPoints::CalculateMFSTransformMatrix(Mesh_Info * recordingmes
     mxArray *mfsEGM_matlab = engGetVariable(ep_matrix, "mfsEGM");
     double *mfsEGM = mxGetPr(mfsEGM_matlab);
 
-    ofstream myfile;
-    myfile.open ("inverse_128.txt");
+
+
+    string filename;
+    ofstream files;
+    stringstream a;
+    a << recordingmesh->data->user_InDe_parameter;
+    filename = "inverse_96_" + a.str();
+    filename += ".txt";
+    files.open(filename.c_str(), ios::out);
+
+
+
+    //                ofstream myfile;
+    //                myfile.open ("inverse_128.txt");
 
     for (int j=0; j< curmesh->data->numframes; j++)
     {
@@ -922,8 +934,8 @@ void DrawTransparentPoints::CalculateMFSTransformMatrix(Mesh_Info * recordingmes
         {
             cursurf->MFSvals[j][i] =mfsEGM[i+j*atria_num];
 
-            myfile << cursurf->MFSvals[j][i];
-            myfile << "\n";
+            files << cursurf->MFSvals[j][i];
+            files << "\n";
             //myfile.close();
 
         }
@@ -971,6 +983,8 @@ float DrawTransparentPoints::rootmeansquareerror(double X[], double Y[], int n)
 {
 
     double sum_XY = 0;
+
+
     for (int i = 0; i < n; i++)
     {
         sum_XY = sum_XY+(X[i] - Y[i])*(X[i] - Y[i]);
@@ -998,6 +1012,28 @@ bool DrawTransparentPoints::checkArray2D(Surf_Data* data,float **matrixvals)
         }
         return true;
     }
+}
+
+void DrawTransparentPoints::normalize1D(Surf_Data* data,float *matrixvals)
+
+{
+    long leadnum=data->numleads;
+
+    double normalized_matrix[leadnum];
+
+    float maxval = *std::max_element(matrixvals,matrixvals+leadnum);
+    float minval = *std::min_element(matrixvals,matrixvals+leadnum);
+
+
+    for (int i = 0; i < leadnum; i++)
+    {
+        normalized_matrix[i]= (matrixvals[i]-minval)/(maxval-minval);
+
+        matrixvals[i]=normalized_matrix[i];
+    }
+
+
+
 }
 
 

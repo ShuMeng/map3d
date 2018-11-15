@@ -19,7 +19,7 @@
 #include "colormaps.h"
 #include "dialogs.h"
 #include "map3dmath.h"
-//#include "GeomWindow.h"
+
 #include "Contour_Info.h"
 #include "Map3d_Geom.h"
 #include "Surf_Data.h"
@@ -853,23 +853,23 @@ void ActivationMapWindow::DrawBGImage()
 
 int ActivationMapWindow::OpenMenu(QPoint point)
 {
-//    int all_node_num = 0;
+    int all_node_num = 0;
 
-//    QMenu menu(this);
+    QMenu menu(this);
 
-//    QMenu* submenu = menu.addMenu("Node Marking");
+    QMenu* submenu = menu.addMenu("Node Marking");
 
-//    QAction* action = submenu->addAction("Node #");
-//    action->setData(mark_all_activation_node); action->setCheckable(true); action->setChecked(all_node_num == 1);
+    QAction* action = submenu->addAction("Node #");
+    action->setData(mark_all_activation_node); action->setCheckable(true); action->setChecked(all_node_num == 1);
 
-//    action = submenu->addAction("activation time");
-//    action->setData(mark_all_activation_value); action->setCheckable(true); action->setChecked(all_node_num == 2);
+    action = submenu->addAction("activation time");
+    action->setData(mark_all_activation_value); action->setCheckable(true); action->setChecked(all_node_num == 2);
 
-//    action = menu.exec(point);
-//    if (action)
-//        return action->data().toInt();
-//    else
-//        return -1;
+    action = menu.exec(point);
+    if (action)
+        return action->data().toInt();
+    else
+        return -1;
 
 }
 
@@ -929,94 +929,94 @@ void ActivationMapWindow::HandleMenu(int menu_data)
 
 void ActivationMapWindow::DrawNodes(Mesh_Info * curmesh)
 {
-//    //  int curframe = 0;
-//    int length = 0, loop = 0;
-//    float min = 0, max = 0, value = 0;
-//    float mNowI[16];
-//    float **modelpts = 0;
-//    Map3d_Geom *curgeom = 0;
-//    Surf_Data *cursurf = 0;
-//    HMatrix mNow;
+    //  int curframe = 0;
+    int length = 0, loop = 0;
+    float min = 0, max = 0, value = 0;
+    float mNowI[16];
+    float **modelpts = 0;
+    Map3d_Geom *curgeom = 0;
+    Surf_Data *cursurf = 0;
+    HMatrix mNow;
 
-//    ColorMap *curmap = 0;
-//    curgeom = curmesh->geom;
-//    cursurf = curmesh->data;
+    ColorMap *curmap = 0;
+    curgeom = curmesh->geom;
+    cursurf = curmesh->data;
 
-//    modelpts = curgeom->points[curgeom->geom_index];
+    modelpts = curgeom->points[curgeom->geom_index];
 
-//    if (cursurf) {
-//        curmap = curmesh->cmap;
-//    }
+    if (cursurf) {
+        curmap = curmesh->cmap;
+    }
 
-//    length = curgeom->numpts;
+    length = curgeom->numpts;
 
-//    /* set the transform for billboarding */
-//    Ball_Value(&curmesh->tran_validation->rotate, mNow);
-//    TransposeMatrix16((float *)mNow, mNowI);
-//    Transform(curmesh, 0.01f, true);
-//    glPushMatrix();
+    /* set the transform for billboarding */
+    Ball_Value(&curmesh->tran_validation->rotate, mNow);
+    TransposeMatrix16((float *)mNow, mNowI);
+    Transform(curmesh, 0.01f, true);
+    glPushMatrix();
 
-//    //if (!cursurf)
-//    //return;
-//    if (cursurf)
-//        cursurf->get_minmax(min, max);
-//    unsigned char color[3];
-//    float pos[3];
+    //if (!cursurf)
+    //return;
+    if (cursurf)
+        cursurf->get_minmax(min, max);
+    unsigned char color[3];
+    float pos[3];
 
-//    if (curmesh->mark_all_activation_number) {
-//        //glDepthMask(GL_FALSE);
+    if (curmesh->mark_all_activation_number) {
+        //glDepthMask(GL_FALSE);
 
-//        for (loop = 0; loop < length; loop++) {
-//            if (cursurf) {
-//                value = cursurf->potvals[cursurf->framenum][loop];
-//                getContColor(value, min, max, curmap, color, curmesh->invert);
-//            }
-//            glTranslatef(modelpts[loop][0], modelpts[loop][1], modelpts[loop][2]);
-//            glMultMatrixf((float *)mNowI);
-//            glTranslatef(-modelpts[loop][0], -modelpts[loop][1], -modelpts[loop][2]);
-//            pos[0] = modelpts[loop][0];
-//            pos[1] = modelpts[loop][1];
-//            pos[2] = modelpts[loop][2];
+        for (loop = 0; loop < length; loop++) {
+            if (cursurf) {
+                value = cursurf->potvals[cursurf->framenum][loop];
+                getContColor(value, min, max, curmap, color, curmesh->invert);
+            }
+            glTranslatef(modelpts[loop][0], modelpts[loop][1], modelpts[loop][2]);
+            glMultMatrixf((float *)mNowI);
+            glTranslatef(-modelpts[loop][0], -modelpts[loop][1], -modelpts[loop][2]);
+            pos[0] = modelpts[loop][0];
+            pos[1] = modelpts[loop][1];
+            pos[2] = modelpts[loop][2];
 
-//            int number = 0;
+            int number = 0;
 
-//            if (curmesh->mark_all_activation_number) {
-//                // this is a function of the fov (zoom), the ratio of
-//                // mesh's l2norm to the window's l2norm and the window
-//                // height to determine whether the numbers will be too
-//                // close together or not
+            if (curmesh->mark_all_activation_number) {
+                // this is a function of the fov (zoom), the ratio of
+                // mesh's l2norm to the window's l2norm and the window
+                // height to determine whether the numbers will be too
+                // close together or not
 
-//                glColor3f(curmesh->mark_all_color[0], curmesh->mark_all_color[1], curmesh->mark_all_color[2]);
-//                number = curmesh->mark_all_activation_number;
-//            }
+                glColor3f(curmesh->mark_all_color[0], curmesh->mark_all_color[1], curmesh->mark_all_color[2]);
+                number = curmesh->mark_all_activation_number;
+            }
 
-//            float scale = fontScale();
-//            switch (number) {
-//            case 1:
-//                renderString3f(pos[0], pos[1], pos[2], (int)small_font, QString::number(loop + 1), scale);
-//                break;
+            float scale = fontScale();
+            switch (number) {
+            case 1:
+                renderString3f(pos[0], pos[1], pos[2], (int)small_font, QString::number(loop + 1), scale);
+                break;
 
-//            case 2:
-//                if (cursurf && cursurf->activationvals && cursurf->activationvals[loop] != UNUSED_DATA)
-//                    renderString3f(pos[0], pos[1], pos[2], (int)small_font,
-//                            QString::number(cursurf->activationvals[loop], 'g', 2), scale);
-//                break;
+            case 2:
+                if (cursurf && cursurf->activationvals && cursurf->activationvals[loop] != UNUSED_DATA)
+                    renderString3f(pos[0], pos[1], pos[2], (int)small_font,
+                            QString::number(cursurf->activationvals[loop], 'g', 2), scale);
+                break;
 
 
-//            }
-//            glPopMatrix();
-//            glPushMatrix();
-//        }
-//        glDepthMask(GL_TRUE);
-//    }
+            }
+            glPopMatrix();
+            glPushMatrix();
+        }
+        glDepthMask(GL_TRUE);
+    }
 
-//    glPopMatrix();
+    glPopMatrix();
 
-//#if SHOW_OPENGL_ERRORS
-//    GLenum e = glGetError();
-//    if (e)
-//        printf("GeomWindow DrawNodes OpenGL Error: %s\n", gluErrorString(e));
-//#endif
+#if SHOW_OPENGL_ERRORS
+    GLenum e = glGetError();
+    if (e)
+        printf("GeomWindow DrawNodes OpenGL Error: %s\n", gluErrorString(e));
+#endif
 }
 
 float ActivationMapWindow::fontScale()
