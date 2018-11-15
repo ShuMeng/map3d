@@ -1,1 +1,0 @@
-GeomWindow.cc:                cout<<"pick->nearestIdx "<<pick->nearestIdx<<std::endl;
