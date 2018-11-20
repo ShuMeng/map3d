@@ -837,7 +837,7 @@ void PickWindow::DrawNode()
         toRender = "";
 
         if (data) {
-            toRender = "Pot(G) Value: " + QString::number(data->potvals[data->framenum][pick->node], 'g', 2);
+            toRender = "Pot(G): " + QString::number(data->potvals[data->framenum][pick->node], 'g', 2);
         }
         else {
             toRender = "Pot Value: ---";
@@ -848,13 +848,35 @@ void PickWindow::DrawNode()
         toRender = "";
 
         if (data->inversevals[data->framenum][pick->node]!=0){
-            toRender = "Inverse(R) Value: " + QString::number(data->inversevals[data->framenum][pick->node], 'g', 2);
+            toRender = "Inverse(R): " + QString::number(data->inversevals[data->framenum][pick->node], 'g', 2);
         }
 
         pos[0] = width() - getFontWidth(mesh->gpriv->med_font, toRender) - 2;
 
         renderString3f(pos[0], pos[1]-12, pos[2], mesh->gpriv->med_font, toRender);
         toRender = "";
+
+
+
+        if (data->CCvals[pick->node]!=0){
+            toRender = "CC: " + QString::number(data->CCvals[pick->node], 'g', 2);
+        }
+
+        pos[0] = width() - getFontWidth(mesh->gpriv->med_font, toRender) - 2;
+
+        renderString3f(pos[0], pos[1]-22, pos[2], mesh->gpriv->med_font, toRender);
+        toRender = "";
+
+        if (data->RMSEvals[pick->node]!=0){
+            toRender = "RMSE: " + QString::number(data->RMSEvals[pick->node], 'g', 2);
+        }
+
+        pos[0] = width() - getFontWidth(mesh->gpriv->med_font, toRender) - 2;
+
+        renderString3f(pos[0], pos[1]-32, pos[2], mesh->gpriv->med_font, toRender);
+        toRender = "";
+
+
 
 
         if (data->forwardvals[data->framenum][pick->node]!=0){

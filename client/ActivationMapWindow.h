@@ -49,9 +49,10 @@ public:
     void DrawSurf(Mesh_Info * curmesh);
     void DrawInfo();
 
+
    // Mesh_List findMeshesFromSameInput(Mesh_Info* mesh);
 
-    void recalcMinMax();
+    void recalcMinMax(Mesh_Info *mesh);
 
     float vfov;                   /* vertical field of view */
     Mesh_List meshes;             /* info for all the meshes in this

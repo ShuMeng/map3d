@@ -218,7 +218,7 @@ void RMSEMapWindow::paintGL()
 #endif
 }
 
-
+double aver_RMSE;
 void RMSEMapWindow::DrawSurf(Mesh_Info * curmesh)
 {
 
@@ -240,7 +240,7 @@ void RMSEMapWindow::DrawSurf(Mesh_Info * curmesh)
     ptnormals = curgeom->ptnormals;
     fcnormals = curgeom->fcnormals;
 
-
+aver_RMSE=average(cursurf->RMSEvals,curgeom->numpts);
 
     maxRMSE = *std::max_element(cursurf->RMSEvals,cursurf->RMSEvals+curgeom->numpts);
     minRMSE = *std::min_element(cursurf->RMSEvals,cursurf->RMSEvals+curgeom->numpts);
@@ -415,7 +415,10 @@ void RMSEMapWindow::DrawInfo()
         dommesh = nummesh == 1 ? meshes[0] : meshes[dominantsurf];
         char surfstr[50];
         if (dommesh->geom->subsurf <= 0)
-            sprintf(surfstr, "RMSE map Surface #%d", dommesh->geom->surfnum);
+           // sprintf(surfstr, "RMSE map Surface #%d", dommesh->geom->surfnum);
+
+        sprintf(surfstr, "Global RMSE: #%f", aver_RMSE);
+
         else
             sprintf(surfstr, "RMSE map Surface #%d-%d", dommesh->geom->surfnum, dommesh->geom->subsurf);
         surfnum = dommesh->geom->surfnum;
@@ -921,6 +924,23 @@ void RMSEMapWindow::HandleMenu(int menu_data)
 float RMSEMapWindow::fontScale()
 {
     return l2norm * vfov / height() / 29;
+}
+
+
+
+double RMSEMapWindow::average(float a[], int n)
+{
+    // Find sum of array element
+    double sum = 0;
+    for (int i=0; i<n; i++)
+    { sum =sum+a[i];
+
+    }
+
+    return sum/n;
+
+
+
 }
 
 void RMSEMapWindow::DrawNodes(Mesh_Info * curmesh)

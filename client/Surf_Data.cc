@@ -80,6 +80,8 @@ Surf_Data::Surf_Data()
     RMSEvals = 0;
 
 
+
+
     mastersurf = 0;
     meanpotvals = 0;
     rmspotvals = 0;
@@ -102,6 +104,9 @@ Surf_Data::Surf_Data()
     user_MFS = 0;
     user_fixmeshsize =0;
     user_InDe_parameter =1.0f;
+
+
+    acti_window_number = 0;
 
 }
 

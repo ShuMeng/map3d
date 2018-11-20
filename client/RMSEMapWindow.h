@@ -39,7 +39,7 @@ public:
   void HandleMouseMotion(QMouseEvent * event, float xn, float yn);
 
   void addMesh(Mesh_Info* mesh);
-
+  double average(float a[], int n);
 
   void Transform(Mesh_Info * curmesh, float factor, bool compensateForRetinaDisplay);
   void DrawBGImage();

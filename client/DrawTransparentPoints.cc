@@ -253,9 +253,15 @@ void DrawTransparentPoints::Transp_Points_Callback()
                 {
                     Mesh_Info *recordingmesh = 0;
                     recordingmesh=meshes[row-1];
-
                     CalculateMFSTransformMatrix(recordingmesh,mesh);
 
+                    Surf_Data* data = mesh->data;
+                    if (checkArray2D(data,data->potvals)==0)
+                    {
+                        CalculateCC(mesh);
+                        CalculateRMSE(mesh);
+                        normalize1D(data,data->RMSEvals);
+                    }
                 }
 
             }
@@ -379,6 +385,17 @@ void DrawTransparentPoints::Recal_MFS_Callback()
         CalculateMFSTransformMatrix(mesh,sourcemesh);
     }
 
+
+    Surf_Data* data = sourcemesh->data;
+
+
+    if (checkArray2D(data,data->potvals)==0)
+    {
+        CalculateCC(sourcemesh);
+        CalculateRMSE(sourcemesh);
+        normalize1D(data,data->RMSEvals);
+    }
+
     Broadcast(MAP3D_UPDATE);
 }
 
@@ -407,17 +424,14 @@ void DrawTransparentPoints::Activation_Callback()
     }
 
 
-    if (( checkArray2D(data,data->inversevals)==0) && (checkArray2D(data,data->potvals)==0))
-    {
-        CalculateCC(mesh);
-        CalculateRMSE(mesh);
-        normalize1D(data,data->RMSEvals);
-    }
 
-
-    if ((checkArray1D(data,data->activationvals)==0)||(checkArray1D(data,data->CCvals)==0)||(checkArray1D(data,data->RMSEvals)==0))
+    if (checkArray1D(data,data->activationvals)==0)
 
     {
+       mesh->data->acti_window_number++;
+
+      std::cout<<"number of activation maps  "<<mesh->data->acti_window_number<<std::endl;
+
 
         Surf_Data *s=0;
         s=mesh->data;
@@ -467,11 +481,8 @@ void DrawTransparentPoints::Activation_Callback()
             actiWidget->setMinimumSize(500,380);
         }
 
-
-
         lpriv->setVisible(true);
         actiwin->show();
-
         actiWidget->show();
 
 
@@ -601,13 +612,16 @@ void DrawTransparentPoints::CalculateCC(Mesh_Info * curmesh)
         {
             inverse[j]=cursurf->inversevals[j][i];
             gold_standard[j]=cursurf->potvals[j][i];
+
+            // std::cout<< "inverse value is "<<inverse[j]<<std::endl;
+            //  std::cout<< "gold_standard value is "<<gold_standard[j]<<std::endl;
         }
+
         float corr = correlationCoefficient(inverse, gold_standard, frame_num);
         CC[i]=corr;
         //std::cout<< "CC value is "<<CC[i]<<std::endl;
-        // just for test, define a  CCvals later
         cursurf->CCvals[i] =CC[i];
-        // std::cout<< "activationvals value in CC is "<<cursurf->activationvals[i]<<std::endl;
+
     }
 
 
@@ -636,10 +650,7 @@ void DrawTransparentPoints::CalculateRMSE(Mesh_Info * curmesh)
 
         float rmse = rootmeansquareerror(inverse, gold_standard, frame_num);
         RMSE[i]=rmse;
-        // std::cout<< "RMSE value is "<<RMSE[i]<<std::endl;
-
-        // just for test, define a  CCvals later
-
+        //  std::cout<< "RMSE value is "<<RMSE[i]<<std::endl;
         cursurf->RMSEvals[i] =RMSE[i];
     }
 
@@ -915,13 +926,13 @@ void DrawTransparentPoints::CalculateMFSTransformMatrix(Mesh_Info * recordingmes
 
 
 
-    string filename;
-    ofstream files;
-    stringstream a;
-    a << recordingmesh->data->user_InDe_parameter;
-    filename = "inverse_96_" + a.str();
-    filename += ".txt";
-    files.open(filename.c_str(), ios::out);
+    //    string filename;
+    //    ofstream files;
+    //    stringstream a;
+    //    a << recordingmesh->data->user_InDe_parameter;
+    //    filename = "inverse_32_" + a.str();
+    //    filename += ".txt";
+    //    files.open(filename.c_str(), ios::out);
 
 
 
@@ -934,12 +945,15 @@ void DrawTransparentPoints::CalculateMFSTransformMatrix(Mesh_Info * recordingmes
         {
             cursurf->MFSvals[j][i] =mfsEGM[i+j*atria_num];
 
-            files << cursurf->MFSvals[j][i];
-            files << "\n";
+            //            files << cursurf->MFSvals[j][i];
+            //            files << "\n";
             //myfile.close();
 
         }
     }
+
+
+    cursurf->inversevals = cursurf->MFSvals;
 
     std::cout<<"mesh->data->user_InDe_parameter in MFS "<< recordingmesh->data->user_InDe_parameter<<std::endl;
     std::cout<<"/////////////////////////////////////////////////////////////////////////////"<<std::endl;

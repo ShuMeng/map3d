@@ -219,6 +219,7 @@ void CCMapWindow::paintGL()
 #endif
 }
 
+double aver_cc;
 
 void CCMapWindow::DrawSurf(Mesh_Info * curmesh)
 {
@@ -241,14 +242,14 @@ void CCMapWindow::DrawSurf(Mesh_Info * curmesh)
     ptnormals = curgeom->ptnormals;
     fcnormals = curgeom->fcnormals;
 
-
+    aver_cc=average(cursurf->CCvals,curgeom->numpts);
 
     maxCC = *std::max_element(cursurf->CCvals,cursurf->CCvals+curgeom->numpts);
     minCC = *std::min_element(cursurf->CCvals,cursurf->CCvals+curgeom->numpts);
 
 
-//    std::cout<< "maxCC in CC window is "<<maxCC<<std::endl;
-//    std::cout<< "minCC in CC window is "<<minCC<<std::endl;
+    //    std::cout<< "maxCC in CC window is "<<maxCC<<std::endl;
+    //    std::cout<< "minCC in CC window is "<<minCC<<std::endl;
 
 
     unsigned char color[3];
@@ -402,6 +403,9 @@ void CCMapWindow::DrawInfo()
     float position[3] = { -1.f, static_cast<float>(height() - 15.0), 0.f };
     Mesh_Info *dommesh = 0;
 
+
+
+
     glMatrixMode(GL_MODELVIEW);
     glLoadIdentity();
     glMatrixMode(GL_PROJECTION);
@@ -412,13 +416,19 @@ void CCMapWindow::DrawInfo()
     glMatrixMode(GL_MODELVIEW);
     glPushMatrix();
     glPopMatrix();
+
     if (nummesh == 1 || (dominantsurf != -1 && nummesh > dominantsurf)) {
         dommesh = nummesh == 1 ? meshes[0] : meshes[dominantsurf];
         char surfstr[50];
         if (dommesh->geom->subsurf <= 0)
-            sprintf(surfstr, "CC map Surface #%d", dommesh->geom->surfnum);
+        {
+
+            sprintf(surfstr, "Global CC: #%f", aver_cc);
+        }
+
         else
             sprintf(surfstr, "CC map Surface #%d-%d", dommesh->geom->surfnum, dommesh->geom->subsurf);
+
         surfnum = dommesh->geom->surfnum;
         position[0] = (float)width()/2.0 -((float)getFontWidth((int)large_font, surfstr)/2.0);
         position[1] = height() - getFontHeight((int)large_font);
@@ -750,7 +760,7 @@ void CCMapWindow::HandleButtonRelease(QMouseEvent * event, float /*xn*/, float /
 
 void CCMapWindow::Transform(Mesh_Info * curmesh, float factor, bool compensateForRetinaDisplay)
 {
-   // std::cout<<"enter transform in CC window"<<std::endl;
+    // std::cout<<"enter transform in CC window"<<std::endl;
 
 
     HMatrix mNow, cNow;           // arcball rotation matrices
@@ -846,23 +856,23 @@ void CCMapWindow::DrawBGImage()
 
 int CCMapWindow::OpenMenu(QPoint point)
 {
-//    int all_node_num = 0;
+    //    int all_node_num = 0;
 
-//    QMenu menu(this);
+    //    QMenu menu(this);
 
-//    QMenu* submenu = menu.addMenu("Node Marking");
+    //    QMenu* submenu = menu.addMenu("Node Marking");
 
-//    QAction* action = submenu->addAction("Node #");
-//    action->setData(mark_all_CC_node); action->setCheckable(true); action->setChecked(all_node_num == 1);
+    //    QAction* action = submenu->addAction("Node #");
+    //    action->setData(mark_all_CC_node); action->setCheckable(true); action->setChecked(all_node_num == 1);
 
-//    action = submenu->addAction("CC time");
-//    action->setData(mark_all_CC_value); action->setCheckable(true); action->setChecked(all_node_num == 2);
+    //    action = submenu->addAction("CC time");
+    //    action->setData(mark_all_CC_value); action->setCheckable(true); action->setChecked(all_node_num == 2);
 
-//    action = menu.exec(point);
-//    if (action)
-//        return action->data().toInt();
-//    else
-//        return -1;
+    //    action = menu.exec(point);
+    //    if (action)
+    //        return action->data().toInt();
+    //    else
+    //        return -1;
 
 }
 
@@ -874,49 +884,49 @@ void CCMapWindow::MenuEvent(int menu)
 void CCMapWindow::HandleMenu(int menu_data)
 {
 
-//    int length = meshes.size();
-//    int loop = 0;
+    //    int length = meshes.size();
+    //    int loop = 0;
 
-//    Mesh_Info *mesh = 0;
+    //    Mesh_Info *mesh = 0;
 
-//    if(length > 1 && !map3d_info.lockframes && (menu_data == frame_reset || menu_data == frame_zero)){
-//        loop = secondarysurf;
-//        length = loop +1;
-//    }
-//    else if (length > 1 && !map3d_info.lockgeneral) {
-//        loop = dominantsurf;
-//        length = loop + 1;
-//    }
-//    for (; loop < length; loop++) {
-//        mesh = meshes[loop];
+    //    if(length > 1 && !map3d_info.lockframes && (menu_data == frame_reset || menu_data == frame_zero)){
+    //        loop = secondarysurf;
+    //        length = loop +1;
+    //    }
+    //    else if (length > 1 && !map3d_info.lockgeneral) {
+    //        loop = dominantsurf;
+    //        length = loop + 1;
+    //    }
+    //    for (; loop < length; loop++) {
+    //        mesh = meshes[loop];
 
-//        //switch for every mesh in the window, based on general lock status
-//        switch ((menu_data)) {
+    //        //switch for every mesh in the window, based on general lock status
+    //        switch ((menu_data)) {
 
-//        case mark_all_CC_node:
-//            if (mesh->mark_all_CC_number == 1) {
-//                // toggle the value
-//                mesh->mark_all_CC_number = 0;
-//            }
-//            else {
-//                mesh->mark_all_CC_number = 1;
-//                mesh->qshowpnts = 1;
-//            }
-//            break;
+    //        case mark_all_CC_node:
+    //            if (mesh->mark_all_CC_number == 1) {
+    //                // toggle the value
+    //                mesh->mark_all_CC_number = 0;
+    //            }
+    //            else {
+    //                mesh->mark_all_CC_number = 1;
+    //                mesh->qshowpnts = 1;
+    //            }
+    //            break;
 
-//        case mark_all_CC_value:
-//            if (mesh->mark_all_CC_number == 2) {
-//                // toggle the value
-//                mesh->mark_all_CC_number = 0;
-//            }
-//            else {
-//                mesh->mark_all_CC_number = 2;
-//                mesh->qshowpnts = 1;
-//            }
-//            break;
-//        }
-//    }
-//    update();
+    //        case mark_all_CC_value:
+    //            if (mesh->mark_all_CC_number == 2) {
+    //                // toggle the value
+    //                mesh->mark_all_CC_number = 0;
+    //            }
+    //            else {
+    //                mesh->mark_all_CC_number = 2;
+    //                mesh->qshowpnts = 1;
+    //            }
+    //            break;
+    //        }
+    //    }
+    //    update();
 }
 
 float CCMapWindow::fontScale()
@@ -924,94 +934,111 @@ float CCMapWindow::fontScale()
     return l2norm * vfov / height() / 29;
 }
 
+
+double CCMapWindow::average(float a[], int n)
+{
+    // Find sum of array element
+    double sum = 0;
+    for (int i=0; i<n; i++)
+    { sum =sum+a[i];
+
+        // std::cout<<"CC values "<<a[i]<<std::endl;
+    }
+
+    return sum/n;
+
+
+
+}
+
 void CCMapWindow::DrawNodes(Mesh_Info * curmesh)
 {
-//    //  int curframe = 0;
-//    int length = 0, loop = 0;
-//    float min = 0, max = 0, value = 0;
-//    float mNowI[16];
-//    float **modelpts = 0;
-//    Map3d_Geom *curgeom = 0;
-//    Surf_Data *cursurf = 0;
-//    HMatrix mNow;
+    //    //  int curframe = 0;
+    //    int length = 0, loop = 0;
+    //    float min = 0, max = 0, value = 0;
+    //    float mNowI[16];
+    //    float **modelpts = 0;
+    //    Map3d_Geom *curgeom = 0;
+    //    Surf_Data *cursurf = 0;
+    //    HMatrix mNow;
 
-//    ColorMap *curmap = 0;
-//    curgeom = curmesh->geom;
-//    cursurf = curmesh->data;
+    //    ColorMap *curmap = 0;
+    //    curgeom = curmesh->geom;
+    //    cursurf = curmesh->data;
 
-//    modelpts = curgeom->points[curgeom->geom_index];
+    //    modelpts = curgeom->points[curgeom->geom_index];
 
-//    if (cursurf) {
-//        curmap = curmesh->cmap;
-//    }
+    //    if (cursurf) {
+    //        curmap = curmesh->cmap;
+    //    }
 
-//    length = curgeom->numpts;
+    //    length = curgeom->numpts;
 
-//    /* set the transform for billboarding */
-//    Ball_Value(&curmesh->tran_validation->rotate, mNow);
-//    TransposeMatrix16((float *)mNow, mNowI);
-//    Transform(curmesh, 0.01f, true);
-//    glPushMatrix();
+    //    /* set the transform for billboarding */
+    //    Ball_Value(&curmesh->tran_validation->rotate, mNow);
+    //    TransposeMatrix16((float *)mNow, mNowI);
+    //    Transform(curmesh, 0.01f, true);
+    //    glPushMatrix();
 
-//    //if (!cursurf)
-//    //return;
-//    if (cursurf)
-//        cursurf->get_minmax(min, max);
-//    unsigned char color[3];
-//    float pos[3];
+    //    //if (!cursurf)
+    //    //return;
+    //    if (cursurf)
+    //        cursurf->get_minmax(min, max);
+    //    unsigned char color[3];
+    //    float pos[3];
 
-//    if (curmesh->mark_all_CC_number) {
-//        //glDepthMask(GL_FALSE);
+    //    if (curmesh->mark_all_CC_number) {
+    //        //glDepthMask(GL_FALSE);
 
-//        for (loop = 0; loop < length; loop++) {
-//            if (cursurf) {
-//                value = cursurf->potvals[cursurf->framenum][loop];
-//                getContColor(value, min, max, curmap, color, curmesh->invert);
-//            }
-//            glTranslatef(modelpts[loop][0], modelpts[loop][1], modelpts[loop][2]);
-//            glMultMatrixf((float *)mNowI);
-//            glTranslatef(-modelpts[loop][0], -modelpts[loop][1], -modelpts[loop][2]);
-//            pos[0] = modelpts[loop][0];
-//            pos[1] = modelpts[loop][1];
-//            pos[2] = modelpts[loop][2];
+    //        for (loop = 0; loop < length; loop++) {
+    //            if (cursurf) {
+    //                value = cursurf->potvals[cursurf->framenum][loop];
+    //                getContColor(value, min, max, curmap, color, curmesh->invert);
+    //            }
+    //            glTranslatef(modelpts[loop][0], modelpts[loop][1], modelpts[loop][2]);
+    //            glMultMatrixf((float *)mNowI);
+    //            glTranslatef(-modelpts[loop][0], -modelpts[loop][1], -modelpts[loop][2]);
+    //            pos[0] = modelpts[loop][0];
+    //            pos[1] = modelpts[loop][1];
+    //            pos[2] = modelpts[loop][2];
 
-//            int number = 0;
+    //            int number = 0;
 
-//            if (curmesh->mark_all_CC_number) {
-//                // this is a function of the fov (zoom), the ratio of
-//                // mesh's l2norm to the window's l2norm and the window
-//                // height to determine whether the numbers will be too
-//                // close together or not
+    //            if (curmesh->mark_all_CC_number) {
+    //                // this is a function of the fov (zoom), the ratio of
+    //                // mesh's l2norm to the window's l2norm and the window
+    //                // height to determine whether the numbers will be too
+    //                // close together or not
 
-//                glColor3f(curmesh->mark_all_color[0], curmesh->mark_all_color[1], curmesh->mark_all_color[2]);
-//                number = curmesh->mark_all_CC_number;
-//            }
+    //                glColor3f(curmesh->mark_all_color[0], curmesh->mark_all_color[1], curmesh->mark_all_color[2]);
+    //                number = curmesh->mark_all_CC_number;
+    //            }
 
-//            float scale = fontScale();
-//            switch (number) {
-//            case 1:
-//                renderString3f(pos[0], pos[1], pos[2], (int)small_font, QString::number(loop + 1), scale);
-//                break;
+    //            float scale = fontScale();
+    //            switch (number) {
+    //            case 1:
+    //                renderString3f(pos[0], pos[1], pos[2], (int)small_font, QString::number(loop + 1), scale);
+    //                break;
 
-//            case 2:
-//                if (cursurf && cursurf->CCvals && cursurf->CCvals[loop] != UNUSED_DATA)
-//                    renderString3f(pos[0], pos[1], pos[2], (int)small_font,
-//                            QString::number(cursurf->CCvals[loop], 'g', 2), scale);
-//                break;
+    //            case 2:
+    //                if (cursurf && cursurf->CCvals && cursurf->CCvals[loop] != UNUSED_DATA)
+    //                    renderString3f(pos[0], pos[1], pos[2], (int)small_font,
+    //                            QString::number(cursurf->CCvals[loop], 'g', 2), scale);
+    //                break;
 
 
-//            }
-//            glPopMatrix();
-//            glPushMatrix();
-//        }
-//        glDepthMask(GL_TRUE);
-//    }
+    //            }
+    //            glPopMatrix();
+    //            glPushMatrix();
+    //        }
+    //        glDepthMask(GL_TRUE);
+    //    }
 
-//    glPopMatrix();
+    //    glPopMatrix();
 
-//#if SHOW_OPENGL_ERRORS
-//    GLenum e = glGetError();
-//    if (e)
-//        printf("GeomWindow DrawNodes OpenGL Error: %s\n", gluErrorString(e));
-//#endif
+    //#if SHOW_OPENGL_ERRORS
+    //    GLenum e = glGetError();
+    //    if (e)
+    //        printf("GeomWindow DrawNodes OpenGL Error: %s\n", gluErrorString(e));
+    //#endif
 }

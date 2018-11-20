@@ -414,11 +414,18 @@ void ActivationMapWindow::DrawInfo()
     glMatrixMode(GL_MODELVIEW);
     glPushMatrix();
     glPopMatrix();
+
+
+
+
+
     if (nummesh == 1 || (dominantsurf != -1 && nummesh > dominantsurf)) {
         dommesh = nummesh == 1 ? meshes[0] : meshes[dominantsurf];
         char surfstr[50];
         if (dommesh->geom->subsurf <= 0)
             sprintf(surfstr, "Activation map Surface #%d", dommesh->geom->surfnum);
+
+
         else
             sprintf(surfstr, "Activation map Surface #%d-%d", dommesh->geom->surfnum, dommesh->geom->subsurf);
         surfnum = dommesh->geom->surfnum;
@@ -455,7 +462,7 @@ void ActivationMapWindow::addMesh(Mesh_Info *curmesh)
     /* copy from meshes to this window's mesh list */
     meshes.push_back(curmesh);
     curmesh->actipriv = this;
-    recalcMinMax();
+    recalcMinMax(curmesh);
 
     // if this is the first mesh, copy vfov to the window and the
     // rotation quaternion to the clipping planes (these could have
@@ -483,7 +490,7 @@ void ActivationMapWindow::addMesh(Mesh_Info *curmesh)
 
 }
 
-void ActivationMapWindow::recalcMinMax()
+void ActivationMapWindow::recalcMinMax(Mesh_Info *mesh)
 {
     xmin = ymin = zmin = FLT_MAX;
     xmax = ymax = zmax = -FLT_MAX;
@@ -508,7 +515,10 @@ void ActivationMapWindow::recalcMinMax()
     // Set the "fit" for the window.  If -ss is specified, set
     // all windows' fit to the first window's.  If it's the first
     // window, set it only once.
-    ActivationMapWindow* first_geom_window = GetActivationMapWindow(0);
+    ActivationMapWindow* first_geom_window = GetActivationMapWindow(mesh->data->acti_window_number);
+
+    std::cout<<"GetActivationMapWindow(mesh->data->acti_window_number)  "<<mesh->data->acti_window_number<<std::endl;
+
     bool lock_l2norms = map3d_info.same_scale;
     if (!lock_l2norms || (this == first_geom_window && l2norm == 0))
         l2norm = sqrt(xsize * xsize + ysize * ysize + zsize * zsize);
@@ -1003,6 +1013,7 @@ void ActivationMapWindow::DrawNodes(Mesh_Info * curmesh)
                 break;
 
 
+
             }
             glPopMatrix();
             glPushMatrix();
@@ -1023,5 +1034,7 @@ float ActivationMapWindow::fontScale()
 {
     return l2norm * vfov / height() / 29;
 }
+
+
 
 

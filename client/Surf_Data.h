@@ -115,6 +115,8 @@ bool user_MFS;
 bool user_fixmeshsize;
 float user_InDe_parameter;
 
+int acti_window_number;
+
   
   Surf_Data *mastersurf;
   MinMax_Frame *minmaxframes; /*** Potential extrema for each frame ***/

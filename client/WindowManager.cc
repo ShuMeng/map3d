@@ -78,6 +78,7 @@ ActivationMapWindow *GetActivationMapWindow(int index)
     if (index < 0 || index >= ActivationMapWindows.size())
         return NULL;
     return ActivationMapWindows[index];
+
 }
 
 unsigned numActivationMapWindows()
