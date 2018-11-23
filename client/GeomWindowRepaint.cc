@@ -89,7 +89,8 @@ extern int unlock_electrode_surfnum[];
 extern int unlock_datacloud_surfnum[];
 extern int unlock_forward_surfnum[];
 extern int unlock_MFS_surfnum[];
-extern float **recording_all_pts;
+extern int unlock_Indeflate_surfnum[];
+//extern float **recording_all_pts;
 extern bool plot_nearest_electrode;
 
 //Engine *ep = engOpen(NULL);
@@ -163,17 +164,10 @@ void GeomWindow::paintGL()
         curgeom = curmesh->geom;
 
         if (curgeom->surfnum==unlock_electrode_surfnum[curgeom->surfnum-1]){
-
-
-
             curmesh->mark_all_sphere=1;
             curmesh->mark_all_sphere_value=1;
             curmesh->mark_all_size=4;
             DrawElectrodesOnly(curmesh);
-
-            //            std::cout<<"first catheter coor x "<<curgeom->points[curgeom->geom_index][0][0]<<std::endl;
-            //            std::cout<<"first catheter coor y "<<curgeom->points[curgeom->geom_index][0][1]<<std::endl;
-            //            std::cout<<"first catheter coor z "<<curgeom->points[curgeom->geom_index][0][2]<<std::endl;
 
         }
         else{
@@ -213,6 +207,20 @@ void GeomWindow::paintGL()
             curmesh->mark_all_sphere=0;
             curmesh->mark_all_sphere_value=0;
             DrawForwardOnly(curmesh);
+        }
+
+
+        if (length>loop+1)
+        {
+
+
+
+            if ((curgeom->surfnum==unlock_Indeflate_surfnum[curgeom->surfnum-1])||(curgeom->surfnum==unlock_electrode_surfnum[curgeom->surfnum-1])||(curgeom->surfnum==unlock_forward_surfnum[curgeom->surfnum-1]))
+            {
+                Mesh_Info *sourcemesh = 0;
+                sourcemesh=meshes[loop+1];
+                UpdateNearestPoints(curmesh,sourcemesh);
+            }
         }
 
 
@@ -2006,14 +2014,17 @@ void GeomWindow::DrawNodes(Mesh_Info * curmesh)
                     glColor3f(curmesh->mark_ts_color[2], curmesh->mark_ts_color[2], curmesh->mark_ts_color[2]);
                     glVertex3f(modelpts[loop][0], modelpts[loop][1],modelpts[loop][2]);
 
-                    for (int j = 0; j <= curmesh->pickstacktop; j++)
-                    {
-                        if (curmesh->toggle_electrode==0)
-                        {
-                            glColor3f(curmesh->mark_ts_color[0], curmesh->mark_ts_color[2], curmesh->mark_ts_color[0]);
-                            glVertex3f(recording_all_pts[curmesh->pickstack[j]->nearestIdx][0], recording_all_pts[curmesh->pickstack[j]->nearestIdx][1],recording_all_pts[curmesh->pickstack[j]->nearestIdx][2]);
-                        }
-                    }
+
+
+
+                    //                    for (int j = 0; j <= curmesh->pickstacktop; j++)
+                    //                    {
+                    //                        if (curmesh->toggle_electrode==0)
+                    //                        {
+                    //                            glColor3f(curmesh->mark_ts_color[0], curmesh->mark_ts_color[2], curmesh->mark_ts_color[0]);
+                    //                            glVertex3f(recording_all_pts[curmesh->pickstack[j]->nearestIdx][0], recording_all_pts[curmesh->pickstack[j]->nearestIdx][1],recording_all_pts[curmesh->pickstack[j]->nearestIdx][2]);
+                    //                        }
+                    //                    }
                     glEnd();
                     glDisable(GL_POINT_SMOOTH);
                     glDisable(GL_PROGRAM_POINT_SIZE_EXT);
@@ -2119,13 +2130,13 @@ void GeomWindow::DrawNodes(Mesh_Info * curmesh)
                     for (int i = 0; i <= curmesh->pickstacktop; i++)
                     {
                         if (loop==curmesh->pickstack[i]->node){
-                            renderString3f(pos[0], pos[1], pos[2], (int)small_font,QString::number(i+1, 'g', 2), scale);
+                            renderString3f(pos[0], pos[1], pos[2], (int)small_font,QString::number(i+1, 'g', 2), scale+0.2);
 
-                            if ((plot_nearest_electrode==1)&& (curmesh->toggle_electrode==0))
-                            {
-                                renderString3f(recording_all_pts[curmesh->pickstack[i]->nearestIdx][0], recording_all_pts[curmesh->pickstack[i]->nearestIdx][1],recording_all_pts[curmesh->pickstack[i]->nearestIdx][2], (int)small_font,
-                                        QString::number(i+1, 'g', 2), scale);
-                            }
+                            //                            if ((plot_nearest_electrode==1)&& (curmesh->toggle_electrode==0))
+                            //                            {
+                            //                                renderString3f(recording_all_pts[curmesh->pickstack[i]->nearestIdx][0], recording_all_pts[curmesh->pickstack[i]->nearestIdx][1],recording_all_pts[curmesh->pickstack[i]->nearestIdx][2], (int)small_font,
+                            //                                        QString::number(i+1, 'g', 2), scale);
+                            //                            }
                         }
                     }
 
@@ -2680,6 +2691,313 @@ void GeomWindow::DrawMFS(Mesh_Info * curmesh)
         printf("GeomWindow DrawSurf OpenGL Error: %s\n", gluErrorString(e));
 #endif
 }
+
+
+
+void GeomWindow::UpdateNearestPoints(Mesh_Info* recordingmesh,Mesh_Info* sourcemesh)
+{
+
+    std::cout<<"enter update nearest points  "<<std::endl;
+
+
+    int length1 = 0, loop1 = 0, length2 =0, loop2=0,  loop_idx_nearest=0,atria_num=0;
+
+    Map3d_Geom *sourcegeom = 0;
+    Surf_Data *sourcesurf = 0;
+    sourcegeom = sourcemesh->geom;
+    sourcesurf = sourcemesh->data;
+    length1 = sourcemesh->pickstacktop+1;
+    atria_num=sourcegeom->numpts;
+
+
+    Map3d_Geom *recordinggeom = 0;
+    Surf_Data *recordingsurf = 0;
+    recordinggeom = recordingmesh->geom;
+    recordingsurf = recordingmesh->data;
+    length2 = recordinggeom->numpts;
+
+
+    // this part is to rotate the catheter. if map3d_info.lockrotate==LOCK_OFF, only apply transform matrix to catheter
+    // if map3d_info.lockrotate==LOCK_FULL, apply both transform matrix to catheter and atrium, corresponding matrix is different.
+    float** pts = recordinggeom->points[recordinggeom->geom_index];
+    float** geom_temp_catheter_pts=pts;
+    float **rotated_catheter_pts = 0;
+    rotated_catheter_pts= Alloc_fmatrix(recordinggeom->numpts, 3);
+
+    GeomWindow* priv_catheter = recordingmesh->gpriv;
+    HMatrix mNow_catheter /*, original */ ;  // arcball rotation matrices
+    Transforms *tran_catheter = recordingmesh->tran;
+    //translation matrix in column-major
+    float centerM_catheter[4][4] = {{1,0,0,0},{0,1,0,0},{0,0,1,0},
+                                    {-priv_catheter->xcenter,-priv_catheter->ycenter,-priv_catheter->zcenter,1}};
+    float invCenterM_catheter[4][4] = {{1,0,0,0},{0,1,0,0},{0,0,1,0},
+                                       {priv_catheter->xcenter,priv_catheter->ycenter,priv_catheter->zcenter,1}};
+    float translateM_catheter[4][4] = { {1, 0, 0, 0}, {0, 1, 0, 0}, {0, 0, 1, 0},
+                                        {tran_catheter->tx, tran_catheter->ty, tran_catheter->tz, 1}
+                                      };
+    float temp_catheter[16];
+    float product_catheter[16];
+
+    //rotation matrix
+    Ball_Value(&tran_catheter->rotate, mNow_catheter);
+    // apply translation
+    // translate recordingmesh's center to origin
+    MultMatrix16x16((float *)translateM_catheter, (float *)invCenterM_catheter, (float*)product_catheter);
+    // rotate
+    MultMatrix16x16((float *)product_catheter, (float *)mNow_catheter, (float*)temp_catheter);
+    // revert recordingmesh translation to origin
+    MultMatrix16x16((float*)temp_catheter, (float *) centerM_catheter, (float*)product_catheter);
+
+
+
+    for (loop1 = 0; loop1 < length2; loop1++)
+    {
+
+        float rhs_catheter[4];
+        float result_catheter[4];
+        rhs_catheter[0] = pts[loop1][0];
+        rhs_catheter[1] = pts[loop1][1];
+        rhs_catheter[2] = pts[loop1][2];
+        rhs_catheter[3] = 1;
+
+        MultMatrix16x4(product_catheter, rhs_catheter, result_catheter);
+
+        rotated_catheter_pts[loop1][0] = result_catheter[0];
+        rotated_catheter_pts[loop1][1] = result_catheter[1];
+        rotated_catheter_pts[loop1][2] = result_catheter[2];
+    }
+
+    geom_temp_catheter_pts=rotated_catheter_pts;
+
+    //this part is to rotate the source surface (atrium).transform matrix is not applied if map3d_info.lockrotate==LOCK_OFF
+
+    float** pts_atria = sourcegeom->points[sourcegeom->geom_index];
+    float** geom_temp_atria_pts=pts_atria;
+    float **rotated_atria_pts = 0;
+    rotated_atria_pts= Alloc_fmatrix(sourcegeom->numpts, 3);
+
+
+    GeomWindow* priv_atria = sourcemesh->gpriv;
+    HMatrix mNow_atria /*, original */ ;  // arcball rotation matrices
+    Transforms *tran_atria = sourcemesh->tran;
+    //translation matrix in column-major
+    float centerM_atria[4][4] = {{1,0,0,0},{0,1,0,0},{0,0,1,0},
+                                 {-priv_atria->xcenter,-priv_atria->ycenter,-priv_atria->zcenter,1}};
+    float invCenterM_atria[4][4] = {{1,0,0,0},{0,1,0,0},{0,0,1,0},
+                                    {priv_atria->xcenter,priv_atria->ycenter,priv_atria->zcenter,1}};
+    float translateM_atria[4][4] = { {1, 0, 0, 0}, {0, 1, 0, 0}, {0, 0, 1, 0},
+                                     {tran_atria->tx, tran_atria->ty, tran_atria->tz, 1}
+                                   };
+    float temp_atria[16];
+    float product_atria[16];
+
+    //rotation matrix
+    Ball_Value(&tran_atria->rotate, mNow_atria);
+    // apply translation
+    // translate sourcemesh's center to origin
+    MultMatrix16x16((float *)translateM_atria, (float *)invCenterM_atria, (float*)product_atria);
+    // rotate
+    MultMatrix16x16((float *)product_atria, (float *)mNow_atria, (float*)temp_atria);
+    // revert sourcemesh translation to origin
+    MultMatrix16x16((float*)temp_atria, (float *) centerM_atria, (float*)product_atria);
+
+
+    for (loop2 = 0; loop2 < atria_num; loop2++)
+    {
+
+        float rhs_atria[4];
+        float result_atria[4];
+        rhs_atria[0] = pts_atria[loop2][0];
+        rhs_atria[1] = pts_atria[loop2][1];
+        rhs_atria[2] = pts_atria[loop2][2];
+        rhs_atria[3] = 1;
+
+        MultMatrix16x4(product_atria, rhs_atria, result_atria);
+
+        rotated_atria_pts[loop2][0] = result_atria[0];
+        rotated_atria_pts[loop2][1] = result_atria[1];
+        rotated_atria_pts[loop2][2] = result_atria[2];
+
+    }
+    geom_temp_atria_pts=rotated_atria_pts;
+
+    vector<point_t> data_points;
+    for (loop2 = 0; loop2 < length2; loop2++)
+    {
+        coord_t x,y,z;
+        x = geom_temp_catheter_pts[loop2][0];
+        y = geom_temp_catheter_pts[loop2][1];
+        z = geom_temp_catheter_pts[loop2][2];
+        data_points.push_back(tr1::make_tuple(x,y,z));
+    }
+
+    const size_t neighbours = 1; // number of nearest neighbours to find
+    point_t points[neighbours];
+
+    for  (int i = 0; i< length1;i++){
+
+        point_t point(geom_temp_atria_pts[sourcemesh->pickstack[i]->node][0],geom_temp_atria_pts[sourcemesh->pickstack[i]->node][1], geom_temp_atria_pts[sourcemesh->pickstack[i]->node][2]);
+
+        less_distance nearer(point);
+
+
+        foreach (point_t& p, points)
+
+            for (loop1 = 0; loop1 < length2; loop1++)
+            {
+                point_t current_point(geom_temp_catheter_pts[loop1][0],geom_temp_catheter_pts[loop1][1],geom_temp_catheter_pts[loop1][2]);
+                foreach (point_t& p, points)
+
+                    if (nearer(current_point, p))
+                        std::swap(current_point, p);
+            }
+
+        sort(boost::begin(points), boost::end(points), nearer);
+
+        foreach (point_t p, points)
+        {
+            point_t nearestpoint(p);
+
+            for (loop_idx_nearest = 0; loop_idx_nearest< length2; loop_idx_nearest++)
+            {
+                if (nearestpoint == data_points[loop_idx_nearest])
+                {
+
+                    sourcemesh->pickstack[i]->nearestIdx = loop_idx_nearest;
+                    //std::cout<<"updated nearestIdx  "<<sourcemesh->pickstack[i]->nearestIdx<<std::endl;
+
+
+                    double x_diff=geom_temp_atria_pts[sourcemesh->pickstack[i]->node][0]-geom_temp_catheter_pts[loop_idx_nearest][0];
+                    double y_diff=geom_temp_atria_pts[sourcemesh->pickstack[i]->node][1]-geom_temp_catheter_pts[loop_idx_nearest][1];
+                    double z_diff=geom_temp_atria_pts[sourcemesh->pickstack[i]->node][2]-geom_temp_catheter_pts[loop_idx_nearest][2];
+
+
+                    sourcemesh->pickstack[i]->nearestDis =sqrt(x_diff*x_diff+y_diff*y_diff+z_diff*z_diff);
+                    std::cout<<"updated nearest distance  "<<sourcemesh->pickstack[i]->nearestDis<<std::endl;
+                }
+            }
+        }
+
+    }
+
+
+    float scale = fontScale();
+    // QString toRender;
+
+    for (int j = 0; j <= sourcemesh->pickstacktop; j++)
+    {
+        if (sourcemesh->toggle_electrode==0)
+        {
+
+            glEnable(GL_POINT_SMOOTH);
+            glEnable(GL_PROGRAM_POINT_SIZE_EXT);
+            glPointSize(12);
+            glBegin(GL_POINTS);
+            glColor3f(sourcemesh->mark_ts_color[0], sourcemesh->mark_ts_color[2], sourcemesh->mark_ts_color[0]);
+            glVertex3f(pts[sourcemesh->pickstack[j]->nearestIdx][0], pts[sourcemesh->pickstack[j]->nearestIdx][1],pts[sourcemesh->pickstack[j]->nearestIdx][2]);
+
+            glEnd();
+            glDisable(GL_POINT_SMOOTH);
+            glDisable(GL_PROGRAM_POINT_SIZE_EXT);
+
+            renderString3f(pts[sourcemesh->pickstack[j]->nearestIdx][0], pts[sourcemesh->pickstack[j]->nearestIdx][1],pts[sourcemesh->pickstack[j]->nearestIdx][2], (int)small_font, QString::number(j+1), scale+0.2);
+            glDepthMask(GL_TRUE);
+
+
+        }
+    }
+
+
+
+}
+
+void FindNearestRecording(PickInfo* pick, Mesh_Info* recordingmesh)
+{
+
+    //  std::cout<< "enter FindNearestRecording in GeomWindowRepaint"<<std::endl;
+
+    int length1 = 0, loop1 = 0, loop_idx_nearest=0, loop_frame=0;
+
+    float **modelpts = 0;
+    Mesh_Info* curmesh = pick->mesh;
+    Map3d_Geom* curgeom = 0;
+    Surf_Data* cursurf = 0;
+    curgeom = curmesh->geom;
+    cursurf = curmesh->data;
+    modelpts = curgeom->points[curgeom->geom_index];
+    //std::cout<< "modelpts" <<modelpts[pick->node][0]<<"   "<<modelpts[pick->node][1]<<"     "<<modelpts[pick->node][2]<<std::endl;
+
+
+    float **recordingpts=0;
+    Map3d_Geom *recordinggeom = 0;
+    Surf_Data *recordingsurf = 0;
+    recordinggeom = recordingmesh->geom;
+    recordingsurf = recordingmesh->data;
+    recordingpts = recordinggeom->points[recordinggeom->geom_index];
+    length1 = recordinggeom->numpts;
+
+    // std::cout<< "recordingpts" <<recordingpts[0][0]<<"   "<<recordingpts[0][1]<<"     "<<recordingpts[0][2]<<std::endl;
+
+    vector<point_t> data_points;
+
+    for (loop1 = 0; loop1 < length1; loop1++)
+    {
+        coord_t x,y,z;
+        x = recordingpts[loop1][0];
+        y = recordingpts[loop1][1];
+        z = recordingpts[loop1][2];
+        data_points.push_back(tr1::make_tuple(x,y,z));
+    }
+
+    const size_t nneighbours = 1; // number of nearest neighbours to find
+
+    point_t points[nneighbours];
+
+    point_t point(modelpts[pick->node][0],modelpts[pick->node][1], modelpts[pick->node][2]);
+
+    less_distance nearer(point);
+
+
+    foreach (point_t& p, points)
+        for (loop1 = 0; loop1 < length1; loop1++)
+        {
+            point_t current_point(recordingpts[loop1][0],recordingpts[loop1][1],recordingpts[loop1][2]);
+            foreach (point_t& p, points)
+
+                if (nearer(current_point, p))
+                    std::swap(current_point, p);
+        }
+
+    sort(boost::begin(points), boost::end(points), nearer);
+
+    foreach (point_t p, points)
+    {
+        point_t nearestpoint(p);
+
+        for (loop_idx_nearest = 0; loop_idx_nearest< length1; loop_idx_nearest++)
+        {
+            if (nearestpoint == data_points[loop_idx_nearest])
+            {
+                pick->nearestIdx = loop_idx_nearest;
+
+                //cout<<"pick->nearestIdx "<<pick->nearestIdx<<std::endl;
+                double x_diff=modelpts[pick->node][0]-recordingpts[loop_idx_nearest][0];
+                double y_diff=modelpts[pick->node][1]-recordingpts[loop_idx_nearest][1];
+                double z_diff=modelpts[pick->node][2]-recordingpts[loop_idx_nearest][2];
+
+                pick->nearestDis=sqrt(x_diff*x_diff+y_diff*y_diff+z_diff*z_diff);
+
+                for (loop_frame = 0; loop_frame <curmesh->data->numframes; loop_frame++)
+                {
+                    cursurf->nearestrecordingvals[loop_frame][pick->node]= recordingsurf->potvals[loop_frame][loop_idx_nearest];
+
+
+                }
+            }
+        }
+    }
+}
+
 
 
 //void GeomWindow::CalculateMFSValue(Mesh_Info * recordingmesh, Mesh_Info * curmesh)
