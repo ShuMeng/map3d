@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1033</width>
-    <height>277</height>
+    <width>1075</width>
+    <height>287</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -86,6 +86,11 @@ border: 1px solid black;
 border-right-width: 1px solid black;
 }
 
+#phasemaplabel{
+padding: 4px;
+border: 1px solid black;
+border-right-width: 1px solid black;
+}
 
 
 
@@ -117,7 +122,7 @@ border-right-width: 1px solid black;
       <item row="0" column="3" alignment="Qt::AlignHCenter|Qt::AlignVCenter">
        <widget class="QLabel" name="ActivationmapLabel">
         <property name="text">
-         <string>Activation map</string>
+         <string>Global Validation Map</string>
         </property>
        </widget>
       </item>
@@ -196,28 +201,35 @@ border-right-color: rgb(0, 0, 0);</string>
       <item row="0" column="5" alignment="Qt::AlignHCenter">
        <widget class="QLabel" name="DrawForwardLabel">
         <property name="text">
-         <string>Draw Forward Solution</string>
+         <string>Draw Forward</string>
         </property>
        </widget>
       </item>
-      <item row="0" column="8">
+      <item row="0" column="9">
        <widget class="QLabel" name="InflateDeflate">
         <property name="text">
          <string>In/Deflate </string>
         </property>
        </widget>
       </item>
-      <item row="0" column="7">
+      <item row="0" column="8">
        <widget class="QLabel" name="InDeQuestion">
         <property name="text">
          <string>Change size?</string>
         </property>
        </widget>
       </item>
-      <item row="0" column="9">
+      <item row="0" column="10">
        <widget class="QLabel" name="RecalMFS">
         <property name="text">
          <string>Recal MFS</string>
+        </property>
+       </widget>
+      </item>
+      <item row="0" column="7">
+       <widget class="QLabel" name="phasemaplabel">
+        <property name="text">
+         <string>Phase map</string>
         </property>
        </widget>
       </item>
