@@ -78,7 +78,7 @@ Surf_Data::Surf_Data()
     MFSvals = 0;
     CCvals = 0;
     RMSEvals = 0;
-
+    Phasevals =0;
 
 
 
@@ -102,6 +102,7 @@ Surf_Data::Surf_Data()
     user_forward = 0;
 
     user_MFS = 0;
+    user_Phase =0;
     user_fixmeshsize =0;
     user_InDe_parameter =1.0f;
 
@@ -134,7 +135,8 @@ Surf_Data::~Surf_Data()
     if (MFSvals)
         Free_fmatrix(MFSvals, numframes); // Shu Meng
 
-
+    if (Phasevals)
+        Free_fmatrix(Phasevals,numframes);
 
 
 
@@ -274,6 +276,18 @@ Surf_Data *Surf_Data::AddASurfData(Surf_Data * surfdata, long newsurfnum, long n
         surfdata[newsurfnum].MFSvals = NULL;
     }
 
+
+
+    if (numframes > 0 && numleads > 0) {
+
+        if ((surfdata[newsurfnum].Phasevals = Alloc_fmatrix(numframes, numleads)) == NULL) {
+            fprintf(stderr, "*** AddaDataSurf: error getting 333 first memory\n");
+            return (NULL);
+        }
+    }
+    else {
+        surfdata[newsurfnum].Phasevals = NULL;
+    }
 
 
     /*** Now allocate some memory for the datdacloud in the surface. ***/

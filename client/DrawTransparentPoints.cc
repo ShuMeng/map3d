@@ -15,6 +15,7 @@
 #include "matlabarray.h"
 #include "GetMatrixSlice.h"
 #include "ActivationLegendWindow.h"
+#include "GeomWindow.h"
 
 #include "ActivationMapWindow.h"
 #include "CCMapWindow.h"
@@ -22,7 +23,7 @@
 #include <QPushButton>
 #include <QMessageBox>
 #include <QLabel>
-
+#include "pickinfo.h"
 #include <iostream>
 using namespace std;
 
@@ -51,15 +52,17 @@ int unlock_electrode_surfnum[30];
 int unlock_datacloud_surfnum[30];
 int unlock_forward_surfnum[30];
 int unlock_MFS_surfnum[30];
-
+int unlock_Indeflate_surfnum[30];
+int unlock_Phase_surfnum[30];
 
 
 const char* MeshProperty_trans_Points = "MeshProperty_trans_Points";
 
 Engine *ep_matrix = engOpen(NULL);
 
+
 enum contTableCols{
-    SurfNum, Transparencycol, PointsOnlyCols, ActivationCols, DatacloudCols, ForwardCols, MFSCols, ChangeSizeCol, InDeflateCols,RecalCol
+    SurfNum, Transparencycol, PointsOnlyCols, ActivationCols, DatacloudCols, ForwardCols, MFSCols,PhaseCols, ChangeSizeCol, InDeflateCols,RecalCol
 };
 
 
@@ -80,6 +83,7 @@ DrawTransparentPoints::DrawTransparentPoints()
         bool origDatacloudIni = false;
         bool origForwardIni = false;
         bool origMFSIni = false;
+        bool origPhaseIni =false;
         bool origSize =false;
         float origInDeIni=1;
 
@@ -90,6 +94,7 @@ DrawTransparentPoints::DrawTransparentPoints()
             origDatacloudIni = mesh->data->user_datacloud;
             origForwardIni = mesh->data->user_forward;
             origMFSIni = mesh->data->user_MFS;
+            origPhaseIni =mesh->data->user_Phase;
             origSize =mesh->data->user_fixmeshsize;
             origInDeIni=mesh->data->user_InDe_parameter;
 
@@ -100,6 +105,7 @@ DrawTransparentPoints::DrawTransparentPoints()
         origForward << origForwardIni;
         origDatacloud << origDatacloudIni;
         origMFS << origMFSIni;
+        origPhase << origPhaseIni;
         origChangesize << origSize;
         origInDeflate << origInDeIni;
 
@@ -121,7 +127,7 @@ DrawTransparentPoints::DrawTransparentPoints()
         fixedTransparentBoxes << fixedTrans;
         gridLayout->addWidget(fixedTrans, row, Transparencycol);
 
-        QPushButton* fixedbutton =new QPushButton ("Activation map #" + QString::number(mesh->geom->surfnum), this);
+        QPushButton* fixedbutton =new QPushButton ("Validation map #" + QString::number(mesh->geom->surfnum), this);
         ActivationButton << fixedbutton;
         fixedbutton->setProperty(MeshProperty_trans_Points, index);
         gridLayout->addWidget(fixedbutton, row, ActivationCols);
@@ -145,6 +151,14 @@ DrawTransparentPoints::DrawTransparentPoints()
         fixMFS->setProperty(MeshProperty_trans_Points, index);
         fixedMFSBoxes << fixMFS;
         gridLayout->addWidget(fixMFS, row, MFSCols);
+
+
+        QCheckBox* fixPhase = new QCheckBox(this);
+        fixPhase->setChecked(origPhaseIni);
+        fixPhase->setProperty(MeshProperty_trans_Points, index);
+        fixedPhaseBoxes << fixPhase;
+        gridLayout->addWidget(fixPhase, row, PhaseCols);
+
 
 
         QCheckBox* fixedsize = new QCheckBox(this);
@@ -175,6 +189,7 @@ DrawTransparentPoints::DrawTransparentPoints()
         connect(fixdatacloud, SIGNAL(toggled(bool)), this, SLOT(Transp_Points_Callback()));
         connect(fixforward, SIGNAL(toggled(bool)), this, SLOT(Transp_Points_Callback()));
         connect(fixMFS, SIGNAL(toggled(bool)), this, SLOT(Transp_Points_Callback()));
+        connect(fixPhase, SIGNAL(toggled(bool)), this, SLOT(Transp_Points_Callback()));
         connect(fixedsize, SIGNAL(toggled(bool)), this, SLOT(Transp_Points_Callback()));
         connect(InDe, SIGNAL(valueChanged(double)), this, SLOT(Transp_Points_Callback()));
         connect(recalbutton, SIGNAL(clicked()), this, SLOT(Recal_MFS_Callback()));
@@ -270,27 +285,51 @@ void DrawTransparentPoints::Transp_Points_Callback()
                 unlock_MFS_surfnum[row]=0;
             }
 
+
+            if (fixedPhaseBoxes[row]->isChecked())
+            {
+                 mesh->data->user_Phase = true;
+
+                 CalculatePhaseMap(mesh);
+
+                unlock_Phase_surfnum[row]=row+1;
+            }
+            else {
+                mesh->data->user_Phase = false;
+                unlock_Phase_surfnum[row]=0;
+            }
+
+
+
+
             if (fixedSizeBoxes[row]->isChecked())
 
-            {
-                std::cout<<"/////////////////////////////////////////////////////////////////////////////"<<std::endl;
+            {   std::cout<<"/////////////////////////////////////////////////////////////////////////////"<<std::endl;
 
                 mesh->data->user_fixmeshsize = true;
                 mesh->data->user_InDe_parameter=(float)InDeflateBoxes[row]->value();
 
                 std::cout<<"mesh->data->user_InDe_parameter  "<< mesh->data->user_InDe_parameter<<std::endl;
 
-                // only change catheter size.
-                Mesh_Info *sourcemesh = 0;
-                sourcemesh=meshes[row+1];
-                // int length = meshes.size();
+                int length = meshes.size();
 
+                if (length>row+1)
+                {
+                    // only change catheter size.
+                    Mesh_Info *sourcemesh = 0;
+                    sourcemesh=meshes[row+1];
+                    InDeflateMesh_touching(mesh,sourcemesh);
+                }
+                else
+                {
+                    InDeflateMesh(mesh);
+                }
 
-                InDeflateMesh(mesh);
-
+                unlock_Indeflate_surfnum[row]=row+1;
             }
             else {
                 mesh->data->user_fixmeshsize = false;
+                unlock_Indeflate_surfnum[row]=0;
             }
         }
 
@@ -343,6 +382,275 @@ void DrawTransparentPoints::InDeflateMesh(Mesh_Info * curmesh)
         InDeflated_pts[j][2] = pts[j][2]+(curmesh->data->user_InDe_parameter-1)*(pts[j][2]-center_z);
     }
     curgeom->points[curgeom->geom_index]=InDeflated_pts;
+
+
+
+}
+
+
+
+void DrawTransparentPoints::InDeflateMesh_touching(Mesh_Info * curmesh,Mesh_Info * sourcemesh)
+
+{
+
+    engSetVisible(ep_matrix, false);
+
+    std::cout<<"enter indeflatemesh_touching  "<<std::endl;
+    Map3d_Geom *curgeom = 0;
+    Surf_Data *cursurf = 0;
+    curgeom = curmesh->geom;
+    cursurf = curmesh->data;
+
+    int  meshpoint_num =0;
+    meshpoint_num = curgeom->numpts;
+    float** pts = curgeom->original_points[curgeom->geom_index];
+
+
+    int atria_pts_num=0,atria_elem_num=0;
+    float **atriapts;
+    long **atriaelement;
+    Map3d_Geom *sourcegeom = 0;
+    Surf_Data *sourcesurf = 0;
+    sourcegeom = sourcemesh->geom;
+    sourcesurf = sourcemesh->data;
+    atria_pts_num = sourcegeom->numpts;
+    atriapts = sourcegeom->points[sourcegeom->geom_index];
+    atriaelement = sourcegeom->elements;
+    atria_elem_num=sourcegeom->numelements;
+
+
+
+
+    //    // this part is to rotate the catheter. if map3d_info.lockrotate==LOCK_OFF, only apply transform matrix to catheter
+    //    // if map3d_info.lockrotate==LOCK_FULL, apply both transform matrix to catheter and atrium, corresponding matrix is different.
+    //    float** pts = curgeom->original_points[curgeom->geom_index];
+//        float** geom_temp_catheter_pts=0;
+//        float **rotated_catheter_pts = 0;
+//        rotated_catheter_pts= Alloc_fmatrix(curgeom->numpts, 3);
+
+//        GeomWindow* priv_catheter = curmesh->gpriv;
+//        HMatrix mNow_catheter /*, original */ ;  // arcball rotation matrices
+//        Transforms *tran_catheter = curmesh->tran;
+//        //translation matrix in column-major
+//        float centerM_catheter[4][4] = {{1,0,0,0},{0,1,0,0},{0,0,1,0},
+//                                        {-priv_catheter->xcenter,-priv_catheter->ycenter,-priv_catheter->zcenter,1}};
+//        float invCenterM_catheter[4][4] = {{1,0,0,0},{0,1,0,0},{0,0,1,0},
+//                                           {priv_catheter->xcenter,priv_catheter->ycenter,priv_catheter->zcenter,1}};
+//        float translateM_catheter[4][4] = { {1, 0, 0, 0}, {0, 1, 0, 0}, {0, 0, 1, 0},
+//                                            {tran_catheter->tx, tran_catheter->ty, tran_catheter->tz, 1}
+//                                          };
+//        float temp_catheter[16];
+//        float product_catheter[16];
+
+//        //rotation matrix
+//        Ball_Value(&tran_catheter->rotate, mNow_catheter);
+//        // apply translation
+//        // translate recordingmesh's center to origin
+//        MultMatrix16x16((float *)translateM_catheter, (float *)invCenterM_catheter, (float*)product_catheter);
+//        // rotate
+//        MultMatrix16x16((float *)product_catheter, (float *)mNow_catheter, (float*)temp_catheter);
+//        // revert recordingmesh translation to origin
+//        MultMatrix16x16((float*)temp_catheter, (float *) centerM_catheter, (float*)product_catheter);
+
+
+
+//        for (int loop1 = 0; loop1 < meshpoint_num; loop1++)
+//        {
+
+//            float rhs_catheter[4];
+//            float result_catheter[4];
+//            rhs_catheter[0] = pts[loop1][0];
+//            rhs_catheter[1] = pts[loop1][1];
+//            rhs_catheter[2] = pts[loop1][2];
+//            rhs_catheter[3] = 1;
+
+//            MultMatrix16x4(product_catheter, rhs_catheter, result_catheter);
+
+//            rotated_catheter_pts[loop1][0] = result_catheter[0];
+//            rotated_catheter_pts[loop1][1] = result_catheter[1];
+//            rotated_catheter_pts[loop1][2] = result_catheter[2];
+//        }
+
+//        geom_temp_catheter_pts=rotated_catheter_pts;
+
+    //    //this part is to rotate the source surface (atrium).transform matrix is not applied if map3d_info.lockrotate==LOCK_OFF
+
+    //    float** pts_atria = sourcegeom->original_points[sourcegeom->geom_index];
+    //    float** geom_temp_atria_pts=pts_atria;
+    //    float **rotated_atria_pts = 0;
+    //    rotated_atria_pts= Alloc_fmatrix(sourcegeom->numpts, 3);
+
+
+    //    GeomWindow* priv_atria = sourcemesh->gpriv;
+    //    HMatrix mNow_atria /*, original */ ;  // arcball rotation matrices
+    //    Transforms *tran_atria = sourcemesh->tran;
+    //    //translation matrix in column-major
+    //    float centerM_atria[4][4] = {{1,0,0,0},{0,1,0,0},{0,0,1,0},
+    //                                 {-priv_atria->xcenter,-priv_atria->ycenter,-priv_atria->zcenter,1}};
+    //    float invCenterM_atria[4][4] = {{1,0,0,0},{0,1,0,0},{0,0,1,0},
+    //                                    {priv_atria->xcenter,priv_atria->ycenter,priv_atria->zcenter,1}};
+    //    float translateM_atria[4][4] = { {1, 0, 0, 0}, {0, 1, 0, 0}, {0, 0, 1, 0},
+    //                                     {tran_atria->tx, tran_atria->ty, tran_atria->tz, 1}
+    //                                   };
+    //    float temp_atria[16];
+    //    float product_atria[16];
+
+    //    //rotation matrix
+    //    Ball_Value(&tran_atria->rotate, mNow_atria);
+    //    // apply translation
+    //    // translate sourcemesh's center to origin
+    //    MultMatrix16x16((float *)translateM_atria, (float *)invCenterM_atria, (float*)product_atria);
+    //    // rotate
+    //    MultMatrix16x16((float *)product_atria, (float *)mNow_atria, (float*)temp_atria);
+    //    // revert sourcemesh translation to origin
+    //    MultMatrix16x16((float*)temp_atria, (float *) centerM_atria, (float*)product_atria);
+
+
+    //    for (int loop2 = 0; loop2 < atria_pts_num; loop2++)
+    //    {
+
+    //        float rhs_atria[4];
+    //        float result_atria[4];
+    //        rhs_atria[0] = pts_atria[loop2][0];
+    //        rhs_atria[1] = pts_atria[loop2][1];
+    //        rhs_atria[2] = pts_atria[loop2][2];
+    //        rhs_atria[3] = 1;
+
+    //        MultMatrix16x4(product_atria, rhs_atria, result_atria);
+
+    //        rotated_atria_pts[loop2][0] = result_atria[0];
+    //        rotated_atria_pts[loop2][1] = result_atria[1];
+    //        rotated_atria_pts[loop2][2] = result_atria[2];
+
+    //    }
+    //    geom_temp_atria_pts=rotated_atria_pts;
+
+
+
+    double sum_x,sum_y,sum_z,center_x,center_y,center_z;
+
+    for (int i=0; i< meshpoint_num; i++)
+    {
+        sum_x += pts[i][0];
+        sum_y += pts[i][1];
+        sum_z += pts[i][2];
+    }
+
+    center_x = (sum_x)/meshpoint_num;
+    center_y = (sum_y)/meshpoint_num;
+    center_z = (sum_z)/meshpoint_num;
+
+    std::cout<<"sum_x  "<<sum_x<<"    "<<"center_x   "<<center_x<<std::endl;
+    std::cout<<"sum_y  "<<sum_y<<"    "<<"center_y   "<<center_y<<std::endl;
+    std::cout<<"sum_z  "<<sum_z<<"    "<<"center_z   "<<center_z<<std::endl;
+    std::cout<<"---------------------------------------------------------------------------"<<std::endl;
+
+    float **InDeflated_pts = 0;
+    InDeflated_pts= Alloc_fmatrix(curgeom->numpts, 3);
+
+    double catehter_points[meshpoint_num][3];
+    double ori_catheter_points[meshpoint_num][3];
+
+
+    for (int j=0; j< meshpoint_num; j++)
+    {
+        InDeflated_pts[j][0] = pts[j][0]+(curmesh->data->user_InDe_parameter-1)*(pts[j][0]-center_x);
+        InDeflated_pts[j][1] = pts[j][1]+(curmesh->data->user_InDe_parameter-1)*(pts[j][1]-center_y);
+        InDeflated_pts[j][2] = pts[j][2]+(curmesh->data->user_InDe_parameter-1)*(pts[j][2]-center_z);
+    }
+
+
+    for (int j=0; j< meshpoint_num; j++)
+    {
+        catehter_points[j][0]=InDeflated_pts[j][0];
+        catehter_points[j][1]=InDeflated_pts[j][1];
+        catehter_points[j][2]=InDeflated_pts[j][2];
+
+        ori_catheter_points[j][0]=pts[j][0];
+        ori_catheter_points[j][1]=pts[j][1];
+        ori_catheter_points[j][2]=pts[j][2];
+    }
+
+
+
+    mxArray *catheter_points_matlab = mxCreateDoubleMatrix(3,meshpoint_num, mxREAL);
+    memcpy(mxGetPr(catheter_points_matlab), catehter_points, meshpoint_num*3*sizeof(double));
+    engPutVariable(ep_matrix, "catheter_points",catheter_points_matlab);
+
+
+    mxArray *ori_catheter_points_matlab = mxCreateDoubleMatrix(3,meshpoint_num, mxREAL);
+    memcpy(mxGetPr(ori_catheter_points_matlab), ori_catheter_points, meshpoint_num*3*sizeof(double));
+    engPutVariable(ep_matrix, "ori_catheter_points",ori_catheter_points_matlab);
+
+
+
+
+    double atria_points[atria_pts_num][3];
+
+    for (int i=0; i< atria_pts_num; i++)
+    {
+        atria_points[i][0]= atriapts[i][0];
+        atria_points[i][1]= atriapts[i][1];
+        atria_points[i][2]= atriapts[i][2];
+
+    }
+
+    mxArray *atria_points_matlab = mxCreateDoubleMatrix(3,atria_pts_num, mxREAL);
+    memcpy(mxGetPr(atria_points_matlab), atria_points, atria_pts_num*3*sizeof(double));
+    engPutVariable(ep_matrix, "atria_points",atria_points_matlab);
+
+
+
+    double atria_elements[atria_elem_num][3];
+
+    for (int i=0; i< atria_elem_num; i++)
+    {
+        atria_elements[i][0]= atriaelement[i][0]+1;
+        atria_elements[i][1]= atriaelement[i][1]+1;
+        atria_elements[i][2]= atriaelement[i][2]+1;
+    }
+
+    mxArray *atria_elements_matlab = mxCreateDoubleMatrix(3,atria_elem_num, mxREAL);
+    memcpy(mxGetPr(atria_elements_matlab), atria_elements, atria_elem_num*3*sizeof(double));
+    engPutVariable(ep_matrix, "atria_elements",atria_elements_matlab);
+
+    engEvalString(ep_matrix, "addpath(genpath('/hpc_ntot/smen974/Map3d/MFS_Functions'))");
+
+   // engEvalString(ep_matrix, "mfsEGM=testest(atria_points,atria_elements,catheter_points,ori_catheter_points)");
+
+    engEvalString(ep_matrix, "newpoints= find_touching_points_map3d(atria_points,atria_elements,catheter_points,ori_catheter_points)");
+
+
+
+    mxArray *points_touching_matlab = engGetVariable(ep_matrix, "newpoints");
+    double *new_points = mxGetPr(points_touching_matlab);
+
+
+    double final_points[meshpoint_num][3];
+
+
+    for (int i=0; i<meshpoint_num; i++)
+    {
+        final_points[i][0] =new_points[i+0*meshpoint_num];
+        final_points[i][1] =new_points[i+1*meshpoint_num];
+        final_points[i][2] =new_points[i+2*meshpoint_num];
+
+    }
+
+    float **InDeflated_pts_final = 0;
+    InDeflated_pts_final= Alloc_fmatrix(curgeom->numpts, 3);
+
+    for (int j=0; j< meshpoint_num; j++)
+    {
+        InDeflated_pts_final[j][0] = final_points[j][0];
+        InDeflated_pts_final[j][1] = final_points[j][1];
+        InDeflated_pts_final[j][2] = final_points[j][2];
+    }
+
+
+    curgeom->points[curgeom->geom_index]=InDeflated_pts_final;
+
+
 }
 
 
@@ -368,6 +676,8 @@ bool DrawTransparentPoints::checkArray1D(Surf_Data* data, float *matrixvals)
 void DrawTransparentPoints::Recal_MFS_Callback()
 
 {
+    std::cout<<"enter  Recal_MFS_Callback  "<<std::endl;
+
     Q_ASSERT(sender());
     QVariant rowProp = sender()->property(MeshProperty_trans_Points);
     int row = rowProp.toInt();
@@ -379,15 +689,13 @@ void DrawTransparentPoints::Recal_MFS_Callback()
     sourcemesh=meshes[row+1];
     int length = meshes.size();
 
+
     if (((length>=row+1))&&(length>1)&&(fixedMFSBoxes[row+1]->isChecked()))
     {
-
         CalculateMFSTransformMatrix(mesh,sourcemesh);
+        CalculatePhaseMap(sourcemesh);
     }
-
-
     Surf_Data* data = sourcemesh->data;
-
 
     if (checkArray2D(data,data->potvals)==0)
     {
@@ -398,8 +706,6 @@ void DrawTransparentPoints::Recal_MFS_Callback()
 
     Broadcast(MAP3D_UPDATE);
 }
-
-
 
 
 void DrawTransparentPoints::Activation_Callback()
@@ -420,19 +726,20 @@ void DrawTransparentPoints::Activation_Callback()
 
     if (( checkArray2D(data,data->inversevals)==0) || (checkArray2D(data,data->potvals)==0)|| (checkArray2D(data,data->forwardvals)==0))
     {
+
+        // mesh->data->acti_window_number++;
+
+
+        std::cout<<"enter  Activation_Callback  "<<std::endl;
+        // std::cout<<"number of activation maps  "<<mesh->data->acti_window_number<<std::endl;
+
         CalculateActivation(mesh);
+
     }
-
-
 
     if (checkArray1D(data,data->activationvals)==0)
 
     {
-       mesh->data->acti_window_number++;
-
-      std::cout<<"number of activation maps  "<<mesh->data->acti_window_number<<std::endl;
-
-
         Surf_Data *s=0;
         s=mesh->data;
 
@@ -521,6 +828,9 @@ void DrawTransparentPoints::Activation_Callback()
 void DrawTransparentPoints::CalculateActivation(Mesh_Info * curmesh)
 
 {
+
+
+    std::cout<<"enter CalculateActivation  "<<std::endl;
     engSetVisible(ep_matrix, false);
 
     int  meshpoint_num =0;
@@ -530,6 +840,8 @@ void DrawTransparentPoints::CalculateActivation(Mesh_Info * curmesh)
     curgeom = curmesh->geom;
     cursurf = curmesh->data;
     meshpoint_num = curgeom->numpts;
+
+    //std::cout<<"enter CalculateActivation  meshpoint_num "<<meshpoint_num<<std::endl;
 
 
     float** pts_atria = curgeom->points[curgeom->geom_index];
@@ -542,7 +854,14 @@ void DrawTransparentPoints::CalculateActivation(Mesh_Info * curmesh)
         mesh_z[i] =  pts_atria[i][2];
     }
 
+
+    // std::cout<<"enter CalculateActivation numframes "<<curmesh->data->numframes<<std::endl;
+
+
     double pot_temp[meshpoint_num][curmesh->data->numframes];
+
+    // std::cout<<"pot_temp[meshpoint_num][curmesh->data->numframes]   "<<pot_temp[0][0]<<std::endl;
+
 
     for (int i=0; i< meshpoint_num; i++)
     {
@@ -562,6 +881,7 @@ void DrawTransparentPoints::CalculateActivation(Mesh_Info * curmesh)
     memcpy(mxGetPr(potential_matlab), pot_temp, meshpoint_num*curmesh->data->numframes*sizeof(double));
     engPutVariable(ep_matrix, "potential",potential_matlab);
 
+
     mxArray *x_matlab = mxCreateDoubleMatrix(1,meshpoint_num, mxREAL);
     memcpy(mxGetPr(x_matlab), mesh_x, meshpoint_num*sizeof(double));
     engPutVariable(ep_matrix, "c_x",x_matlab);
@@ -577,6 +897,8 @@ void DrawTransparentPoints::CalculateActivation(Mesh_Info * curmesh)
     engEvalString(ep_matrix, "addpath(genpath('/hpc_ntot/smen974/Map3d/MFS_Functions'))");
     engEvalString(ep_matrix, "[activation]=ActivationCalculation(c_x,c_y,c_z, potential)");
 
+
+
     mxArray *activation_matlab = engGetVariable(ep_matrix, "activation");
     double *activation = mxGetPr(activation_matlab);
 
@@ -585,7 +907,7 @@ void DrawTransparentPoints::CalculateActivation(Mesh_Info * curmesh)
     {
         cursurf->activationvals[i] =activation[i];
 
-        // std::cout<< "activationvals value in Activation is "<<cursurf->activationvals[i]<<std::endl;
+
     }
 
 }
@@ -671,6 +993,57 @@ void DrawTransparentPoints::on_cancelButton_clicked()
 
     close();
 }
+
+
+
+void DrawTransparentPoints::CalculatePhaseMap(Mesh_Info * curmesh)
+{
+    engSetVisible(ep_matrix, false);
+
+    Map3d_Geom *curgeom = 0;
+    Surf_Data *cursurf = 0;
+    curgeom = curmesh->geom;
+    cursurf = curmesh->data;
+    int meshpoint_num = curgeom->numpts;
+
+    double pot_temp[meshpoint_num][curmesh->data->numframes];
+
+
+    for (int i=0; i< meshpoint_num; i++)
+    {
+        for (int j=0; j< curmesh->data->numframes; j++)
+
+            if (checkArray2D(curmesh->data,curmesh->data->inversevals)==0)
+            {pot_temp[i][j] =cursurf->inversevals[j][i];}
+            else if (checkArray2D(curmesh->data,curmesh->data->potvals)==0)
+            {pot_temp[i][j] =cursurf->potvals[j][i];}
+            else if(checkArray2D(curmesh->data,curmesh->data->forwardvals)==0)
+            {pot_temp[i][j] =cursurf->forwardvals[j][i];}
+
+    }
+
+    mxArray *potential_matlab = mxCreateDoubleMatrix(curmesh->data->numframes,meshpoint_num, mxREAL);
+    memcpy(mxGetPr(potential_matlab), pot_temp, meshpoint_num*curmesh->data->numframes*sizeof(double));
+    engPutVariable(ep_matrix, "potential",potential_matlab);
+
+    engEvalString(ep_matrix, "addpath(genpath('/hpc_ntot/smen974/Map3d/MFS_Functions'))");
+    engEvalString(ep_matrix, "[phaseangles]= calculate_phase_angles_map3d(potential)");
+
+    mxArray *phase_matlab = engGetVariable(ep_matrix, "phaseangles");
+    double *phase = mxGetPr(phase_matlab);
+
+
+    for (int j=0; j< curmesh->data->numframes; j++)
+    {
+        for (int i=0; i< meshpoint_num; i++)
+        {
+            cursurf->Phasevals[j][i] =phase[i+j*meshpoint_num];
+
+        }
+    }
+
+}
+
 
 void DrawTransparentPoints::CalculateMFSTransformMatrix(Mesh_Info * recordingmesh, Mesh_Info * curmesh)
 
@@ -930,7 +1303,7 @@ void DrawTransparentPoints::CalculateMFSTransformMatrix(Mesh_Info * recordingmes
     //    ofstream files;
     //    stringstream a;
     //    a << recordingmesh->data->user_InDe_parameter;
-    //    filename = "inverse_32_" + a.str();
+    //    filename = "inverse_130_" + a.str();
     //    filename += ".txt";
     //    files.open(filename.c_str(), ios::out);
 
@@ -947,7 +1320,6 @@ void DrawTransparentPoints::CalculateMFSTransformMatrix(Mesh_Info * recordingmes
 
             //            files << cursurf->MFSvals[j][i];
             //            files << "\n";
-            //myfile.close();
 
         }
     }

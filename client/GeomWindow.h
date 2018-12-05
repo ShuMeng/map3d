@@ -89,6 +89,7 @@ public:
 
 
 
+
     int OpenMenu(QPoint point);
     void MenuEvent(int menu_data);
 
@@ -107,6 +108,7 @@ public:
     void HandleMenu(int menu_data);
     bool MenuGlobalOptions(int menu);
 
+    void UpdateNearestPoints(Mesh_Info* recordingmesh,Mesh_Info* sourcemesh);
 
 
     void addMesh(Mesh_Info* mesh);
@@ -166,7 +168,11 @@ public:
 
     //void CalculateMFSValue(Mesh_Info *recordingmesh, Mesh_Info * curmesh);
 
+
+
     void DrawMFS(Mesh_Info * curmesh);
+
+    void DrawPhase(Mesh_Info * curmesh);
 
 
     // how much to scale the node marks by
@@ -206,10 +212,6 @@ typedef struct _GdkEventKey GdkEventKey;
 void GeomWindowIdleFunc(void* data);
 void DrawSurf(Mesh_Info * curmesh);
 
-
-
-
-
 void DrawMesh(Mesh_Info * curmesh, bool secondary);
 void DrawCont(Mesh_Info * curmesh);
 void DrawFidCont(Mesh_Info * curmesh, Contour_Info *cont);
@@ -223,6 +225,8 @@ void DrawDot(float x, float y, float z, float size);
 void GeneratePick(PickInfo * pick);
 
 void FindNearestRecording(PickInfo * pick, Mesh_Info * recordingmesh);
+
+
 
 void DelTriangle(Mesh_Info * curmesh, int nodenum);
 void DelNode(Mesh_Info * curmesh, int nodenum);

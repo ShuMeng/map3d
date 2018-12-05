@@ -103,7 +103,7 @@ PickWindow::PickWindow(QWidget* parent, bool rms) : Map3dGLWidget(parent, (rms?R
 PickWindow* PickWindow::PickWindowCreate(int _width, int _height, int _x, int _y)
 {
 
-    std::cout<<"picking window crash test entering  PickWindowCreate  "<<std::endl;
+    //std::cout<<"picking window crash test entering  PickWindowCreate  "<<std::endl;
 
 
     if (map3d_info.numPickwins >= MAX_PICKS) {
@@ -128,10 +128,10 @@ PickWindow::~PickWindow()
 void PickWindow::initializeGL()
 {
 
-   std::cout<<"picking window crash test entering  initializeGL  "<<std::endl;
+    //std::cout<<"picking window crash test entering  initializeGL  "<<std::endl;
 
 
-   Map3dGLWidget::initializeGL();
+    Map3dGLWidget::initializeGL();
     axiscolor[0] = 0;
     axiscolor[1] = 0;
     axiscolor[2] = 0;
@@ -154,32 +154,32 @@ void PickWindow::initializeGL()
     glDepthMask(GL_FALSE);
     glSelectBuffer(2048, selectbufferPick);
 
-//    if (mesh && mesh->gpriv) {
+    //    if (mesh && mesh->gpriv) {
 
-//        std::cout<<"picking window crash test entering  initializeGL  if (mesh && mesh->gpriv)   "<<std::endl;
+    //        //std::cout<<"picking window crash test entering  initializeGL  if (mesh && mesh->gpriv)   "<<std::endl;
 
-//        GeomWindow* geom = (GeomWindow *) mesh->gpriv;
-//        bgcolor[0] = geom->bgcolor[0];
-//        bgcolor[1] = geom->bgcolor[1];
-//        bgcolor[2] = geom->bgcolor[2];
-//        bgcolor[3] = geom->bgcolor[3];
+    //        GeomWindow* geom = (GeomWindow *) mesh->gpriv;
+    //        bgcolor[0] = geom->bgcolor[0];
+    //        bgcolor[1] = geom->bgcolor[1];
+    //        bgcolor[2] = geom->bgcolor[2];
+    //        bgcolor[3] = geom->bgcolor[3];
 
-//        fgcolor[0] = geom->fgcolor[0];
-//        fgcolor[1] = geom->fgcolor[1];
-//        fgcolor[2] = geom->fgcolor[2];
-//        fgcolor[3] = geom->fgcolor[3];
+    //        fgcolor[0] = geom->fgcolor[0];
+    //        fgcolor[1] = geom->fgcolor[1];
+    //        fgcolor[2] = geom->fgcolor[2];
+    //        fgcolor[3] = geom->fgcolor[3];
 
-//        bgcolor[0] = bgcolor[1] = bgcolor[2] = bgcolor[3] = 1;
-//        fgcolor[0] = fgcolor[1] = fgcolor[2] = fgcolor[3] = 0;
+    //        bgcolor[0] = bgcolor[1] = bgcolor[2] = bgcolor[3] = 1;
+    //        fgcolor[0] = fgcolor[1] = fgcolor[2] = fgcolor[3] = 0;
 
-//    }
-//    else {
+    //    }
+    //    else {
 
-//        std::cout<<"picking window crash test entering  initializeGL  else   "<<std::endl;
+    //        //std::cout<<"picking window crash test entering  initializeGL  else   "<<std::endl;
 
-        bgcolor[0] = bgcolor[1] = bgcolor[2] = bgcolor[3] = 1;
-        fgcolor[0] = fgcolor[1] = fgcolor[2] = fgcolor[3] = 0;
-   // }
+    bgcolor[0] = bgcolor[1] = bgcolor[2] = bgcolor[3] = 1;
+    fgcolor[0] = fgcolor[1] = fgcolor[2] = fgcolor[3] = 0;
+    // }
 
 
 }
@@ -242,7 +242,7 @@ void PickWindow::paintGL()
 
 void PickWindow::enterEvent(QEvent*)
 {
-    std::cout<<"picking window crash test entering enterEvent   "<<std::endl;
+    //std::cout<<"picking window crash test entering enterEvent   "<<std::endl;
 
     if (rms) return;
     mesh->curpicknode = pick->node;
@@ -252,7 +252,7 @@ void PickWindow::enterEvent(QEvent*)
 void PickWindow::leaveEvent(QEvent*)
 {
 
-    std::cout<<"picking window crash test entering leaveEvent    "<<std::endl;
+    //std::cout<<"picking window crash test entering leaveEvent    "<<std::endl;
 
     if (rms) return;
     mesh->curpicknode = -1;
@@ -262,7 +262,7 @@ void PickWindow::leaveEvent(QEvent*)
 void PickWindow::mouseReleaseEvent(QMouseEvent* event)
 {
 
-    std::cout<<"picking window crash test entering mouseReleaseEvent    "<<std::endl;
+    //std::cout<<"picking window crash test entering mouseReleaseEvent    "<<std::endl;
 
     if (rms)
     {
@@ -301,7 +301,7 @@ void PickWindow::mouseReleaseEvent(QMouseEvent* event)
 // in here we hack the original values of event->x and event->y
 void PickWindow::mousePressEvent(QMouseEvent* event)
 {
-    std::cout<<"picking window crash test entering mousePressEvent    "<<std::endl;
+    //std::cout<<"picking window crash test entering mousePressEvent    "<<std::endl;
 
     if (rms)
     {
@@ -379,7 +379,7 @@ void PickWindow::RMSButtonRelease(QMouseEvent * event)
 void PickWindow::RMSButtonPress(QMouseEvent * event)
 {
 
-    std::cout<<"picking window crash test entering RMSButtonEvent    "<<std::endl;
+    //std::cout<<"picking window crash test entering RMSButtonEvent    "<<std::endl;
 
     state = 1;
 
@@ -432,7 +432,7 @@ void PickWindow::RMSButtonPress(QMouseEvent * event)
 
 void PickWindow::mouseMoveEvent(QMouseEvent* event)
 {
-    std::cout<<"picking window crash test entering mouseMoveEvent    "<<std::endl;
+    //std::cout<<"picking window crash test entering mouseMoveEvent    "<<std::endl;
 
     play_timer->stop();
 
@@ -538,7 +538,7 @@ void PickWindow::mouseMoveEvent(QMouseEvent* event)
 void PickWindow::RMSMotion(QMouseEvent* event)
 {
 
-    std::cout<<"picking window crash test entering RMSMotion   "<<std::endl;
+    //std::cout<<"picking window crash test entering RMSMotion   "<<std::endl;
 
     if(!mesh)
         return;
@@ -606,7 +606,7 @@ void PickWindow::RMSMotion(QMouseEvent* event)
 
 void PickWindow::keyReleaseEvent(QKeyEvent* event)
 {
-    std::cout<<"picking window crash test entering keyReleaseEvent    "<<std::endl;
+    //std::cout<<"picking window crash test entering keyReleaseEvent    "<<std::endl;
 
     if (rms) return;
     GeomWindow *gpriv = mesh->gpriv;
@@ -618,7 +618,7 @@ void PickWindow::keyReleaseEvent(QKeyEvent* event)
 void PickWindow::keyPressEvent(QKeyEvent* event)
 {
 
-    std::cout<<"picking window crash test entering keyPressEvent    "<<std::endl;
+    //std::cout<<"picking window crash test entering keyPressEvent    "<<std::endl;
 
     if (rms) return;
 
@@ -664,7 +664,7 @@ void PickWindow::DrawNode()
 {
 
 
-    std::cout<<"picking window crash test entering DrawNode   "<<std::endl;
+    //std::cout<<"picking window crash test entering DrawNode   "<<std::endl;
 
     int loop;
     float a, b;
@@ -877,8 +877,6 @@ void PickWindow::DrawNode()
         toRender = "";
 
 
-
-
         if (data->forwardvals[data->framenum][pick->node]!=0){
             toRender = "Forward(Y) Value: " + QString::number(data->forwardvals[data->framenum][pick->node], 'g', 2);
         }
@@ -887,6 +885,15 @@ void PickWindow::DrawNode()
 
         renderString3f(pos[0], pos[1]-24, pos[2], mesh->gpriv->med_font, toRender);
         toRender = "";
+
+
+
+        if ((mesh->geom->surfnum>1)&&(!shownearestrecording)&&(pick->nearestDis!=0)){
+            toRender = "Closest Dis: " + QString::number(pick->nearestDis, 'g', 2);
+        }
+
+        pos[0] = width() - getFontWidth(mesh->gpriv->med_font, toRender) - 2;
+        renderString3f(pos[0], 3+12, pos[2], mesh->gpriv->med_font, toRender);
 
 
 
@@ -908,8 +915,10 @@ void PickWindow::DrawNode()
 
         if (mesh->geom->channels)
             //fix channel printing
-            toRender = "Node# " + QString::number(pick->node + 1) +
-                    " (Ch " + QString::number(mesh->geom->channels[pick->node] + 1) + ")";
+            //            toRender = "Node# " + QString::number(pick->node + 1) +
+            //                    " (Ch " + QString::number(mesh->geom->channels[pick->node] + 1) + ")";
+            toRender = "Node# " + QString::number(pick->node + 1);
+
         else
             toRender = "Node# " + QString::number(pick->node + 1);
 
@@ -923,6 +932,13 @@ void PickWindow::DrawNode()
 
         pos[0] = width() - getFontWidth(mesh->gpriv->med_font, toRender) - 2;
         renderString3f(pos[0], pos[1], pos[2], mesh->gpriv->med_font, toRender);
+
+
+
+
+
+
+
 
         /* axis labels */
         pos[0] = width()/2 - getFontWidth(mesh->gpriv->med_font, "Time")/2;
@@ -977,7 +993,7 @@ void PickWindow::DrawNode()
     if (data) {
 
 
-        std::cout<<"picking window crash test if(data)   "<<std::endl;
+        //std::cout<<"picking window crash test if(data)   "<<std::endl;
 
 
         // this is a lambda because of all the dumb little variables we need
@@ -1024,7 +1040,7 @@ void PickWindow::DrawNode()
                     glColor3f(graphcolor[5], graphcolor[0], graphcolor[0]);
                     glVertex3f(left * width() + d * counter, data->inversevals[loop][pick->node] * a + b, 0);
                 }
-             }
+            }
 
             glEnd();
 
@@ -1039,7 +1055,7 @@ void PickWindow::DrawNode()
                 {
                     glColor3f(graphcolor[5], graphcolor[5], graphcolor[0]);
                     glVertex3f(left * width() + d * counter, data->forwardvals[loop][pick->node] * a + b, 0);
-                    //std::cout<<loop  <<"forwardvals[loop][pick->node]= "<<data->forwardvals[loop][pick->node]<<std::endl;
+                    ////std::cout<<loop  <<"forwardvals[loop][pick->node]= "<<data->forwardvals[loop][pick->node]<<std::endl;
                 }
             }
 
@@ -1167,7 +1183,7 @@ void PickWindow::DrawNode()
 void PickWindow::getFrameRange(int subseriesNum, int& left, int& right)
 {
 
-    std::cout<<"picking window crash test entering getFrameRange    "<<std::endl;
+    //std::cout<<"picking window crash test entering getFrameRange    "<<std::endl;
 
     if (mesh->data == NULL)
     {
@@ -1192,7 +1208,7 @@ void PickWindow::getFrameRange(int subseriesNum, int& left, int& right)
 
 void PickWindow::SetStyle(int x)
 {
-    std::cout<<"picking window crash test entering SetStyle    "<<std::endl;
+    //std::cout<<"picking window crash test entering SetStyle    "<<std::endl;
 
     switch (x) {
     case 0:                      //full size
@@ -1216,7 +1232,7 @@ void PickWindow::SetStyle(int x)
 void PickWindow::SetNearestElec(int x)
 {
 
-    std::cout<<"picking window crash test entering SetNearestElec    "<<std::endl;
+    //std::cout<<"picking window crash test entering SetNearestElec    "<<std::endl;
     switch (x) {
     case 0:
         shownearestrecording = 0;
@@ -1234,7 +1250,7 @@ void PickWindow::SetNearestElec(int x)
 
 int PickWindow::OpenMenu(QPoint point)
 {
-    std::cout<<"picking window crash test entering OpenMenu   "<<std::endl;
+    //std::cout<<"picking window crash test entering OpenMenu   "<<std::endl;
 
 
     QMenu menu(this);
@@ -1262,7 +1278,7 @@ int PickWindow::OpenMenu(QPoint point)
 void PickWindow::MenuEvent(int menu_data)
 {
 
-    std::cout<<"picking window crash test entering MenuEvent   "<<std::endl;
+    //std::cout<<"picking window crash test entering MenuEvent   "<<std::endl;
 
     switch (menu_data) {
     case axes_color:

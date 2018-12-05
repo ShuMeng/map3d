@@ -1080,12 +1080,12 @@ void GeomWindow::mouseReleaseEvent(QMouseEvent * event)
             }
 
             Mesh_Info* mesh = meshes[row];
+
             DrawTransparentPoints fixedinverse;
             Mesh_Info *recordingmesh = 0;
             recordingmesh=meshes[row-1];
-            Map3d_Geom *recordinggeom = 0;
-            recordinggeom = recordingmesh->geom;
             fixedinverse.CalculateMFSTransformMatrix(recordingmesh,mesh);
+            fixedinverse.CalculatePhaseMap(mesh);
         }
     }
 

@@ -90,8 +90,9 @@ extern int unlock_datacloud_surfnum[];
 extern int unlock_forward_surfnum[];
 extern int unlock_MFS_surfnum[];
 extern int unlock_Indeflate_surfnum[];
-//extern float **recording_all_pts;
+
 extern bool plot_nearest_electrode;
+extern int unlock_Phase_surfnum[30];
 
 //Engine *ep = engOpen(NULL);
 
@@ -206,7 +207,7 @@ void GeomWindow::paintGL()
         else{
             curmesh->mark_all_sphere=0;
             curmesh->mark_all_sphere_value=0;
-            DrawForwardOnly(curmesh);
+            // DrawForwardOnly(curmesh);
         }
 
 
@@ -284,8 +285,15 @@ void GeomWindow::paintGL()
                     glBlendFunc (GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
                 }
 
-                if (curgeom->surfnum==unlock_MFS_surfnum[curgeom->surfnum-1])
+                if ((curgeom->surfnum==unlock_MFS_surfnum[curgeom->surfnum-1])&&(curgeom->surfnum!=unlock_Phase_surfnum[curgeom->surfnum-1]))
                     DrawMFS(curmesh);
+                else if (curgeom->surfnum==unlock_Phase_surfnum[curgeom->surfnum-1])
+                {
+                   // map3d_info.scale_scope = GLOBAL_GLOBAL_USER_DEFINE;
+                   // map3d_info.global_user_potmax=3.14;
+                   // map3d_info.global_user_potmin=-3.14;
+                    DrawPhase(curmesh);
+                }
                 else
                     DrawSurf(curmesh);
                 glDisable(GL_POLYGON_OFFSET_FILL);
@@ -510,6 +518,8 @@ void GeomWindow::DrawElectrodesOnly(Mesh_Info * curmesh) //show the catheters on
 void GeomWindow::DrawForwardOnly(Mesh_Info * curmesh) //show the catheters only in nodes, not in surface ,shu meng
 {
 
+
+
     int length = 0, loop = 0;
     float min = 0, max = 0, value = 0;
     float mNowI[16];
@@ -610,6 +620,8 @@ void GeomWindow::DrawForwardOnly(Mesh_Info * curmesh) //show the catheters only 
 void GeomWindow::CalculateForwardValue(Mesh_Info * curmesh, Mesh_Info * sourcemesh)
 {
 
+
+    //std::cout<<"enter CalculateForwardValue  "<<std::endl;
 
 
     int length1 = 0, loop1 = 0, length2 =0, loop2=0, loop_idx=0;
@@ -2694,10 +2706,251 @@ void GeomWindow::DrawMFS(Mesh_Info * curmesh)
 
 
 
+void GeomWindow::DrawPhase(Mesh_Info * curmesh)
+{
+
+    int curframe = 0;
+    int length = 0;
+    int index;
+    int loop2, loop3;
+    float a = 1, b = 0;
+    float mean = 0;
+    float **modelpts = 0;
+    float **ptnormals = 0;
+    float **fcnormals = 0;
+    Map3d_Geom *curgeom = 0;
+    Surf_Data *cursurf = 0;
+    Contour_Info *curcont = 0;
+
+
+    curgeom = curmesh->geom;
+    cursurf = curmesh->data;
+
+    modelpts = curgeom->points[curgeom->geom_index];
+    ptnormals = curgeom->ptnormals;
+    fcnormals = curgeom->fcnormals;
+
+    if (cursurf) {
+        curframe = cursurf->framenum;
+        curcont = curmesh->cont;
+        //if (cursurf->minmaxframes)
+        //compute_mapping(curmesh, cursurf, a, b);
+    }
+
+    if ((int)a == INT_MAX || (int)b == INT_MAX) //change by BJW to avoid crash
+        a = b = 0;                  //when there is no data
+
+    float potmin, potmax;
+    cursurf->get_minmax(potmin, potmax);
+
+    if (map3d_info.scale_mapping == SYMMETRIC) {
+        if (fabs(potmax) > fabs(potmin))
+            potmin = -potmax;
+        else
+            potmax = -potmin;
+    }
+    if (map3d_info.scale_mapping == SEPARATE) {
+        if (potmax < 0)
+            potmax = 0;
+        if (potmin > 0)
+            potmin = 0;
+    }
+
+    unsigned char color[3];
+
+    //band shading
+    if (curmesh->shadingmodel == SHADE_BANDED && curcont) {
+
+        if (curmesh->lighting)
+            glShadeModel(GL_SMOOTH);
+
+        float** pts;
+        float** normals;
+        float Phaseval;
+
+        for (loop2 = 0; loop2 < curcont->numbandpolys; loop2++) {
+
+            length = curcont->bandpolys[loop2].numpts;
+            pts = curcont->bandpolys[loop2].nodes;
+            normals = curcont->bandpolys[loop2].normals;
+
+            int contnum = curcont->bandpolys[loop2].bandcol;
+            float* conts = curcont->isolevels;
+            if (contnum == -1)
+                Phaseval = potmin;
+            else if (contnum == curcont->numlevels - 1)
+                Phaseval = potmax;
+            else {
+                Phaseval = conts[contnum] + (conts[contnum+1]-conts[contnum])*(contnum+1)/(curcont->numlevels);
+            }
+            getContColor(Phaseval, potmin, potmax, curmesh->cmap, color, curmesh->invert);
+            glColor4ub(color[0],color[1],color[2],color[3]);
+            glBegin(GL_POLYGON);
+            for (loop3 = 0; loop3 < length; loop3++) {
+                glNormal3fv(normals[loop3]);
+                glVertex3fv(pts[loop3]);
+            }
+            glNormal3fv(normals[0]);
+            glVertex3fv(pts[0]);
+            glEnd();
+        }
+
+        if (curmesh->lighting)
+            glEnable(GL_LIGHTING);
+    }
+
+    bool use_textures = false;
+    // gouraud shading
+    if (curmesh->shadingmodel == SHADE_GOURAUD) {
+
+        glShadeModel(GL_SMOOTH);
+        use_textures = curmesh->gouraudstyle == SHADE_TEXTURED &&
+                (curmesh->cmap->type == RAINBOW_CMAP || curmesh->cmap->type == JET_CMAP);
+
+        if (use_textures) {
+            glColor4f(1,1,1,0.4);
+            glEnable(GL_TEXTURE_1D);
+            if (curmesh->cmap->type == RAINBOW_CMAP)
+                UseTexture(map3d_info.rainbow_texture);
+            else
+                UseTexture(map3d_info.jet_texture);
+        }
+    }
+    else if (curmesh->shadingmodel == SHADE_FLAT){
+        glShadeModel(GL_FLAT);
+        glColor4ub(color[0],color[1],color[2],color[3]);
+    }
+
+    if (curgeom->elementsize == 3 && curmesh->shadingmodel != SHADE_BANDED) {
+        length = curgeom->numelements;
+        glBegin(GL_TRIANGLES);
+
+        float Phaseval;
+        for (loop2 = 0; loop2 < length; loop2++) {
+            if (curmesh->shadingmodel == SHADE_GOURAUD) {
+                // avoid repeating code 3 times
+                for (loop3 = 0; loop3 < 3; loop3++) {
+                    index = curgeom->elements[loop2][loop3];
+                    if (cursurf->Phasevals[curframe][index] == UNUSED_DATA)
+                        break;
+                }
+                if (loop3 < 3)
+                    // we have "UNUSED_DATA" on a node in this triangle, so don't draw here
+                    continue;
+                for (loop3 = 0; loop3 < 3; loop3++) {
+                    index = curgeom->elements[loop2][loop3];
+                    Phaseval = cursurf->Phasevals[curframe][index];
+
+                    if (use_textures)
+                    {
+                        glColor4f(1,1,1,0.4);
+                        glEnable(GL_TEXTURE_1D);
+                        if (curmesh->cmap->type == RAINBOW_CMAP){
+                            UseTexture(map3d_info.rainbow_texture);
+                        }
+                        else
+                            UseTexture(map3d_info.jet_texture);
+                        glTexCoord1f(getContNormalizedValue(Phaseval, potmin, potmax, curmesh->invert));
+                    }
+
+                    else {
+                        getContColor(Phaseval, potmin, potmax, curmesh->cmap, color, curmesh->invert);
+
+                        glColor4ub(color[0],color[1],color[2],color[3]);
+                    }
+                    glNormal3fv(ptnormals[index]);
+                    glVertex3fv(modelpts[index]);
+                }
+            }
+            else {
+                mean = 0;
+                for (loop3 = 0; loop3 < 3; loop3++) {
+                    index = curgeom->elements[loop2][loop3];
+                    Phaseval = cursurf->Phasevals[curframe][index];
+                    if (Phaseval == UNUSED_DATA)
+                        break;
+                    mean += Phaseval;
+                }
+                if (loop3 < 3)
+                    // we have "UNUSED_DATA" on a node in this triangle, so don't draw here
+                    continue;
+
+                mean /= 3;
+                getContColor(mean, potmin, potmax, curmesh->cmap, color, curmesh->invert);
+                glColor4ub(color[0],color[1],color[2],color[3]);
+                glNormal3fv(fcnormals[loop2]);
+
+                for (loop3 = 0; loop3 < 3; loop3++) {
+                    index = curgeom->elements[loop2][loop3];
+                    glVertex3fv(modelpts[index]);
+                }
+            }
+        }
+        glEnd();
+    }
+    else if (curgeom->elementsize == 4 && curmesh->shadingmodel != SHADE_BANDED) {
+
+        length = curgeom->numelements;
+        glBegin(GL_TRIANGLES);
+        for (loop2 = 0; loop2 < length; loop2++) {
+            // this inner loop is a hack to avoid repeating the
+            // following index/glNormal/glVertex code 4 times
+            for (loop3 = 0; loop3 < 4; loop3++) {
+                int idx1, idx2, idx3;
+                if (loop3 == 3) {
+                    idx1 = 1;
+                    idx2 = 3;
+                    idx3 = 2;
+                }
+                else if (loop3 == 2) {
+                    idx1 = 0;
+                    idx2 = loop3;
+                    idx3 = 1;
+                }
+                else {
+                    idx1 = 0;
+                    idx2 = loop3;
+                    idx3 = loop2 + 1;
+                }
+                if (curmesh->shadingmodel == SHADE_GOURAUD) {
+                    index = curgeom->elements[loop2][idx1];
+                    glNormal3fv(ptnormals[index]);
+                    glVertex3fv(modelpts[index]);
+                    index = curgeom->elements[loop2][idx2];
+                    glNormal3fv(ptnormals[index]);
+                    glVertex3fv(modelpts[index]);
+                    index = curgeom->elements[loop2][idx3];
+                    glNormal3fv(ptnormals[index]);
+                    glVertex3fv(modelpts[index]);
+                }
+                else {
+                    glNormal3fv(fcnormals[loop2]);
+                    glVertex3fv(modelpts[curgeom->elements[loop2][idx1]]);
+                    glVertex3fv(modelpts[curgeom->elements[loop2][idx2]]);
+                    glVertex3fv(modelpts[curgeom->elements[loop2][idx3]]);
+                }
+            }
+        }
+
+        glEnd();
+    }
+
+
+
+    glDisable(GL_TEXTURE_1D);
+#if SHOW_OPENGL_ERRORS
+    GLenum e = glGetError();
+    if (e)
+        printf("GeomWindow DrawSurf OpenGL Error: %s\n", gluErrorString(e));
+#endif
+}
+
+
+
 void GeomWindow::UpdateNearestPoints(Mesh_Info* recordingmesh,Mesh_Info* sourcemesh)
 {
 
-    std::cout<<"enter update nearest points  "<<std::endl;
+    // std::cout<<"enter update nearest points  "<<std::endl;
 
 
     int length1 = 0, loop1 = 0, length2 =0, loop2=0,  loop_idx_nearest=0,atria_num=0;
@@ -2873,7 +3126,7 @@ void GeomWindow::UpdateNearestPoints(Mesh_Info* recordingmesh,Mesh_Info* sourcem
 
 
                     sourcemesh->pickstack[i]->nearestDis =sqrt(x_diff*x_diff+y_diff*y_diff+z_diff*z_diff);
-                    std::cout<<"updated nearest distance  "<<sourcemesh->pickstack[i]->nearestDis<<std::endl;
+                    //std::cout<<"updated nearest distance  "<<sourcemesh->pickstack[i]->nearestDis<<std::endl;
                 }
             }
         }

@@ -95,6 +95,8 @@ float *RMSEvals;
 
 float **MFSvals;
 
+float **Phasevals;
+
 
   float *meanpotvals;           /* The mean potential over the surface at each time */
   float *rmspotvals;           /* The root mean square potential at each time */
@@ -111,6 +113,7 @@ bool user_datacloud;
 bool user_forward;
 
 bool user_MFS;
+bool user_Phase;
 
 bool user_fixmeshsize;
 float user_InDe_parameter;

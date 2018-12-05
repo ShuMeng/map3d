@@ -10,6 +10,10 @@ class QDoubleSpinBox;
 class QCheckBox;
 
 
+
+
+
+
 class DrawTransparentPoints : public QDialog, public Ui::DrawTransparentPoints
 {
     Q_OBJECT;
@@ -18,62 +22,67 @@ public:
     DrawTransparentPoints();
 
 public slots:
-  void on_applyButton_clicked ();
-  void on_cancelButton_clicked ();
-  void Transp_Points_Callback();
-  void Activation_Callback();
+    void on_applyButton_clicked ();
+    void on_cancelButton_clicked ();
+    void Transp_Points_Callback();
+    void Activation_Callback();
 
-  void CalculateMFSTransformMatrix(Mesh_Info * recordingmesh, Mesh_Info * curmesh);
+    void CalculateMFSTransformMatrix(Mesh_Info * recordingmesh, Mesh_Info * curmesh);
 
-
-  void CalculateActivation(Mesh_Info * curmesh);
-
-  bool checkArray1D(Surf_Data* data, float *matrixvals);
-  bool checkArray2D(Surf_Data* data,float **matrixvals);
-
-  void InDeflateMesh(Mesh_Info * curmesh);
-
-  void Recal_MFS_Callback();
-
-  void CalculateCC(Mesh_Info * curmesh);
-  void CalculateRMSE(Mesh_Info * curmesh);
-
-  void normalize1D(Surf_Data* data,float *matrixvals);
+    void CalculatePhaseMap(Mesh_Info * curmesh);
 
 
+    void CalculateActivation(Mesh_Info * curmesh);
 
-  float correlationCoefficient(double X[], double Y[], int n);
+    bool checkArray1D(Surf_Data* data, float *matrixvals);
+    bool checkArray2D(Surf_Data* data,float **matrixvals);
 
-  float rootmeansquareerror(double X[], double Y[], int n);
+    void InDeflateMesh(Mesh_Info * curmesh);
+
+    void InDeflateMesh_touching(Mesh_Info * curmesh,Mesh_Info * sourcemesh);
+    void Recal_MFS_Callback();
+
+    void CalculateCC(Mesh_Info * curmesh);
+    void CalculateRMSE(Mesh_Info * curmesh);
+
+    void normalize1D(Surf_Data* data,float *matrixvals);
+
+    float correlationCoefficient(double X[], double Y[], int n);
+
+    float rootmeansquareerror(double X[], double Y[], int n);
 
 private:
 
-  QList<bool> origFixedTranparent;
-  QList<bool> origPointsOnlyFix;
+    QList<bool> origFixedTranparent;
+    QList<bool> origPointsOnlyFix;
 
-  QList<bool> origForward;
-  QList<bool> origDatacloud;
-  QList<bool> origMFS;
-
-
-  QList<bool> origChangesize;
-  QList<double> origInDeflate;
+    QList<bool> origForward;
+    QList<bool> origDatacloud;
+    QList<bool> origMFS;
+    QList<bool> origPhase;
 
 
-  QList<Mesh_Info*> meshes;
 
-  // widgets
+    QList<bool> origChangesize;
+    QList<double> origInDeflate;
 
-  QList<QCheckBox*> fixedPointsOnlyBoxes;
-  QList<QCheckBox*> fixedTransparentBoxes;
-  QList<QCheckBox*> fixedDatacloudBoxes;
-  QList<QCheckBox*> fixedForwardBoxes;
-  QList<QCheckBox*> fixedMFSBoxes;
 
-  QList<QPushButton*> ActivationButton;
+    QList<Mesh_Info*> meshes;
 
-  QList<QCheckBox*> fixedSizeBoxes;
-  QList<QDoubleSpinBox*> InDeflateBoxes;
+    // widgets
+
+    QList<QCheckBox*> fixedPointsOnlyBoxes;
+    QList<QCheckBox*> fixedTransparentBoxes;
+    QList<QCheckBox*> fixedDatacloudBoxes;
+    QList<QCheckBox*> fixedForwardBoxes;
+    QList<QCheckBox*> fixedMFSBoxes;
+    QList<QCheckBox*> fixedPhaseBoxes;
+
+
+    QList<QPushButton*> ActivationButton;
+
+    QList<QCheckBox*> fixedSizeBoxes;
+    QList<QDoubleSpinBox*> InDeflateBoxes;
 
 
 
