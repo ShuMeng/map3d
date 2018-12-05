@@ -403,7 +403,7 @@ void DrawTransparentPoints::InDeflateMesh_touching(Mesh_Info * curmesh,Mesh_Info
 
     int  meshpoint_num =0;
     meshpoint_num = curgeom->numpts;
-    float** pts = curgeom->original_points[curgeom->geom_index];
+    float** ori_pts = curgeom->original_points[curgeom->geom_index];
 
 
     int atria_pts_num=0,atria_elem_num=0;
@@ -423,55 +423,58 @@ void DrawTransparentPoints::InDeflateMesh_touching(Mesh_Info * curmesh,Mesh_Info
 
     //    // this part is to rotate the catheter. if map3d_info.lockrotate==LOCK_OFF, only apply transform matrix to catheter
     //    // if map3d_info.lockrotate==LOCK_FULL, apply both transform matrix to catheter and atrium, corresponding matrix is different.
-    //    float** pts = curgeom->original_points[curgeom->geom_index];
-//        float** geom_temp_catheter_pts=0;
-//        float **rotated_catheter_pts = 0;
-//        rotated_catheter_pts= Alloc_fmatrix(curgeom->numpts, 3);
+        float** pts = 0;
+        float** geom_temp_catheter_pts=0;
+        float **rotated_catheter_pts = 0;
+        rotated_catheter_pts= Alloc_fmatrix(curgeom->numpts, 3);
 
-//        GeomWindow* priv_catheter = curmesh->gpriv;
-//        HMatrix mNow_catheter /*, original */ ;  // arcball rotation matrices
-//        Transforms *tran_catheter = curmesh->tran;
-//        //translation matrix in column-major
-//        float centerM_catheter[4][4] = {{1,0,0,0},{0,1,0,0},{0,0,1,0},
-//                                        {-priv_catheter->xcenter,-priv_catheter->ycenter,-priv_catheter->zcenter,1}};
-//        float invCenterM_catheter[4][4] = {{1,0,0,0},{0,1,0,0},{0,0,1,0},
-//                                           {priv_catheter->xcenter,priv_catheter->ycenter,priv_catheter->zcenter,1}};
-//        float translateM_catheter[4][4] = { {1, 0, 0, 0}, {0, 1, 0, 0}, {0, 0, 1, 0},
-//                                            {tran_catheter->tx, tran_catheter->ty, tran_catheter->tz, 1}
-//                                          };
-//        float temp_catheter[16];
-//        float product_catheter[16];
+        GeomWindow* priv_catheter = curmesh->gpriv;
+        HMatrix mNow_catheter /*, original */ ;  // arcball rotation matrices
+        Transforms *tran_catheter = curmesh->tran;
+        //translation matrix in column-major
+        float centerM_catheter[4][4] = {{1,0,0,0},{0,1,0,0},{0,0,1,0},
+                                        {-priv_catheter->xcenter,-priv_catheter->ycenter,-priv_catheter->zcenter,1}};
+        float invCenterM_catheter[4][4] = {{1,0,0,0},{0,1,0,0},{0,0,1,0},
+                                           {priv_catheter->xcenter,priv_catheter->ycenter,priv_catheter->zcenter,1}};
+        float translateM_catheter[4][4] = { {1, 0, 0, 0}, {0, 1, 0, 0}, {0, 0, 1, 0},
+                                            {tran_catheter->tx, tran_catheter->ty, tran_catheter->tz, 1}
+                                          };
+        float temp_catheter[16];
+        float product_catheter[16];
 
-//        //rotation matrix
-//        Ball_Value(&tran_catheter->rotate, mNow_catheter);
-//        // apply translation
-//        // translate recordingmesh's center to origin
-//        MultMatrix16x16((float *)translateM_catheter, (float *)invCenterM_catheter, (float*)product_catheter);
-//        // rotate
-//        MultMatrix16x16((float *)product_catheter, (float *)mNow_catheter, (float*)temp_catheter);
-//        // revert recordingmesh translation to origin
-//        MultMatrix16x16((float*)temp_catheter, (float *) centerM_catheter, (float*)product_catheter);
+        //rotation matrix
+        Ball_Value(&tran_catheter->rotate, mNow_catheter);
+        // apply translation
+        // translate recordingmesh's center to origin
+      //  MultMatrix16x16((float *)translateM_catheter, (float *)invCenterM_catheter, (float*)product_catheter);
+        // rotate
+        MultMatrix16x16((float *)product_catheter, (float *)mNow_catheter, (float*)temp_catheter);
+        // revert recordingmesh translation to origin
+        MultMatrix16x16((float*)temp_catheter, (float *) centerM_catheter, (float*)product_catheter);
 
 
 
-//        for (int loop1 = 0; loop1 < meshpoint_num; loop1++)
-//        {
+        for (int loop1 = 0; loop1 < meshpoint_num; loop1++)
+        {
 
-//            float rhs_catheter[4];
-//            float result_catheter[4];
-//            rhs_catheter[0] = pts[loop1][0];
-//            rhs_catheter[1] = pts[loop1][1];
-//            rhs_catheter[2] = pts[loop1][2];
-//            rhs_catheter[3] = 1;
+            float rhs_catheter[4];
+            float result_catheter[4];
+            rhs_catheter[0] = ori_pts[loop1][0];
+            rhs_catheter[1] = ori_pts[loop1][1];
+            rhs_catheter[2] = ori_pts[loop1][2];
+            rhs_catheter[3] = 1;
 
-//            MultMatrix16x4(product_catheter, rhs_catheter, result_catheter);
+            MultMatrix16x4(product_catheter, rhs_catheter, result_catheter);
 
-//            rotated_catheter_pts[loop1][0] = result_catheter[0];
-//            rotated_catheter_pts[loop1][1] = result_catheter[1];
-//            rotated_catheter_pts[loop1][2] = result_catheter[2];
-//        }
+            rotated_catheter_pts[loop1][0] = result_catheter[0];
+            rotated_catheter_pts[loop1][1] = result_catheter[1];
+            rotated_catheter_pts[loop1][2] = result_catheter[2];
+        }
 
-//        geom_temp_catheter_pts=rotated_catheter_pts;
+        geom_temp_catheter_pts=rotated_catheter_pts;
+
+        pts=geom_temp_catheter_pts;
+
 
     //    //this part is to rotate the source surface (atrium).transform matrix is not applied if map3d_info.lockrotate==LOCK_OFF
 
@@ -616,7 +619,7 @@ void DrawTransparentPoints::InDeflateMesh_touching(Mesh_Info * curmesh,Mesh_Info
 
     engEvalString(ep_matrix, "addpath(genpath('/hpc_ntot/smen974/Map3d/MFS_Functions'))");
 
-   // engEvalString(ep_matrix, "mfsEGM=testest(atria_points,atria_elements,catheter_points,ori_catheter_points)");
+    engEvalString(ep_matrix, "mfsEGM=testest(atria_points,atria_elements,catheter_points,ori_catheter_points)");
 
     engEvalString(ep_matrix, "newpoints= find_touching_points_map3d(atria_points,atria_elements,catheter_points,ori_catheter_points)");
 

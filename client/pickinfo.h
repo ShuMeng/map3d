@@ -16,6 +16,7 @@ struct PickInfo
   bool rms;
   double depth;
   int nearestIdx;
+  float nearestDis;
 
 
 };

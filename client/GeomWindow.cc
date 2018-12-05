@@ -56,10 +56,6 @@
 
 #include <functional>
 
-#include <boost/foreach.hpp>
-#include <boost/range.hpp>     // begin(), end()
-#include <boost/tr1/tuple.hpp> // get<>, tuple<>, cout <<
-#define foreach BOOST_FOREACH
 
 extern Map3d_Info map3d_info;
 extern MainWindow *masterWindow;
@@ -84,7 +80,7 @@ using std::find;
 // made a little bigger
 GLuint selectbuffer[2048];
 
-float **recording_all_pts;
+
 bool plot_nearest_electrode;
 
 GeomWindow::GeomWindow(QWidget* parent) : Map3dGLWidget(parent, GEOMWINDOW, "Geometry Display",min_width, min_height)
@@ -466,6 +462,9 @@ bool GeomWindow::Pick(int meshnum, int x, int y, bool del /*= false*/ )
 
                 FindNearestRecording(pick,recordingmesh);
 
+
+                Broadcast(MAP3D_UPDATE);
+
             }
 
             /* don't change below*/
@@ -583,88 +582,10 @@ bool GeomWindow::Pick(int meshnum, int x, int y, bool del /*= false*/ )
 }
 
 
-void FindNearestRecording(PickInfo* pick, Mesh_Info* recordingmesh)
-{
-    // std::cout<< "enter FindNearestRecording"<<std::endl;
-
-    int length1 = 0, loop1 = 0, loop_idx_nearest=0, loop_frame=0;
-
-    float **modelpts = 0;
-    Mesh_Info* curmesh = pick->mesh;
-    Map3d_Geom* curgeom = 0;
-    Surf_Data* cursurf = 0;
-    curgeom = curmesh->geom;
-    cursurf = curmesh->data;
-    modelpts = curgeom->points[curgeom->geom_index];
-    //std::cout<< "modelpts" <<modelpts[pick->node][0]<<"   "<<modelpts[pick->node][1]<<"     "<<modelpts[pick->node][2]<<std::endl;
 
 
-    float **recordingpts=0;
-    Map3d_Geom *recordinggeom = 0;
-    Surf_Data *recordingsurf = 0;
-    recordinggeom = recordingmesh->geom;
-    recordingsurf = recordingmesh->data;
-    recordingpts = recordinggeom->points[recordinggeom->geom_index];
-    length1 = recordinggeom->numpts;
-
-    recording_all_pts= recordingpts;
-
-    // std::cout<< "recordingpts" <<recordingpts[0][0]<<"   "<<recordingpts[0][1]<<"     "<<recordingpts[0][2]<<std::endl;
-
-    vector<point_t> data_points;
-
-    for (loop1 = 0; loop1 < length1; loop1++)
-    {
-        coord_t x,y,z;
-        x = recordingpts[loop1][0];
-        y = recordingpts[loop1][1];
-        z = recordingpts[loop1][2];
-        data_points.push_back(tr1::make_tuple(x,y,z));
-    }
-
-    const size_t nneighbours = 1; // number of nearest neighbours to find
-
-    point_t points[nneighbours];
-
-    point_t point(modelpts[pick->node][0],modelpts[pick->node][1], modelpts[pick->node][2]);
-
-    less_distance nearer(point);
 
 
-    foreach (point_t& p, points)
-        for (loop1 = 0; loop1 < length1; loop1++)
-        {
-            point_t current_point(recordingpts[loop1][0],recordingpts[loop1][1],recordingpts[loop1][2]);
-            foreach (point_t& p, points)
-
-                if (nearer(current_point, p))
-                    std::swap(current_point, p);
-        }
-
-    sort(boost::begin(points), boost::end(points), nearer);
-    foreach (point_t p, points)
-    {
-        point_t nearestpoint(p);
-
-        for (loop_idx_nearest = 0; loop_idx_nearest< length1; loop_idx_nearest++)
-        {
-            if (nearestpoint == data_points[loop_idx_nearest])
-            {
-
-                pick->nearestIdx = loop_idx_nearest;
-
-                //cout<<"pick->nearestIdx "<<pick->nearestIdx<<std::endl;
-
-                for (loop_frame = 0; loop_frame <curmesh->data->numframes; loop_frame++)
-                {
-                    cursurf->nearestrecordingvals[loop_frame][pick->node]= recordingsurf->potvals[loop_frame][loop_idx_nearest];
-
-                    // cout<<"nearestrecordingvals "<<cursurf->nearestrecordingvals[loop_frame][pick->node]<<std::endl;
-                }
-            }
-        }
-    }
-}
 
 
 
@@ -1107,3 +1028,6 @@ float GeomWindow::fontScale()
 {
     return l2norm * vfov / height() / 29;
 }
+
+
+
