@@ -174,7 +174,7 @@ void GeomWindow::paintGL()
         else{
             curmesh->mark_all_sphere=0;
             curmesh->mark_all_sphere_value=0;
-            DrawElectrodesOnly(curmesh);
+
         }
 
 
@@ -207,16 +207,13 @@ void GeomWindow::paintGL()
         else{
             curmesh->mark_all_sphere=0;
             curmesh->mark_all_sphere_value=0;
-            // DrawForwardOnly(curmesh);
+
         }
 
 
         if (length>loop+1)
         {
-
-
-
-            if ((curgeom->surfnum==unlock_Indeflate_surfnum[curgeom->surfnum-1])||(curgeom->surfnum==unlock_electrode_surfnum[curgeom->surfnum-1])||(curgeom->surfnum==unlock_forward_surfnum[curgeom->surfnum-1]))
+         if ((curgeom->surfnum==unlock_Indeflate_surfnum[curgeom->surfnum-1])||(curgeom->surfnum==unlock_electrode_surfnum[curgeom->surfnum-1])||(curgeom->surfnum==unlock_forward_surfnum[curgeom->surfnum-1]))
             {
                 Mesh_Info *sourcemesh = 0;
                 sourcemesh=meshes[loop+1];
@@ -237,37 +234,6 @@ void GeomWindow::paintGL()
             DrawDatacloudOnly(curmesh);
         }
 
-
-        //       if (curgeom->surfnum==unlock_MFS_surfnum[curgeom->surfnum-1]){
-
-
-
-        //            if ((length>1) && (loop-1>=0))
-        //            {
-
-        //                recordingmesh=meshes[loop-1];
-        //                Map3d_Geom *recordinggeom = 0;
-        //                recordinggeom = recordingmesh->geom;
-        //                Surf_Data *recordingsurf = 0;
-        //                recordingsurf = recordingmesh->data;
-        //                CalculateMFSValue(recordingmesh,curmesh);
-
-        //            }
-
-        // std::cout<<"curgeom->surfnum "<< curgeom->surfnum<<std::endl;
-
-        //            std::cout<<"curgeom->surfnum-1 "<< curgeom->surfnum-1<<std::endl;
-
-        //            std::cout<<"unlock_MFS_surfnum[curgeom->surfnum-1] "<< unlock_MFS_surfnum[curgeom->surfnum-1]<<std::endl;
-
-
-        //            Surf_Data *cursurf = 0;
-        //            cursurf = curmesh->data;
-        //            cursurf-> inversevals =   cursurf->MFSvals;
-        //      }
-
-
-
         /* draw the color mapped surface */
         if (curmesh->shadingmodel != SHADE_NONE && curmesh->geom->points[curmesh->geom->geom_index] && !curmesh->shadefids &&
                 curmesh->data && curmesh->drawmesh != RENDER_MESH_ELTS && curmesh->drawmesh != RENDER_MESH_ELTS_CONN) {
@@ -276,7 +242,7 @@ void GeomWindow::paintGL()
             //            Map3d_Geom *curgeom = 0;
             //            curgeom = curmesh->geom;
 
-            if ((curgeom->surfnum!=unlock_electrode_surfnum[curgeom->surfnum-1])&& (curgeom->surfnum!= unlock_forward_surfnum[curgeom->surfnum-1]))
+            if ((curgeom->surfnum!=unlock_electrode_surfnum[curgeom->surfnum-1])&& (curgeom->surfnum!= unlock_forward_surfnum[curgeom->surfnum-1])&& (curgeom->surfnum!= unlock_Indeflate_surfnum[curgeom->surfnum-1]))
             {
                 if ((curgeom->surfnum==unlock_transparency_surfnum[curgeom->surfnum-1])&& (curmesh->transparent==1)){
 
@@ -289,9 +255,9 @@ void GeomWindow::paintGL()
                     DrawMFS(curmesh);
                 else if (curgeom->surfnum==unlock_Phase_surfnum[curgeom->surfnum-1])
                 {
-                   // map3d_info.scale_scope = GLOBAL_GLOBAL_USER_DEFINE;
-                   // map3d_info.global_user_potmax=3.14;
-                   // map3d_info.global_user_potmin=-3.14;
+                    // map3d_info.scale_scope = GLOBAL_GLOBAL_USER_DEFINE;
+                    // map3d_info.global_user_potmax=3.14;
+                    // map3d_info.global_user_potmin=-3.14;
                     DrawPhase(curmesh);
                 }
                 else
@@ -517,9 +483,6 @@ void GeomWindow::DrawElectrodesOnly(Mesh_Info * curmesh) //show the catheters on
 
 void GeomWindow::DrawForwardOnly(Mesh_Info * curmesh) //show the catheters only in nodes, not in surface ,shu meng
 {
-
-
-
     int length = 0, loop = 0;
     float min = 0, max = 0, value = 0;
     float mNowI[16];
@@ -590,10 +553,14 @@ void GeomWindow::DrawForwardOnly(Mesh_Info * curmesh) //show the catheters only 
             glVertex3f(modelpts[loop][0], modelpts[loop][1], modelpts[loop][2]);
             glEnd();
         }
+
+
+
+
         glPopMatrix();
         glPushMatrix();
     }
-
+   // std::cout<<"points in drawforward point 1  "<<"x-----"<<modelpts[7][0]<<" y-----"<<modelpts[7][1]<<" z-----"<<modelpts[7][2]<<std::endl;
 
     glDisable(GL_ALPHA_TEST);
     glDisable(GL_BLEND);
@@ -611,18 +578,10 @@ void GeomWindow::DrawForwardOnly(Mesh_Info * curmesh) //show the catheters only 
 
 
 
-
-
-
-
-
-
 void GeomWindow::CalculateForwardValue(Mesh_Info * curmesh, Mesh_Info * sourcemesh)
 {
 
-
-    //std::cout<<"enter CalculateForwardValue  "<<std::endl;
-
+      //std::cout<<"enter CalculateForwardValue  "<<std::endl;
 
     int length1 = 0, loop1 = 0, length2 =0, loop2=0, loop_idx=0;
 
@@ -763,17 +722,6 @@ void GeomWindow::CalculateForwardValue(Mesh_Info * curmesh, Mesh_Info * sourceme
     float **nearest_index = 0;
     nearest_index= Alloc_fmatrix(curgeom->numpts, 1);
 
-
-
-    //        string filename;
-    //        ofstream files;
-    //        stringstream a;
-    //        a << cursurf->framenum;
-    //        filename = "forward_64_" + a.str();
-    //        filename += ".txt";
-    //        files.open(filename.c_str(), ios::out);
-
-
     for (loop1 = 0; loop1 < length1; loop1++)
     {
         point_t point(geom_temp_forward_pts[loop1][0],geom_temp_forward_pts[loop1][1], geom_temp_forward_pts[loop1][2]);
@@ -799,17 +747,10 @@ void GeomWindow::CalculateForwardValue(Mesh_Info * curmesh, Mesh_Info * sourceme
             {
                 if (p == data_points[loop_idx])
                 {
-
-
                     for (int loop_frame = 0; loop_frame <sourcemesh->data->numframes; loop_frame++){
-
                         cursurf->forwardvals[loop_frame][loop1]= sourcesurf->datacloudvals[loop_frame][loop_idx];
                         nearest_index[loop1][0]=loop_idx;
-                        // cout<<"index "<<loop1<<"frame "<< cursurf->framenum<<" forward values   "<<cursurf->forwardvals[cursurf->framenum][loop1]<<std::endl;
-                        //                    cout<<loop_idx <<std::endl;
 
-                        //                    files << cursurf->forwardvals[cursurf->framenum][loop1] << " " ;
-                        //                    files << "\n";
                     }
                 }
             }

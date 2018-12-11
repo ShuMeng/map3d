@@ -868,7 +868,7 @@ void PickWindow::DrawNode()
         toRender = "";
 
         if (data->RMSEvals[pick->node]!=0){
-            toRender = "RMSE: " + QString::number(data->RMSEvals[pick->node], 'g', 2);
+            toRender = "nRMSE: " + QString::number(data->RMSEvals[pick->node], 'g', 2);
         }
 
         pos[0] = width() - getFontWidth(mesh->gpriv->med_font, toRender) - 2;

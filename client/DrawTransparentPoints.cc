@@ -318,7 +318,7 @@ void DrawTransparentPoints::Transp_Points_Callback()
                     // only change catheter size.
                     Mesh_Info *sourcemesh = 0;
                     sourcemesh=meshes[row+1];
-                    InDeflateMesh_touching(mesh,sourcemesh);
+                    InDeflateMesh(mesh);
                 }
                 else
                 {
@@ -351,7 +351,63 @@ void DrawTransparentPoints::InDeflateMesh(Mesh_Info * curmesh)
     int  meshpoint_num =0;
     meshpoint_num = curgeom->numpts;
 
-    float** pts = curgeom->original_points[curgeom->geom_index];
+    float** ori_pts = curgeom->original_points[curgeom->geom_index];
+
+
+    //    // this part is to rotate the catheter. if map3d_info.lockrotate==LOCK_OFF, only apply transform matrix to catheter
+    //    // if map3d_info.lockrotate==LOCK_FULL, apply both transform matrix to catheter and atrium, corresponding matrix is different.
+        float** pts = 0;
+        float** geom_temp_catheter_pts=0;
+        float **rotated_catheter_pts = 0;
+        rotated_catheter_pts= Alloc_fmatrix(curgeom->numpts, 3);
+
+        GeomWindow* priv_catheter = curmesh->gpriv;
+        HMatrix mNow_catheter /*, original */ ;  // arcball rotation matrices
+        Transforms *tran_catheter = curmesh->tran;
+        //translation matrix in column-major
+        float centerM_catheter[4][4] = {{1,0,0,0},{0,1,0,0},{0,0,1,0},
+                                        {-priv_catheter->xcenter,-priv_catheter->ycenter,-priv_catheter->zcenter,1}};
+        float invCenterM_catheter[4][4] = {{1,0,0,0},{0,1,0,0},{0,0,1,0},
+                                           {priv_catheter->xcenter,priv_catheter->ycenter,priv_catheter->zcenter,1}};
+        float translateM_catheter[4][4] = { {1, 0, 0, 0}, {0, 1, 0, 0}, {0, 0, 1, 0},
+                                            {tran_catheter->tx, tran_catheter->ty, tran_catheter->tz, 1}
+                                          };
+        float temp_catheter[16];
+        float product_catheter[16];
+
+        //rotation matrix
+        Ball_Value(&tran_catheter->rotate, mNow_catheter);
+        // apply translation
+        // translate recordingmesh's center to origin
+        MultMatrix16x16((float *)translateM_catheter, (float *)invCenterM_catheter, (float*)product_catheter);
+        // rotate
+        MultMatrix16x16((float *)product_catheter, (float *)mNow_catheter, (float*)temp_catheter);
+        // revert recordingmesh translation to origin
+        MultMatrix16x16((float*)temp_catheter, (float *) centerM_catheter, (float*)product_catheter);
+
+
+
+        for (int loop1 = 0; loop1 < meshpoint_num; loop1++)
+        {
+
+            float rhs_catheter[4];
+            float result_catheter[4];
+            rhs_catheter[0] = ori_pts[loop1][0];
+            rhs_catheter[1] = ori_pts[loop1][1];
+            rhs_catheter[2] = ori_pts[loop1][2];
+            rhs_catheter[3] = 1;
+
+            MultMatrix16x4(product_catheter, rhs_catheter, result_catheter);
+
+            rotated_catheter_pts[loop1][0] = result_catheter[0];
+            rotated_catheter_pts[loop1][1] = result_catheter[1];
+            rotated_catheter_pts[loop1][2] = result_catheter[2];
+        }
+
+        geom_temp_catheter_pts=rotated_catheter_pts;
+
+        pts=geom_temp_catheter_pts;
+
 
 
     double sum_x,sum_y,sum_z,center_x,center_y,center_z;
@@ -446,7 +502,7 @@ void DrawTransparentPoints::InDeflateMesh_touching(Mesh_Info * curmesh,Mesh_Info
         Ball_Value(&tran_catheter->rotate, mNow_catheter);
         // apply translation
         // translate recordingmesh's center to origin
-      //  MultMatrix16x16((float *)translateM_catheter, (float *)invCenterM_catheter, (float*)product_catheter);
+        MultMatrix16x16((float *)translateM_catheter, (float *)invCenterM_catheter, (float*)product_catheter);
         // rotate
         MultMatrix16x16((float *)product_catheter, (float *)mNow_catheter, (float*)temp_catheter);
         // revert recordingmesh translation to origin
@@ -528,6 +584,7 @@ void DrawTransparentPoints::InDeflateMesh_touching(Mesh_Info * curmesh,Mesh_Info
     //    }
     //    geom_temp_atria_pts=rotated_atria_pts;
 
+ std::cout<<"initial original mesh point 1  "<<"x-----"<<curgeom->original_points[curgeom->geom_index][7][0]<<" y-----"<<curgeom->original_points[curgeom->geom_index][7][1]<<" z-----"<<curgeom->original_points[curgeom->geom_index][7][2]<<std::endl;
 
 
     double sum_x,sum_y,sum_z,center_x,center_y,center_z;
@@ -546,7 +603,7 @@ void DrawTransparentPoints::InDeflateMesh_touching(Mesh_Info * curmesh,Mesh_Info
     std::cout<<"sum_x  "<<sum_x<<"    "<<"center_x   "<<center_x<<std::endl;
     std::cout<<"sum_y  "<<sum_y<<"    "<<"center_y   "<<center_y<<std::endl;
     std::cout<<"sum_z  "<<sum_z<<"    "<<"center_z   "<<center_z<<std::endl;
-    std::cout<<"---------------------------------------------------------------------------"<<std::endl;
+    std::cout<<"-----------------------------------------------------------------------------------------------------------------------------------------------------"<<std::endl;
 
     float **InDeflated_pts = 0;
     InDeflated_pts= Alloc_fmatrix(curgeom->numpts, 3);
@@ -575,6 +632,32 @@ void DrawTransparentPoints::InDeflateMesh_touching(Mesh_Info * curmesh,Mesh_Info
     }
 
 
+    double sum_x2,sum_y2,sum_z2,center_x2,center_y2,center_z2;
+
+    for (int i=0; i< meshpoint_num; i++)
+    {
+        sum_x2 += catehter_points[i][0];
+        sum_y2 += catehter_points[i][1];
+        sum_z2 += catehter_points[i][2];
+    }
+
+    center_x2 = (sum_x2)/meshpoint_num;
+    center_y2 = (sum_y2)/meshpoint_num;
+    center_z2 = (sum_z2)/meshpoint_num;
+
+    std::cout<<"transformed sum_x  "<<sum_x2<<"    "<<"center_x   "<<center_x2<<std::endl;
+    std::cout<<"transformed sum_y  "<<sum_y2<<"    "<<"center_y   "<<center_y2<<std::endl;
+    std::cout<<"transformed sum_z  "<<sum_z2<<"    "<<"center_z   "<<center_z2<<std::endl;
+    std::cout<<"-----------------------------------------------------------------------------------------------------------------------------------------------------"<<std::endl;
+
+
+
+
+   std::cout<<"original catheter point 1  "<<"x-----"<<ori_catheter_points[7][0]<<" y-----"<<ori_catheter_points[7][1]<<" z-----"<<ori_catheter_points[7][2]<<std::endl;
+   std::cout<<"in-deflated catheter point 1  "<<"x-----"<<catehter_points[7][0]<<" y-----"<<catehter_points[7][1]<<" z-----"<<catehter_points[7][2]<<std::endl;
+
+
+  // std::cout<<"initial mesh point 1  "<<"x-----"<<curgeom->points[curgeom->geom_index][0][0]<<" y-----"<<curgeom->points[curgeom->geom_index][0][1]<<" z-----"<<curgeom->points[curgeom->geom_index][0][2]<<std::endl;
 
     mxArray *catheter_points_matlab = mxCreateDoubleMatrix(3,meshpoint_num, mxREAL);
     memcpy(mxGetPr(catheter_points_matlab), catehter_points, meshpoint_num*3*sizeof(double));
@@ -619,7 +702,7 @@ void DrawTransparentPoints::InDeflateMesh_touching(Mesh_Info * curmesh,Mesh_Info
 
     engEvalString(ep_matrix, "addpath(genpath('/hpc_ntot/smen974/Map3d/MFS_Functions'))");
 
-    engEvalString(ep_matrix, "mfsEGM=testest(atria_points,atria_elements,catheter_points,ori_catheter_points)");
+   // engEvalString(ep_matrix, "mfsEGM=testest(atria_points,atria_elements,catheter_points,ori_catheter_points)");
 
     engEvalString(ep_matrix, "newpoints= find_touching_points_map3d(atria_points,atria_elements,catheter_points,ori_catheter_points)");
 
@@ -651,7 +734,11 @@ void DrawTransparentPoints::InDeflateMesh_touching(Mesh_Info * curmesh,Mesh_Info
     }
 
 
-    curgeom->points[curgeom->geom_index]=InDeflated_pts_final;
+   curgeom->points[curgeom->geom_index]=InDeflated_pts_final;
+
+
+    std::cout<<"curgeom->points[curgeom->geom_index] point 1  "<<"x-----"<<curgeom->points[curgeom->geom_index][7][0]<<" y-----"<<curgeom->points[curgeom->geom_index][7][1]<<" z-----"<<curgeom->points[curgeom->geom_index][7][2]<<std::endl;
+    std::cout<<"-----------------------------------------------------------------------------------------------------------------------------------------------------"<<std::endl;
 
 
 }
@@ -965,6 +1052,7 @@ void DrawTransparentPoints::CalculateRMSE(Mesh_Info * curmesh)
     meshpoint_num = curgeom->numpts;
     frame_num = curmesh->data->numframes;
     double inverse[frame_num],gold_standard[frame_num], RMSE[meshpoint_num];
+
     for (int i=0; i< meshpoint_num; i++)
     {
         for (int j=0; j< frame_num; j++)
@@ -974,12 +1062,17 @@ void DrawTransparentPoints::CalculateRMSE(Mesh_Info * curmesh)
         }
 
         float rmse = rootmeansquareerror(inverse, gold_standard, frame_num);
-        RMSE[i]=rmse;
-        //  std::cout<< "RMSE value is "<<RMSE[i]<<std::endl;
-        cursurf->RMSEvals[i] =RMSE[i];
+
+
+        float max = *std::max_element(gold_standard,gold_standard+frame_num);
+        float min = *std::min_element(gold_standard,gold_standard+frame_num);
+
+        RMSE[i]=rmse/(max-min);
+
+         cursurf->RMSEvals[i] =RMSE[i];
+
+         std::cout<< "RMSE value is  "<<i<<"---------"<< cursurf->RMSEvals[i]<<std::endl;
     }
-
-
 
 }
 
@@ -1302,13 +1395,13 @@ void DrawTransparentPoints::CalculateMFSTransformMatrix(Mesh_Info * recordingmes
 
 
 
-    //    string filename;
-    //    ofstream files;
-    //    stringstream a;
-    //    a << recordingmesh->data->user_InDe_parameter;
-    //    filename = "inverse_130_" + a.str();
-    //    filename += ".txt";
-    //    files.open(filename.c_str(), ios::out);
+//        string filename;
+//        ofstream files;
+//        stringstream a;
+//        a << 10*recordingmesh->data->user_InDe_parameter;
+//        filename = "inverse_128_" + a.str();
+//        filename += ".txt";
+//        files.open(filename.c_str(), ios::out);
 
 
 
@@ -1321,8 +1414,8 @@ void DrawTransparentPoints::CalculateMFSTransformMatrix(Mesh_Info * recordingmes
         {
             cursurf->MFSvals[j][i] =mfsEGM[i+j*atria_num];
 
-            //            files << cursurf->MFSvals[j][i];
-            //            files << "\n";
+//                        files << cursurf->MFSvals[j][i];
+//                        files << "\n";
 
         }
     }
