@@ -17,6 +17,7 @@
 #include "ActivationLegendWindow.h"
 #include "GeomWindow.h"
 
+
 #include "ActivationMapWindow.h"
 #include "CCMapWindow.h"
 #include "RMSEMapWindow.h"
@@ -45,6 +46,7 @@ using namespace std;
 #include <sstream>
 
 extern Map3d_Info map3d_info;
+
 
 
 int unlock_transparency_surfnum[30];
@@ -318,7 +320,7 @@ void DrawTransparentPoints::Transp_Points_Callback()
                     // only change catheter size.
                     Mesh_Info *sourcemesh = 0;
                     sourcemesh=meshes[row+1];
-                    InDeflateMesh(mesh);
+                    InDeflateMesh_touching(mesh,sourcemesh);
                 }
                 else
                 {
@@ -363,6 +365,7 @@ void DrawTransparentPoints::InDeflateMesh(Mesh_Info * curmesh)
 
         GeomWindow* priv_catheter = curmesh->gpriv;
         HMatrix mNow_catheter /*, original */ ;  // arcball rotation matrices
+
         Transforms *tran_catheter = curmesh->tran;
         //translation matrix in column-major
         float centerM_catheter[4][4] = {{1,0,0,0},{0,1,0,0},{0,0,1,0},
@@ -408,6 +411,7 @@ void DrawTransparentPoints::InDeflateMesh(Mesh_Info * curmesh)
 
         pts=geom_temp_catheter_pts;
 
+        curgeom->original_points[curgeom->geom_index]=rotated_catheter_pts;
 
 
     double sum_x,sum_y,sum_z,center_x,center_y,center_z;
@@ -437,9 +441,9 @@ void DrawTransparentPoints::InDeflateMesh(Mesh_Info * curmesh)
         InDeflated_pts[j][1] = pts[j][1]+(curmesh->data->user_InDe_parameter-1)*(pts[j][1]-center_y);
         InDeflated_pts[j][2] = pts[j][2]+(curmesh->data->user_InDe_parameter-1)*(pts[j][2]-center_z);
     }
+
+    curmesh->tran->reset();
     curgeom->points[curgeom->geom_index]=InDeflated_pts;
-
-
 
 }
 
@@ -462,8 +466,8 @@ void DrawTransparentPoints::InDeflateMesh_touching(Mesh_Info * curmesh,Mesh_Info
     float** ori_pts = curgeom->original_points[curgeom->geom_index];
 
 
-    int atria_pts_num=0,atria_elem_num=0;
-    float **atriapts;
+    int atria_pts_num=0,atria_elem_num=0,atria_datacloud_pts_num=0;
+    float **atriapts,**atriadatacloud;
     long **atriaelement;
     Map3d_Geom *sourcegeom = 0;
     Surf_Data *sourcesurf = 0;
@@ -473,9 +477,8 @@ void DrawTransparentPoints::InDeflateMesh_touching(Mesh_Info * curmesh,Mesh_Info
     atriapts = sourcegeom->points[sourcegeom->geom_index];
     atriaelement = sourcegeom->elements;
     atria_elem_num=sourcegeom->numelements;
-
-
-
+    atria_datacloud_pts_num=sourcegeom->numdatacloud;
+    atriadatacloud = sourcegeom->datacloud[sourcegeom->geom_index];
 
     //    // this part is to rotate the catheter. if map3d_info.lockrotate==LOCK_OFF, only apply transform matrix to catheter
     //    // if map3d_info.lockrotate==LOCK_FULL, apply both transform matrix to catheter and atrium, corresponding matrix is different.
@@ -531,60 +534,121 @@ void DrawTransparentPoints::InDeflateMesh_touching(Mesh_Info * curmesh,Mesh_Info
 
         pts=geom_temp_catheter_pts;
 
+        curgeom->original_points[curgeom->geom_index]=rotated_catheter_pts;
 
-    //    //this part is to rotate the source surface (atrium).transform matrix is not applied if map3d_info.lockrotate==LOCK_OFF
+        //this part is to rotate the source surface (atrium).transform matrix is not applied if map3d_info.lockrotate==LOCK_OFF
 
-    //    float** pts_atria = sourcegeom->original_points[sourcegeom->geom_index];
-    //    float** geom_temp_atria_pts=pts_atria;
-    //    float **rotated_atria_pts = 0;
-    //    rotated_atria_pts= Alloc_fmatrix(sourcegeom->numpts, 3);
-
-
-    //    GeomWindow* priv_atria = sourcemesh->gpriv;
-    //    HMatrix mNow_atria /*, original */ ;  // arcball rotation matrices
-    //    Transforms *tran_atria = sourcemesh->tran;
-    //    //translation matrix in column-major
-    //    float centerM_atria[4][4] = {{1,0,0,0},{0,1,0,0},{0,0,1,0},
-    //                                 {-priv_atria->xcenter,-priv_atria->ycenter,-priv_atria->zcenter,1}};
-    //    float invCenterM_atria[4][4] = {{1,0,0,0},{0,1,0,0},{0,0,1,0},
-    //                                    {priv_atria->xcenter,priv_atria->ycenter,priv_atria->zcenter,1}};
-    //    float translateM_atria[4][4] = { {1, 0, 0, 0}, {0, 1, 0, 0}, {0, 0, 1, 0},
-    //                                     {tran_atria->tx, tran_atria->ty, tran_atria->tz, 1}
-    //                                   };
-    //    float temp_atria[16];
-    //    float product_atria[16];
-
-    //    //rotation matrix
-    //    Ball_Value(&tran_atria->rotate, mNow_atria);
-    //    // apply translation
-    //    // translate sourcemesh's center to origin
-    //    MultMatrix16x16((float *)translateM_atria, (float *)invCenterM_atria, (float*)product_atria);
-    //    // rotate
-    //    MultMatrix16x16((float *)product_atria, (float *)mNow_atria, (float*)temp_atria);
-    //    // revert sourcemesh translation to origin
-    //    MultMatrix16x16((float*)temp_atria, (float *) centerM_atria, (float*)product_atria);
+        float** pts_atria = sourcegeom->points[sourcegeom->geom_index];
+        float** geom_temp_atria_pts=pts_atria;
+        float **rotated_atria_pts = 0;
+        rotated_atria_pts= Alloc_fmatrix(sourcegeom->numpts, 3);
 
 
-    //    for (int loop2 = 0; loop2 < atria_pts_num; loop2++)
-    //    {
+        GeomWindow* priv_atria = sourcemesh->gpriv;
+        HMatrix mNow_atria /*, original */ ;  // arcball rotation matrices
+        Transforms *tran_atria = sourcemesh->tran;
+        //translation matrix in column-major
+        float centerM_atria[4][4] = {{1,0,0,0},{0,1,0,0},{0,0,1,0},
+                                     {-priv_atria->xcenter,-priv_atria->ycenter,-priv_atria->zcenter,1}};
+        float invCenterM_atria[4][4] = {{1,0,0,0},{0,1,0,0},{0,0,1,0},
+                                        {priv_atria->xcenter,priv_atria->ycenter,priv_atria->zcenter,1}};
+        float translateM_atria[4][4] = { {1, 0, 0, 0}, {0, 1, 0, 0}, {0, 0, 1, 0},
+                                         {tran_atria->tx, tran_atria->ty, tran_atria->tz, 1}
+                                       };
+        float temp_atria[16];
+        float product_atria[16];
 
-    //        float rhs_atria[4];
-    //        float result_atria[4];
-    //        rhs_atria[0] = pts_atria[loop2][0];
-    //        rhs_atria[1] = pts_atria[loop2][1];
-    //        rhs_atria[2] = pts_atria[loop2][2];
-    //        rhs_atria[3] = 1;
+        //rotation matrix
+        Ball_Value(&tran_atria->rotate, mNow_atria);
+        // apply translation
+        // translate sourcemesh's center to origin
+        MultMatrix16x16((float *)translateM_atria, (float *)invCenterM_atria, (float*)product_atria);
+        // rotate
+        MultMatrix16x16((float *)product_atria, (float *)mNow_atria, (float*)temp_atria);
+        // revert sourcemesh translation to origin
+        MultMatrix16x16((float*)temp_atria, (float *) centerM_atria, (float*)product_atria);
 
-    //        MultMatrix16x4(product_atria, rhs_atria, result_atria);
 
-    //        rotated_atria_pts[loop2][0] = result_atria[0];
-    //        rotated_atria_pts[loop2][1] = result_atria[1];
-    //        rotated_atria_pts[loop2][2] = result_atria[2];
+        for (int loop2 = 0; loop2 < atria_pts_num; loop2++)
+        {
 
-    //    }
-    //    geom_temp_atria_pts=rotated_atria_pts;
+            float rhs_atria[4];
+            float result_atria[4];
+            rhs_atria[0] = pts_atria[loop2][0];
+            rhs_atria[1] = pts_atria[loop2][1];
+            rhs_atria[2] = pts_atria[loop2][2];
+            rhs_atria[3] = 1;
 
- std::cout<<"initial original mesh point 1  "<<"x-----"<<curgeom->original_points[curgeom->geom_index][7][0]<<" y-----"<<curgeom->original_points[curgeom->geom_index][7][1]<<" z-----"<<curgeom->original_points[curgeom->geom_index][7][2]<<std::endl;
+            MultMatrix16x4(product_atria, rhs_atria, result_atria);
+
+            rotated_atria_pts[loop2][0] = result_atria[0];
+            rotated_atria_pts[loop2][1] = result_atria[1];
+            rotated_atria_pts[loop2][2] = result_atria[2];
+
+        }
+        geom_temp_atria_pts=rotated_atria_pts;
+
+
+        sourcegeom->points[sourcegeom->geom_index]=rotated_atria_pts;
+
+
+
+       //rotate the datacloud
+
+
+        float** pts_atria_datacloud = sourcegeom->datacloud[sourcegeom->geom_index];
+                float** geom_temp_atria_datacloud_pts=pts_atria_datacloud;
+                float **rotated_atria_datacloud_pts = 0;
+                rotated_atria_datacloud_pts= Alloc_fmatrix(sourcegeom->numdatacloud, 3);
+
+
+                GeomWindow* priv_atria_datacloud = sourcemesh->gpriv;
+                HMatrix mNow_atria_datacloud /*, original */ ;  // arcball rotation matrices
+                Transforms *tran_atria_datacloud = sourcemesh->tran;
+                //translation matrix in column-major
+                float centerM_atria_datacloud[4][4] = {{1,0,0,0},{0,1,0,0},{0,0,1,0},
+                                             {-priv_atria_datacloud->xcenter,-priv_atria_datacloud->ycenter,-priv_atria_datacloud->zcenter,1}};
+                float invCenterM_atria_datacloud[4][4] = {{1,0,0,0},{0,1,0,0},{0,0,1,0},
+                                                {priv_atria_datacloud->xcenter,priv_atria_datacloud->ycenter,priv_atria_datacloud->zcenter,1}};
+                float translateM_atria_datacloud[4][4] = { {1, 0, 0, 0}, {0, 1, 0, 0}, {0, 0, 1, 0},
+                                                 {tran_atria_datacloud->tx, tran_atria_datacloud->ty, tran_atria_datacloud->tz, 1}
+                                               };
+                float temp_atria_datacloud[16];
+                float product_atria_datacloud[16];
+
+                //rotation matrix
+                Ball_Value(&tran_atria_datacloud->rotate, mNow_atria_datacloud);
+                // apply translation
+                // translate sourcemesh's center to origin
+                MultMatrix16x16((float *)translateM_atria_datacloud, (float *)invCenterM_atria_datacloud, (float*)product_atria_datacloud);
+                // rotate
+                MultMatrix16x16((float *)product_atria_datacloud, (float *)mNow_atria_datacloud, (float*)temp_atria_datacloud);
+                // revert sourcemesh translation to origin
+                MultMatrix16x16((float*)temp_atria_datacloud, (float *) centerM_atria_datacloud, (float*)product_atria_datacloud);
+
+
+                for (int loop2 = 0; loop2 < atria_datacloud_pts_num; loop2++)
+                {
+
+                    float rhs_atria_datacloud[4];
+                    float result_atria_datacloud[4];
+                    rhs_atria_datacloud[0] = pts_atria_datacloud[loop2][0];
+                    rhs_atria_datacloud[1] = pts_atria_datacloud[loop2][1];
+                    rhs_atria_datacloud[2] = pts_atria_datacloud[loop2][2];
+                    rhs_atria_datacloud[3] = 1;
+
+                    MultMatrix16x4(product_atria_datacloud, rhs_atria_datacloud, result_atria_datacloud);
+
+                    rotated_atria_datacloud_pts[loop2][0] = result_atria_datacloud[0];
+                    rotated_atria_datacloud_pts[loop2][1] = result_atria_datacloud[1];
+                    rotated_atria_datacloud_pts[loop2][2] = result_atria_datacloud[2];
+
+                }
+
+
+        sourcegeom->datacloud[sourcegeom->geom_index]=rotated_atria_datacloud_pts;
+
+// std::cout<<"initial original mesh point 1  "<<"x-----"<<curgeom->original_points[curgeom->geom_index][7][0]<<" y-----"<<curgeom->original_points[curgeom->geom_index][7][1]<<" z-----"<<curgeom->original_points[curgeom->geom_index][7][2]<<std::endl;
 
 
     double sum_x,sum_y,sum_z,center_x,center_y,center_z;
@@ -600,10 +664,10 @@ void DrawTransparentPoints::InDeflateMesh_touching(Mesh_Info * curmesh,Mesh_Info
     center_y = (sum_y)/meshpoint_num;
     center_z = (sum_z)/meshpoint_num;
 
-    std::cout<<"sum_x  "<<sum_x<<"    "<<"center_x   "<<center_x<<std::endl;
-    std::cout<<"sum_y  "<<sum_y<<"    "<<"center_y   "<<center_y<<std::endl;
-    std::cout<<"sum_z  "<<sum_z<<"    "<<"center_z   "<<center_z<<std::endl;
-    std::cout<<"-----------------------------------------------------------------------------------------------------------------------------------------------------"<<std::endl;
+//    std::cout<<"sum_x  "<<sum_x<<"    "<<"center_x   "<<center_x<<std::endl;
+//    std::cout<<"sum_y  "<<sum_y<<"    "<<"center_y   "<<center_y<<std::endl;
+//    std::cout<<"sum_z  "<<sum_z<<"    "<<"center_z   "<<center_z<<std::endl;
+//    std::cout<<"-----------------------------------------------------------------------------------------------------------------------------------------------------"<<std::endl;
 
     float **InDeflated_pts = 0;
     InDeflated_pts= Alloc_fmatrix(curgeom->numpts, 3);
@@ -632,29 +696,8 @@ void DrawTransparentPoints::InDeflateMesh_touching(Mesh_Info * curmesh,Mesh_Info
     }
 
 
-    double sum_x2,sum_y2,sum_z2,center_x2,center_y2,center_z2;
-
-    for (int i=0; i< meshpoint_num; i++)
-    {
-        sum_x2 += catehter_points[i][0];
-        sum_y2 += catehter_points[i][1];
-        sum_z2 += catehter_points[i][2];
-    }
-
-    center_x2 = (sum_x2)/meshpoint_num;
-    center_y2 = (sum_y2)/meshpoint_num;
-    center_z2 = (sum_z2)/meshpoint_num;
-
-    std::cout<<"transformed sum_x  "<<sum_x2<<"    "<<"center_x   "<<center_x2<<std::endl;
-    std::cout<<"transformed sum_y  "<<sum_y2<<"    "<<"center_y   "<<center_y2<<std::endl;
-    std::cout<<"transformed sum_z  "<<sum_z2<<"    "<<"center_z   "<<center_z2<<std::endl;
-    std::cout<<"-----------------------------------------------------------------------------------------------------------------------------------------------------"<<std::endl;
-
-
-
-
-   std::cout<<"original catheter point 1  "<<"x-----"<<ori_catheter_points[7][0]<<" y-----"<<ori_catheter_points[7][1]<<" z-----"<<ori_catheter_points[7][2]<<std::endl;
-   std::cout<<"in-deflated catheter point 1  "<<"x-----"<<catehter_points[7][0]<<" y-----"<<catehter_points[7][1]<<" z-----"<<catehter_points[7][2]<<std::endl;
+//   std::cout<<"original catheter point 1  "<<"x-----"<<ori_catheter_points[7][0]<<" y-----"<<ori_catheter_points[7][1]<<" z-----"<<ori_catheter_points[7][2]<<std::endl;
+//   std::cout<<"in-deflated catheter point 1  "<<"x-----"<<catehter_points[7][0]<<" y-----"<<catehter_points[7][1]<<" z-----"<<catehter_points[7][2]<<std::endl;
 
 
   // std::cout<<"initial mesh point 1  "<<"x-----"<<curgeom->points[curgeom->geom_index][0][0]<<" y-----"<<curgeom->points[curgeom->geom_index][0][1]<<" z-----"<<curgeom->points[curgeom->geom_index][0][2]<<std::endl;
@@ -668,16 +711,13 @@ void DrawTransparentPoints::InDeflateMesh_touching(Mesh_Info * curmesh,Mesh_Info
     memcpy(mxGetPr(ori_catheter_points_matlab), ori_catheter_points, meshpoint_num*3*sizeof(double));
     engPutVariable(ep_matrix, "ori_catheter_points",ori_catheter_points_matlab);
 
-
-
-
     double atria_points[atria_pts_num][3];
 
     for (int i=0; i< atria_pts_num; i++)
     {
-        atria_points[i][0]= atriapts[i][0];
-        atria_points[i][1]= atriapts[i][1];
-        atria_points[i][2]= atriapts[i][2];
+        atria_points[i][0]= geom_temp_atria_pts[i][0];
+        atria_points[i][1]= geom_temp_atria_pts[i][1];
+        atria_points[i][2]= geom_temp_atria_pts[i][2];
 
     }
 
@@ -733,7 +773,8 @@ void DrawTransparentPoints::InDeflateMesh_touching(Mesh_Info * curmesh,Mesh_Info
         InDeflated_pts_final[j][2] = final_points[j][2];
     }
 
-
+   curmesh->tran->reset();
+   sourcemesh->tran->reset();
    curgeom->points[curgeom->geom_index]=InDeflated_pts_final;
 
 
@@ -1033,10 +1074,7 @@ void DrawTransparentPoints::CalculateCC(Mesh_Info * curmesh)
         CC[i]=corr;
         //std::cout<< "CC value is "<<CC[i]<<std::endl;
         cursurf->CCvals[i] =CC[i];
-
     }
-
-
 }
 
 
@@ -1071,7 +1109,7 @@ void DrawTransparentPoints::CalculateRMSE(Mesh_Info * curmesh)
 
          cursurf->RMSEvals[i] =RMSE[i];
 
-         std::cout<< "RMSE value is  "<<i<<"---------"<< cursurf->RMSEvals[i]<<std::endl;
+        // std::cout<< "RMSE value is  "<<i<<"---------"<< cursurf->RMSEvals[i]<<std::endl;
     }
 
 }
@@ -1385,6 +1423,8 @@ void DrawTransparentPoints::CalculateMFSTransformMatrix(Mesh_Info * recordingmes
     engPutVariable(ep_matrix, "a_ele_3",atria_e3_matlab);
 
 
+
+
     engEvalString(ep_matrix, "addpath(genpath('/hpc_ntot/smen974/Map3d/MFS_Functions'))");
     engEvalString(ep_matrix, "mfsEGM=solve_MFS(c_x,c_y,c_z,c_ele_1,c_ele_2,c_ele_3,a_x,a_y,a_z,a_ele_1,a_ele_2,a_ele_3, catheter_potential)");
 
@@ -1395,13 +1435,13 @@ void DrawTransparentPoints::CalculateMFSTransformMatrix(Mesh_Info * recordingmes
 
 
 
-//        string filename;
-//        ofstream files;
-//        stringstream a;
-//        a << 10*recordingmesh->data->user_InDe_parameter;
-//        filename = "inverse_128_" + a.str();
-//        filename += ".txt";
-//        files.open(filename.c_str(), ios::out);
+        string filename;
+        ofstream files;
+        stringstream a;
+        a << 10*recordingmesh->data->user_InDe_parameter;
+        filename = "inverse_66_" + a.str();
+        filename += ".txt";
+        files.open(filename.c_str(), ios::out);
 
 
 
@@ -1414,8 +1454,8 @@ void DrawTransparentPoints::CalculateMFSTransformMatrix(Mesh_Info * recordingmes
         {
             cursurf->MFSvals[j][i] =mfsEGM[i+j*atria_num];
 
-//                        files << cursurf->MFSvals[j][i];
-//                        files << "\n";
+                        files << cursurf->MFSvals[j][i];
+                        files << "\n";
 
         }
     }
