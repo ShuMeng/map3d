@@ -53,6 +53,8 @@ public:
 
   void SetNearestElec(int x);
 
+ void SetIndividualRange(int x);
+
   // gets the frame range for specified subseries.  Entire series if subseriesNum < 0
   void getFrameRange(int subseriesNum, int& left, int& right);
 

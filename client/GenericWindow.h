@@ -48,6 +48,7 @@ public:
   char showinfotext;            /* show window content information */
 
 char shownearestrecording; /*show closest electrogram recording */
+char showIndividualPotentialRange;/*set individual potential range */
 
   int button;                   /* the current mouse button */
   int state;                    /* the current mouse button state */

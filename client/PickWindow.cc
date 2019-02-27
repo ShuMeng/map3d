@@ -77,7 +77,7 @@ static const int default_height = 144;
 
 GLuint selectbufferPick[2048];
 
-enum pickmenu { axes_color, graph_color, full_screen, graph_width_menu, toggle_subseries_mode, draw_nearest_electrogram};
+enum pickmenu { axes_color, graph_color, full_screen, graph_width_menu, toggle_subseries_mode, draw_nearest_electrogram,individual_potential_range};
 
 
 PickWindow::PickWindow(QWidget* parent) : Map3dGLWidget(parent)
@@ -662,8 +662,6 @@ bool PickWindow::MatrixOnlyContainZero(Surf_Data* data,float **matrixvals)
 
 void PickWindow::DrawNode()
 {
-
-
     //std::cout<<"picking window crash test entering DrawNode   "<<std::endl;
 
     int loop;
@@ -697,11 +695,26 @@ void PickWindow::DrawNode()
     }
     else if (data){
 
-        if ( MatrixOnlyContainZero(data,data->potvals)==0)
+        if (( MatrixOnlyContainZero(data,data->potvals)==0)&&(showIndividualPotentialRange))
 
         {
             max = map3d_info.global_potmax;
             min = map3d_info.global_potmin;
+        }
+        else if ((!showIndividualPotentialRange)&& (( MatrixOnlyContainZero(data,data->forwardvals)==0) || (MatrixOnlyContainZero(data,data->potvals)==0)))
+        {
+            for (loop = 0; loop <data->numframes; loop++) {
+                        if ((data->potvals[loop][pick->node] < min)&&(data->potvals[loop][pick->node] < data->inversevals[loop][pick->node]))
+                            min = data->potvals[loop][pick->node];
+                        if ((data->potvals[loop][pick->node] > max)&&(data->potvals[loop][pick->node] > data->inversevals[loop][pick->node]))
+                            max = data->potvals[loop][pick->node];
+
+                        if ((data->inversevals[loop][pick->node] < min)&&(data->potvals[loop][pick->node] > data->inversevals[loop][pick->node]))
+                            min = data->inversevals[loop][pick->node];
+                        if ((data->inversevals[loop][pick->node] > max)&&(data->potvals[loop][pick->node] < data->inversevals[loop][pick->node]))
+                            max = data->inversevals[loop][pick->node];
+            }
+
         }
 
 
@@ -1232,27 +1245,35 @@ void PickWindow::SetStyle(int x)
 void PickWindow::SetNearestElec(int x)
 {
 
-    //std::cout<<"picking window crash test entering SetNearestElec    "<<std::endl;
     switch (x) {
     case 0:
         shownearestrecording = 0;
-
         break;
 
     case 1:
         shownearestrecording = 1;
-
-        break;
+       break;
     }
 }
 
 
+void PickWindow::SetIndividualRange(int x)
+{
+
+    switch (x) {
+    case 0:
+        showIndividualPotentialRange = 0;
+        break;
+
+    case 1:
+        showIndividualPotentialRange = 1;
+       break;
+    }
+}
+
 
 int PickWindow::OpenMenu(QPoint point)
 {
-    //std::cout<<"picking window crash test entering OpenMenu   "<<std::endl;
-
-
     QMenu menu(this);
     menu.addAction("Axes Color")->setData(axes_color);
     menu.addAction("Graph Color")->setData(graph_color);
@@ -1264,8 +1285,13 @@ int PickWindow::OpenMenu(QPoint point)
     QAction* subseriesModeAction = menu.addAction("Toggle Subseries Mode"); subseriesModeAction->setData(toggle_subseries_mode);
     subseriesModeAction->setCheckable(true); subseriesModeAction->setChecked(map3d_info.subseries_mode);
 
-    QAction* shownearRcdAction = menu.addAction("Hide nearest recording drawing"); shownearRcdAction->setData(draw_nearest_electrogram);
+    QAction* shownearRcdAction = menu.addAction("Show nearest recording drawing"); shownearRcdAction->setData(draw_nearest_electrogram);
     shownearRcdAction->setCheckable(true); shownearRcdAction->setChecked(shownearestrecording == 0);
+
+
+    QAction* showIndividualRange = menu.addAction("Show individual potential range"); showIndividualRange->setData(individual_potential_range);
+    showIndividualRange->setCheckable(true);showIndividualRange->setChecked(showIndividualPotentialRange == 0);
+
 
     QAction* action = menu.exec(point);
     if (action)
@@ -1300,6 +1326,9 @@ void PickWindow::MenuEvent(int menu_data)
         break;
     case draw_nearest_electrogram:
         SetNearestElec(shownearestrecording ==1 ? 0 : 1);
+        break;
+    case individual_potential_range:
+        SetIndividualRange(showIndividualPotentialRange ==1 ? 0 : 1);
         break;
     }
     update();

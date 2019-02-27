@@ -1086,6 +1086,9 @@ void GeomWindow::mouseReleaseEvent(QMouseEvent * event)
             recordingmesh=meshes[row-1];
             fixedinverse.CalculateMFSTransformMatrix(recordingmesh,mesh);
             fixedinverse.CalculatePhaseMap(mesh);
+
+
+
         }
     }
 

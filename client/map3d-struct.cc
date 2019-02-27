@@ -165,6 +165,7 @@ void Init_Surf_Input(Surf_Input * s)
   s->showlocks = -1;
   s->size_ll = -1;
   s->shownearestrecording =-1;
+  s->showIndividualPotentialRange =-1;
 
   s->preloadedDataArray = NULL;
 }

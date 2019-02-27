@@ -133,6 +133,7 @@ struct Surf_Input
   long showlocks;
 
   long shownearestrecording;
+  long showIndividualPotentialRange;
 
   // node marking options
   long all_sphere, all_mark, all_value;

@@ -213,7 +213,7 @@ void GeomWindow::paintGL()
 
         if (length>loop+1)
         {
-         if ((curgeom->surfnum==unlock_Indeflate_surfnum[curgeom->surfnum-1])||(curgeom->surfnum==unlock_electrode_surfnum[curgeom->surfnum-1])||(curgeom->surfnum==unlock_forward_surfnum[curgeom->surfnum-1]))
+            if ((curgeom->surfnum==unlock_Indeflate_surfnum[curgeom->surfnum-1])||(curgeom->surfnum==unlock_electrode_surfnum[curgeom->surfnum-1])||(curgeom->surfnum==unlock_forward_surfnum[curgeom->surfnum-1]))
             {
                 Mesh_Info *sourcemesh = 0;
                 sourcemesh=meshes[loop+1];
@@ -560,7 +560,7 @@ void GeomWindow::DrawForwardOnly(Mesh_Info * curmesh) //show the catheters only 
         glPopMatrix();
         glPushMatrix();
     }
-   // std::cout<<"points in drawforward point 1  "<<"x-----"<<modelpts[7][0]<<" y-----"<<modelpts[7][1]<<" z-----"<<modelpts[7][2]<<std::endl;
+    // std::cout<<"points in drawforward point 1  "<<"x-----"<<modelpts[7][0]<<" y-----"<<modelpts[7][1]<<" z-----"<<modelpts[7][2]<<std::endl;
 
     glDisable(GL_ALPHA_TEST);
     glDisable(GL_BLEND);
@@ -581,7 +581,7 @@ void GeomWindow::DrawForwardOnly(Mesh_Info * curmesh) //show the catheters only 
 void GeomWindow::CalculateForwardValue(Mesh_Info * curmesh, Mesh_Info * sourcemesh)
 {
 
-      //std::cout<<"enter CalculateForwardValue  "<<std::endl;
+    //std::cout<<"enter CalculateForwardValue  "<<std::endl;
 
     int length1 = 0, loop1 = 0, length2 =0, loop2=0, loop_idx=0;
 
@@ -3108,7 +3108,7 @@ void GeomWindow::UpdateNearestPoints(Mesh_Info* recordingmesh,Mesh_Info* sourcem
 void FindNearestRecording(PickInfo* pick, Mesh_Info* recordingmesh)
 {
 
-    //  std::cout<< "enter FindNearestRecording in GeomWindowRepaint"<<std::endl;
+      std::cout<< "enter FindNearestRecording in GeomWindowRepaint"<<std::endl;
 
     int length1 = 0, loop1 = 0, loop_idx_nearest=0, loop_frame=0;
 
@@ -3174,17 +3174,25 @@ void FindNearestRecording(PickInfo* pick, Mesh_Info* recordingmesh)
             {
                 pick->nearestIdx = loop_idx_nearest;
 
-                //cout<<"pick->nearestIdx "<<pick->nearestIdx<<std::endl;
+
                 double x_diff=modelpts[pick->node][0]-recordingpts[loop_idx_nearest][0];
                 double y_diff=modelpts[pick->node][1]-recordingpts[loop_idx_nearest][1];
                 double z_diff=modelpts[pick->node][2]-recordingpts[loop_idx_nearest][2];
 
                 pick->nearestDis=sqrt(x_diff*x_diff+y_diff*y_diff+z_diff*z_diff);
 
+                cout<<"pick->nearestDis "<<pick->nearestDis<<std::endl;
+
                 for (loop_frame = 0; loop_frame <curmesh->data->numframes; loop_frame++)
                 {
-                    cursurf->nearestrecordingvals[loop_frame][pick->node]= recordingsurf->potvals[loop_frame][loop_idx_nearest];
-
+                    if (recordingsurf->potvals[loop_frame][loop_idx_nearest]!=0)
+                    {
+                        cursurf->nearestrecordingvals[loop_frame][pick->node]= recordingsurf->potvals[loop_frame][loop_idx_nearest];
+                    }
+                    else
+                    {
+                        cursurf->nearestrecordingvals[loop_frame][pick->node]= recordingsurf->forwardvals[loop_frame][loop_idx_nearest];
+                    }
 
                 }
             }

@@ -462,7 +462,6 @@ bool GeomWindow::Pick(int meshnum, int x, int y, bool del /*= false*/ )
 
                 FindNearestRecording(pick,recordingmesh);
 
-
                 Broadcast(MAP3D_UPDATE);
 
             }
