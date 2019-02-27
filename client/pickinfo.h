@@ -18,6 +18,8 @@ struct PickInfo
   int nearestIdx;
   float nearestDis;
 
+  float **nearestrecordingvals;
+
 
 };
 

@@ -3067,7 +3067,18 @@ void GeomWindow::UpdateNearestPoints(Mesh_Info* recordingmesh,Mesh_Info* sourcem
 
 
                     sourcemesh->pickstack[i]->nearestDis =sqrt(x_diff*x_diff+y_diff*y_diff+z_diff*z_diff);
-                    //std::cout<<"updated nearest distance  "<<sourcemesh->pickstack[i]->nearestDis<<std::endl;
+
+                    for (int loop_frame = 0; loop_frame <sourcemesh->data->numframes; loop_frame++)
+                    {
+                        if (recordingsurf->forwardvals[loop_frame][loop_idx_nearest]!=0)
+
+                        {
+                            sourcemesh->pickstack[i]->nearestrecordingvals[loop_frame][1]=recordingsurf->forwardvals[loop_frame][loop_idx_nearest];
+
+                        }
+
+                    }
+
                 }
             }
         }
@@ -3108,7 +3119,7 @@ void GeomWindow::UpdateNearestPoints(Mesh_Info* recordingmesh,Mesh_Info* sourcem
 void FindNearestRecording(PickInfo* pick, Mesh_Info* recordingmesh)
 {
 
-      std::cout<< "enter FindNearestRecording in GeomWindowRepaint"<<std::endl;
+    // std::cout<< "enter FindNearestRecording in GeomWindowRepaint"<<std::endl;
 
     int length1 = 0, loop1 = 0, loop_idx_nearest=0, loop_frame=0;
 
@@ -3181,17 +3192,21 @@ void FindNearestRecording(PickInfo* pick, Mesh_Info* recordingmesh)
 
                 pick->nearestDis=sqrt(x_diff*x_diff+y_diff*y_diff+z_diff*z_diff);
 
-                cout<<"pick->nearestDis "<<pick->nearestDis<<std::endl;
+                //cout<<"pick->nearestDis "<<pick->nearestDis<<std::endl;
+
+                pick->nearestrecordingvals=Alloc_fmatrix(curmesh->data->numframes, 1);
 
                 for (loop_frame = 0; loop_frame <curmesh->data->numframes; loop_frame++)
                 {
                     if (recordingsurf->potvals[loop_frame][loop_idx_nearest]!=0)
                     {
-                        cursurf->nearestrecordingvals[loop_frame][pick->node]= recordingsurf->potvals[loop_frame][loop_idx_nearest];
+                        pick->nearestrecordingvals[loop_frame][1]=recordingsurf->potvals[loop_frame][loop_idx_nearest];
+
                     }
                     else
                     {
-                        cursurf->nearestrecordingvals[loop_frame][pick->node]= recordingsurf->forwardvals[loop_frame][loop_idx_nearest];
+                        pick->nearestrecordingvals[loop_frame][1]=recordingsurf->forwardvals[loop_frame][loop_idx_nearest];
+
                     }
 
                 }

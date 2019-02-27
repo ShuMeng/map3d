@@ -684,6 +684,8 @@ void PickWindow::DrawNode()
     Surf_Data* data = mesh->data;
 
 
+
+
     /* Find the extrema of the time signal */
     if (data && rms) {
         for (loop = 0; loop < data->numframes; loop++) {
@@ -947,12 +949,6 @@ void PickWindow::DrawNode()
         renderString3f(pos[0], pos[1], pos[2], mesh->gpriv->med_font, toRender);
 
 
-
-
-
-
-
-
         /* axis labels */
         pos[0] = width()/2 - getFontWidth(mesh->gpriv->med_font, "Time")/2;
         pos[1] = height()/7.5f;
@@ -1081,10 +1077,11 @@ void PickWindow::DrawNode()
                 if (loop >= data->numframes)
                     break;
 
-                if ((mesh->geom->surfnum>1)&&(!shownearestrecording)&&(data->nearestrecordingvals[loop][pick->node]!=0))
+                if ((mesh->geom->surfnum>1)&&(!shownearestrecording)&&(pick->nearestrecordingvals[loop][1]!=0))
                 {
+
                     glColor3f(graphcolor[0], graphcolor[8], graphcolor[3]);
-                    glVertex3f(left * width() + d * counter, data->nearestrecordingvals[loop][pick->node] * a + b, 0);
+                    glVertex3f(left * width() + d * counter, pick->nearestrecordingvals[loop][1] * a + b, 0);
                 }
 
             }
